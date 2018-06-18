@@ -68,7 +68,7 @@
 ; help people new to these things.
 
 .alias ram_start $0000          ; start of installed 32 KiB of RAM
-.alias ram_end   $8000-1        ; end of installed RAM
+.alias ram_end   $7F00-1        ; end of installed RAM
 .alias zpage     ram_start      ; begin of Zero Page ($0000-$00ff)
 .alias stack0    $0100          ; begin of Return Stack ($0100-$01ff)
 .alias hist_buff ram_end-$03ff  ; begin of history buffers

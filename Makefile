@@ -23,3 +23,5 @@ taliforth-%.bin: platform-%.asm $(COMMON_SOURCES)
 # new words in the label listing
 WORDLIST.md: docs/WORDLIST.md
 	python3 tools/generate_wordlist.py > docs/WORDLIST.md
+
+sbc:	taliforth-sbc.bin
