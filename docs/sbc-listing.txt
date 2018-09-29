@@ -1,10 +1,10 @@
  8000  78        SEI  
  8001  D8        CLD  
- 8002  A9 B2     LDA  #$B2
+ 8002  A9 82     LDA  #$82
  8004  85 10     STA  $10
  8006  A9 F0     LDA  #$F0
  8008  85 11     STA  $11
- 800A  A9 AC     LDA  #$AC
+ 800A  A9 7C     LDA  #$7C
  800C  85 12     STA  $12
  800E  A9 F0     LDA  #$F0
  8010  85 13     STA  $13
@@ -5729,9 +5729,9 @@
  F002  00 00 00 00                                      |....            |
  F006  20 19 F0  JSR  $F019
  F009  A2 00     LDX  #$00
- F00B  BD DB F0  LDA  $F0DB, X
+ F00B  BD AB F0  LDA  $F0AB, X
  F00E  F0 06     BEQ  $F016
- F010  20 B2 F0  JSR  $F0B2
+ F010  20 82 F0  JSR  $F082
  F013  E8        INX  
  F014  80 F5     BRA  $F00B
  F016  4C 00 80  JMP  $8000
@@ -5770,70 +5770,51 @@
  F062  FA        PLX  
  F063  68        PLA  
  F064  40        RTI  
- F065  48        PHA  
- F066  DA        PHX  
- F067  A9 42     LDA  #$42
- F069  20 B2 F0  JSR  $F0B2
- F06C  A9 3A     LDA  #$3A
- F06E  20 B2 F0  JSR  $F0B2
- F071  20 3F F0  JSR  $F03F
- F074  18        CLC  
- F075  69 30     ADC  #$30
- F077  20 B2 F0  JSR  $F0B2
- F07A  A9 4E     LDA  #$4E
- F07C  20 B2 F0  JSR  $F0B2
- F07F  A9 3A     LDA  #$3A
- F081  20 B2 F0  JSR  $F0B2
- F084  AE FE 79  LDX  $79FE
- F087  BD 00 7A  LDA  $7A00, X
- F08A  20 B2 F0  JSR  $F0B2
- F08D  A9 0A     LDA  #$0A
- F08F  20 B2 F0  JSR  $F0B2
- F092  FA        PLX  
- F093  68        PLA  
- F094  60        RTS  
- F095  20 3F F0  JSR  $F03F
- F098  F0 10     BEQ  $F0AA
- F09A  C9 E0     CMP  #$E0
- F09C  B0 05     BCS  $F0A3
- F09E  A9 09     LDA  #$09
- F0A0  8D 82 7F  STA  $7F82
- F0A3  DA        PHX  
- F0A4  20 35 F0  JSR  $F035
- F0A7  FA        PLX  
- F0A8  38        SEC  
- F0A9  60        RTS  
- F0AA  18        CLC  
- F0AB  60        RTS  
- F0AC  20 95 F0  JSR  $F095
- F0AF  90 FB     BCC  $F0AC
- F0B1  60        RTS  
- F0B2  78        SEI  
- F0B3  48        PHA  
- F0B4  AD 81 7F  LDA  $7F81
- F0B7  48        PHA  
- F0B8  29 08     AND  #$08
- F0BA  F0 14     BEQ  $F0D0
- F0BC  DA        PHX  
- F0BD  AD 80 7F  LDA  $7F80
- F0C0  20 2B F0  JSR  $F02B
- F0C3  20 3F F0  JSR  $F03F
- F0C6  C9 F0     CMP  #$F0
- F0C8  90 05     BCC  $F0CF
- F0CA  A9 01     LDA  #$01
- F0CC  8D 82 7F  STA  $7F82
- F0CF  FA        PLX  
- F0D0  68        PLA  
- F0D1  29 10     AND  #$10
- F0D3  F0 DF     BEQ  $F0B4
- F0D5  68        PLA  
- F0D6  8D 80 7F  STA  $7F80
- F0D9  58        CLI  
- F0DA  60        RTS  
- F0DB  54 61 6C 69 20 46 6F 72 74 68 20 32 20 64 65 66  |Tali Forth 2 def|
- F0EB  61 75 6C 74 20 6B 65 72 6E 65 6C 20 66 6F 72 20  |ault kernel for |
- F0FB  53 61 6D 43 6F 27 73 20 53 42 43 20 28 32 30 31  |SamCo's SBC (201|
- F10B  38 2D 30 39 2D 32 36 29 0A 00 00 00 00 00 00 00  |8-09-26)........|
+ F065  20 3F F0  JSR  $F03F
+ F068  F0 10     BEQ  $F07A
+ F06A  C9 E0     CMP  #$E0
+ F06C  B0 05     BCS  $F073
+ F06E  A9 09     LDA  #$09
+ F070  8D 82 7F  STA  $7F82
+ F073  DA        PHX  
+ F074  20 35 F0  JSR  $F035
+ F077  FA        PLX  
+ F078  38        SEC  
+ F079  60        RTS  
+ F07A  18        CLC  
+ F07B  60        RTS  
+ F07C  20 65 F0  JSR  $F065
+ F07F  90 FB     BCC  $F07C
+ F081  60        RTS  
+ F082  78        SEI  
+ F083  48        PHA  
+ F084  AD 81 7F  LDA  $7F81
+ F087  48        PHA  
+ F088  29 08     AND  #$08
+ F08A  F0 14     BEQ  $F0A0
+ F08C  DA        PHX  
+ F08D  AD 80 7F  LDA  $7F80
+ F090  20 2B F0  JSR  $F02B
+ F093  20 3F F0  JSR  $F03F
+ F096  C9 F0     CMP  #$F0
+ F098  90 05     BCC  $F09F
+ F09A  A9 01     LDA  #$01
+ F09C  8D 82 7F  STA  $7F82
+ F09F  FA        PLX  
+ F0A0  68        PLA  
+ F0A1  29 10     AND  #$10
+ F0A3  F0 DF     BEQ  $F084
+ F0A5  68        PLA  
+ F0A6  8D 80 7F  STA  $7F80
+ F0A9  58        CLI  
+ F0AA  60        RTS  
+ F0AB  54 61 6C 69 20 46 6F 72 74 68 20 32 20 64 65 66  |Tali Forth 2 def|
+ F0BB  61 75 6C 74 20 6B 65 72 6E 65 6C 20 66 6F 72 20  |ault kernel for |
+ F0CB  53 61 6D 43 6F 27 73 20 53 42 43 20 28 32 30 31  |SamCo's SBC (201|
+ F0DB  38 2D 30 39 2D 32 36 29 0A 00 00 00 00 00 00 00  |8-09-26)........|
+ F0EB  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+ F0FB  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
+ F10B  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
  F11B  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
  F12B  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|
  F13B  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  |................|

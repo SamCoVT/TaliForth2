@@ -85,14 +85,6 @@ Init_ACIA:
         stz ACIA_WR_PTR
         ; Turn on interrupts.
         cli
-;; DEBUG:
-;debugging:     
-;        jsr kernel_getc
-;        jsr kernel_putc
-;        jsr kernel_putc
-;        jsr ACIA_DEBUG
-;        bra debugging 
-        
 	    rts
 
 ;; Helper routines for the ACIA buffer
@@ -147,33 +139,7 @@ SERVICE_ACIA_END:
         pla
         rti
 
-ACIA_DEBUG:    ; Print the status right out the serial port!  Used for debugging.
-        pha
-        phx
-        lda #$42 ; B
-        jsr Send_Char
-        lda #$3A ; :
-        jsr Send_Char
-        jsr ACIA_BUF_DIF
-        clc
-        adc #$30 ; 0
-        jsr Send_Char
 
-        lda #$4E ; N
-        jsr Send_Char
-        lda #$3A ; :
-        jsr Send_Char
-        ldx ACIA_RD_PTR
-        lda ACIA_BUFFER,X
-        jsr Send_Char
-
-        lda #AscLF
-        jsr Send_Char
-        plx
-        pla
-        rts
-        
-        
         ;; Get_Char - get a character from the serial port into A.
         ;; Set the carry flag if char is valid.
         ;; Return immediately with carry flag clear if no char available.
@@ -222,9 +188,14 @@ Send_Char:
 	    pha                         ;Save A (required for ehbasic)
 wait_tx:			            ; Wait for the TX buffer to be free.    
 	    lda ACIA_STATUS
-        pha
-        and #$08 ; Check for byte recieved
-        beq check_tx
+        
+        ; A byte may come in while we are trying to transmit.
+        ; Because we have disabled interrupts, and we've just read from
+        ; the status register (which clears an interrupt),
+        ; we might have to deal with it ourselves.
+        pha             ; Save the status for checking the TRDE bit later.
+        and #$08        ; Check for byte recieved
+        beq check_tx    ; No bye received, continue to check TRDE bit.
 
         ; A byte was recieved while we are trying to transmit.
         ; Process it and then go back to checking for TX ready.
@@ -240,9 +211,10 @@ wait_tx:			            ; Wait for the TX buffer to be free.
         lda #$01
         sta ACIA_COMMAND
 tx_keep_rts_active:    
-        plx
+        plx             ; Restore the ACIA_STATUS value to A.
 
-check_tx:       
+check_tx:
+        ; Check to see if we can transmit yet.
         pla
 	    and #$10
 	    beq wait_tx		            ; TRDE is not set - byte still being sent.
