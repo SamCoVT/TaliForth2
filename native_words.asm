@@ -162,6 +162,9 @@ xt_cold:
                 stz hist_buff+$280
                 stz hist_buff+$300
                 stz hist_buff+$380
+
+                ; Turn on interrupts for the ACIA
+                cli
                 
                 ; fall through to ABORT
 

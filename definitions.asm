@@ -72,6 +72,7 @@
 .alias zpage     ram_start      ; begin of Zero Page ($0000-$00ff)
 .alias stack0    $0100          ; begin of Return Stack ($0100-$01ff)
 .alias hist_buff ram_end-$03ff  ; begin of history buffers
+.alias acia_buff hist_buff-$102 ; begin of ACIA buffer memory                
 
 
 ; SOFT PHYSICAL ADDRESSES
@@ -85,7 +86,7 @@
 .alias bsize     $ff            ; size of input/output buffers
 .alias buffer0   stack0+$100    ; input buffer ($0200-$027f)
 .alias cp0       buffer0+bsize  ; Dictionary starts after last buffer
-.alias cp_end    hist_buff      ; Last RAM byte available for code
+.alias cp_end    acia_buff      ; Last RAM byte available for code
 .alias padoffset $ff            ; offset from CP to PAD (holds number strings)
 
 
