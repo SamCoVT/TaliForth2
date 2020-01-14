@@ -258,6 +258,7 @@ hex
 ' eeprom-blockread  BLOCK-READ-VECTOR !
 ' eeprom-blockwrite BLOCK-WRITE-VECTOR !
 
+
 decimal
     
 \ END 
