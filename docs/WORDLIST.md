@@ -44,7 +44,7 @@ RTS instruction at the end of each word.
 | BUFFER | `buffer` | ANS block | 48 | **auto** |
 | BUFFER_COLON | `buffer:` | ANS core ext | 6 | **auto** |
 | BUFFSTATUS | `buffstatus` | Tali block | 15 | **auto** |
-| BYE | `bye` | ANS tools ext | 1 | tested |
+| BYE | `bye` | ANS tools ext | 3 | tested |
 | C_COMMA | `c,` | ANS core | 10 | **auto** |
 | C_FETCH | `c@` | ANS core | 9 | **auto** |
 | C_STORE | `c!` | ANS core | 11 | **auto** |
@@ -78,7 +78,6 @@ RTS instruction at the end of each word.
 | DEFINITIONS | `definitions` | ANS search | 8 | **auto** |
 | DEPTH | `depth` | ANS core | 14 | **auto** |
 | DIGIT_QUESTION | `digit?` | Tali Forth | 52 | **auto** |
-| DISASM | `disasm` | Tali Forth | 6 | tested |
 | DNEGATE | `dnegate` | ANS double | 26 | **auto** |
 | QUESTION_DO | `?do` | ANS core ext | 96 | **auto** |
 | DO | `do` | ANS core | 90 | **auto** |
@@ -93,7 +92,6 @@ RTS instruction at the end of each word.
 | DROP | `drop` | ANS core | 5 | **auto** |
 | DUMP | `dump` | ANS tools | 102 | tested |
 | DUP | `dup` | ANS core | 13 | **auto** |
-| ED | `ed` | Tali Forth | 3 | *fragment* |
 | EDITOR_WORDLIST | `editor-wordlist` | Tali Editor | 8 | tested |
 | ELSE | `else` | ANS core | 25 | **auto** |
 | EMIT | `emit` | ANS core | 10 | **auto** |
@@ -287,7 +285,7 @@ RTS instruction at the end of each word.
 | EDITOR_LINE | `line` | Tali Editor | 24 | tested |
 | EDITOR_O | `o` | Tali Editor | 69 | tested |
 
-Found **279** native words in `native_words.asm`.
+Found **277** native words in `native_words.asm`.
 Of those, **231** were automatically tested and
-          **1** are not marked as tested at all.
+          **0** are not marked as tested at all.
 

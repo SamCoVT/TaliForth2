@@ -16,9 +16,9 @@ code0:
 forth:
 
 .require "native_words.asm"     ; Native Forth words. Starts with COLD
-.require "assembler.asm"        ; SAN assembler
-.require "disassembler.asm"     ; SAN disassembler
-.require "ed.asm"               ; Line-based editor ed6502
+; .require "assembler.asm"        ; SAN assembler
+; .require "disassembler.asm"     ; SAN disassembler
+; .require "ed.asm"               ; Line-based editor ed6502
 
 ; High-level Forth words, see forth_code/README.md
 forth_words_start:

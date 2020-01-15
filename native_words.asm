@@ -3006,20 +3006,20 @@ z_digit_question:
                 rts
 .scend
 
-; ## DISASM ( addr u -- ) "Disassemble a block of memory"
-; ## "disasm"  tested  Tali Forth
-        ; """Convert a segment of memory to assembler output. This
-        ; word is vectored so people can add their own disassembler.
-        ; Natively, this produces Simpler Assembly Notation (SAN)
-        ; code, see the section on The Disassembler in the manual and
-        ; the file disassembler.asm for more details.
-        ; """
-xt_disasm:
-                jsr underflow_2
-
-                jsr disassembler
-
-z_disasm:       rts
+;; ## DISASM ( addr u -- ) "Disassemble a block of memory"
+;; ## "disasm"  tested  Tali Forth
+;        ; """Convert a segment of memory to assembler output. This
+;        ; word is vectored so people can add their own disassembler.
+;        ; Natively, this produces Simpler Assembly Notation (SAN)
+;        ; code, see the section on The Disassembler in the manual and
+;        ; the file disassembler.asm for more details.
+;        ; """
+;xt_disasm:
+;                jsr underflow_2
+;
+;                jsr disassembler
+;
+;z_disasm:       rts
 
 
 ; ## DNEGATE ( d -- d ) "Negate double cell number"
@@ -3700,15 +3700,15 @@ xt_dup:
 z_dup:          rts
 
 
-; ## ED ( -- u ) "Line-based editor"
-; ## "ed"  fragment  Tali Forth
-        ; """Start the line-based editor ed6502. See separate file
-        ; ed.asm or the manual for details.
-        ; """
-xt_ed:
-                jsr ed6502      ; kept in separate file
-
-z_ed:           rts
+;; ## ED ( -- u ) "Line-based editor"
+;; ## "ed"  fragment  Tali Forth
+;        ; """Start the line-based editor ed6502. See separate file
+;        ; ed.asm or the manual for details.
+;        ; """
+;xt_ed:
+;                jsr ed6502      ; kept in separate file
+;
+;z_ed:           rts
 
 
 ; ## EDITOR_WORDLIST ( -- u ) "WID for the Editor wordlist"
@@ -8420,7 +8420,8 @@ _flag_loop:
                 jsr xt_two_dup          ; ( xt u xt u )
                 jsr xt_dump
                 jsr xt_cr
-                jsr xt_disasm
+                jsr xt_drop ;instead of jsr xt_disasm
+        
 
                 pla
                 sta base
