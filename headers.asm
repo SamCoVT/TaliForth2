@@ -182,95 +182,96 @@ nt_wordlist:
 ;        .word nt_wordlist, xt_list, z_list
 ;        .byte "list"
 
-nt_thru:
-        .byte 4, UF
-;        .word nt_list, xt_thru, z_thru
-        .word nt_wordlist, xt_thru, z_thru
-        .byte "thru"
+;nt_thru:
+;        .byte 4, UF
+;;        .word nt_list, xt_thru, z_thru
+;        .word nt_wordlist, xt_thru, z_thru
+;        .byte "thru"
 
-nt_load:
-        .byte 4, UF
-        .word nt_thru, xt_load, z_load
-        .byte "load"
+;nt_load:
+;        .byte 4, UF
+;        .word nt_thru, xt_load, z_load
+;        .byte "load"
 
-nt_flush:
-        .byte 5, 0
-        .word nt_load, xt_flush, z_flush
-        .byte "flush"
+;nt_flush:
+;        .byte 5, 0
+;        .word nt_load, xt_flush, z_flush
+;        .byte "flush"
 
-nt_empty_buffers:
-        .byte 13, 0
-        .word nt_flush, xt_empty_buffers, z_empty_buffers
-        .byte "empty-buffers"
+;nt_empty_buffers:
+;        .byte 13, 0
+;        .word nt_flush, xt_empty_buffers, z_empty_buffers
+;        .byte "empty-buffers"
 
-nt_buffer:
-        .byte 6, 0
-        .word nt_empty_buffers, xt_buffer, z_buffer
-        .byte "buffer"
+;nt_buffer:
+;        .byte 6, 0
+;        .word nt_empty_buffers, xt_buffer, z_buffer
+;        .byte "buffer"
 
-nt_update:
-        .byte 6, 0
-        .word nt_buffer, xt_update, z_update
-        .byte "update"
+;nt_update:
+;        .byte 6, 0
+;        .word nt_buffer, xt_update, z_update
+;        .byte "update"
 
-nt_block:
-        .byte 5, 0
-        .word nt_update, xt_block, z_block
-        .byte "block"
+;nt_block:
+;        .byte 5, 0
+;        .word nt_update, xt_block, z_block
+;        .byte "block"
 
-nt_save_buffers:
-        .byte 12, 0
-        .word nt_block, xt_save_buffers, z_save_buffers
-        .byte "save-buffers"
+;nt_save_buffers:
+;        .byte 12, 0
+;        .word nt_block, xt_save_buffers, z_save_buffers
+;        .byte "save-buffers"
 
-nt_block_read_vector:
-        .byte 17, HC+NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_save_buffers, xt_block_read_vector, z_block_read_vector
-        .byte "block-read-vector"
+;nt_block_read_vector:
+;        .byte 17, HC+NN ; Deferred words need the HC (Code Field) flag.
+;        .word nt_save_buffers, xt_block_read_vector, z_block_read_vector
+;        .byte "block-read-vector"
 
-nt_block_read:
-        .byte 10, HC+NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_block_read_vector, xt_block_read, z_block_read
-        .byte "block-read"
+;nt_block_read:
+;        .byte 10, HC+NN ; Deferred words need the HC (Code Field) flag.
+;        .word nt_block_read_vector, xt_block_read, z_block_read
+;        .byte "block-read"
 
-nt_block_write_vector:
-        .byte 18, NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_block_read, xt_block_write_vector, z_block_write_vector
-        .byte "block-write-vector"
+;nt_block_write_vector:
+;        .byte 18, NN ; Deferred words need the HC (Code Field) flag.
+;        .word nt_block_read, xt_block_write_vector, z_block_write_vector
+;        .byte "block-write-vector"
 
-nt_block_write:
-        .byte 11, NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_block_write_vector, xt_block_write, z_block_write
-        .byte "block-write"
+;nt_block_write:
+;        .byte 11, NN ; Deferred words need the HC (Code Field) flag.
+;        .word nt_block_write_vector, xt_block_write, z_block_write
+;        .byte "block-write"
 
-nt_blk:
-        .byte 3, 0
-        .word nt_block_write, xt_blk, z_blk
-        .byte "blk"
+;nt_blk:
+;        .byte 3, 0
+;        .word nt_block_write, xt_blk, z_blk
+;        .byte "blk"
 
-nt_scr:
-        .byte 3, 0
-        .word nt_blk, xt_scr, z_scr
-        .byte "scr"
+;nt_scr:
+;        .byte 3, 0
+;        .word nt_blk, xt_scr, z_scr
+;        .byte "scr"
 
-nt_blkbuffer:
-        .byte 9, 0
-        .word nt_scr, xt_blkbuffer, z_blkbuffer
-        .byte "blkbuffer"
+;nt_blkbuffer:
+;        .byte 9, 0
+;        .word nt_scr, xt_blkbuffer, z_blkbuffer
+;        .byte "blkbuffer"
 
-nt_buffblocknum:
-        .byte 12, 0
-        .word nt_blkbuffer, xt_buffblocknum, z_buffblocknum
-        .byte "buffblocknum"
+;nt_buffblocknum:
+;        .byte 12, 0
+;        .word nt_blkbuffer, xt_buffblocknum, z_buffblocknum
+;        .byte "buffblocknum"
 
-nt_buffstatus:
-        .byte 10, 0
-        .word nt_buffblocknum, xt_buffstatus, z_buffstatus
-        .byte "buffstatus"
+;nt_buffstatus:
+;        .byte 10, 0
+;        .word nt_buffblocknum, xt_buffstatus, z_buffstatus
+;        .byte "buffstatus"
 
 nt_buffer_colon:
         .byte 7, 0
-        .word nt_buffstatus, xt_buffer_colon, z_buffer_colon
+;        .word nt_buffstatus, xt_buffer_colon, z_buffer_colon
+        .word nt_wordlist, xt_buffer_colon, z_buffer_colon
         .byte "buffer:"
 
 nt_useraddr:

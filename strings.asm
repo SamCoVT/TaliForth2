@@ -67,13 +67,13 @@ s_see_size:   .byte "size (decimal): ", 0
 .alias err_underflow    9
 .alias err_negallot     10
 .alias err_wordlist     11
-.alias err_blockwords   12
+;.alias err_blockwords   12
 
 error_table:
         .word es_allot, es_badsource, es_compileonly, es_defer  ;  0-3
         .word es_divzero, es_noname, es_refill, es_state        ;  4-7
         .word es_syntax, es_underflow, es_negallot, es_wordlist ;  8-11
-        .word es_blockwords                                    ; 12
+;        .word es_blockwords                                    ; 12
 
 es_allot:       .byte "ALLOT using all available memory", 0
 es_badsource:   .byte "Illegal SOURCE-ID during REFILL", 0
@@ -87,7 +87,7 @@ es_syntax:      .byte "Undefined word", 0
 es_underflow:   .byte "Stack underflow", 0
 es_negallot:    .byte "Max memory freed with ALLOT", 0
 es_wordlist:    .byte "No wordlists available", 0
-es_blockwords:  .byte "Please assign vectors BLOCK-READ-VECTOR and BLOCK-WRITE-VECTOR",0
+;es_blockwords:  .byte "Please assign vectors BLOCK-READ-VECTOR and BLOCK-WRITE-VECTOR",0
 
 ; ## ENVIRONMENT STRINGS
 
@@ -97,20 +97,20 @@ es_blockwords:  .byte "Please assign vectors BLOCK-READ-VECTOR and BLOCK-WRITE-V
 ; "envs_".
 
 ; These return a single-cell number
-envs_cs:        .byte 15, "/COUNTED-STRING"
-envs_hold:      .byte 5, "/HOLD"
-envs_pad:       .byte 4, "/PAD"
-envs_aub:       .byte 17, "ADDRESS-UNIT-BITS"
-envs_floored:   .byte 7, "FLOORED"
-envs_max_char:  .byte 8, "MAX-CHAR"
-envs_max_n:     .byte 5, "MAX-N"
-envs_max_u:     .byte 5, "MAX-U"
-envs_rsc:       .byte 18, "RETURN-STACK-CELLS"
-envs_sc:        .byte 11, "STACK-CELLS"
-envs_wl:        .byte 9, "WORDLISTS"
+;envs_cs:        .byte 15, "/COUNTED-STRING"
+;envs_hold:      .byte 5, "/HOLD"
+;envs_pad:       .byte 4, "/PAD"
+;envs_aub:       .byte 17, "ADDRESS-UNIT-BITS"
+;envs_floored:   .byte 7, "FLOORED"
+;envs_max_char:  .byte 8, "MAX-CHAR"
+;envs_max_n:     .byte 5, "MAX-N"
+;envs_max_u:     .byte 5, "MAX-U"
+;envs_rsc:       .byte 18, "RETURN-STACK-CELLS"
+;envs_sc:        .byte 11, "STACK-CELLS"
+;envs_wl:        .byte 9, "WORDLISTS"
 
 ; These return a double-cell number
-envs_max_d:     .byte 5, "MAX-D"
-envs_max_ud:    .byte 6, "MAX-UD"
+;envs_max_d:     .byte 5, "MAX-D"
+;envs_max_ud:    .byte 6, "MAX-UD"
 
 ; END

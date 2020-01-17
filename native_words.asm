@@ -287,8 +287,10 @@ cold_user_table:
         .word cp0+256                   ; Address of buffer (right after USER vars)
         .word 0                         ; block in buffer
         .word 0                         ; buffer status (not in use)
-        .word xt_block_word_error       ; block-read vector
-        .word xt_block_word_error       ; block-write vector
+;        .word xt_block_word_error       ; block-read vector
+;        .word xt_block_word_error       ; block-write vector
+        ; Stuffing zeroes in for the now-unused block vectors.
+        .word 0,0
 cold_user_table_end:
 
 
@@ -1044,117 +1046,117 @@ xt_bl:
 z_bl:           rts
 .scend
 
-; ## BLK ( -- addr ) "Push address of block being interpreted"
-; ## "block"  auto  ANS block
-        ; """https://forth-standard.org/standard/block/BLK"""
-xt_blk:
-                ; BLK is at UP + blk_offset
-                dex
-                dex
-                clc
-                lda up
-                adc #blk_offset ; Add offset
-                sta 0,x
-                lda up+1
-                adc #0          ; Adding carry
-                sta 1,x
-
-z_blk:          rts
-
-
-; ## BLKBUFFER ( -- addr ) "Push address of block buffer"
-; ## "blkbuffer"  auto  Tali block
-xt_blkbuffer:
-                ; blkbuffer address is at UP + blkbuffer_offset.
-                ; Unlike some of the other user variables, we actually
-                ; want to push the address stored here, which will
-                ; point to somewhere outside of the user variables.
-                dex
-                dex
-                ; Put the address on the stack.
-                ldy #blkbuffer_offset
-                lda (up),y
-                sta 0,x
-                iny             ; Move along to the next byte
-                lda (up),y
-                sta 1,x
-
-z_blkbuffer:    rts
+;; ## BLK ( -- addr ) "Push address of block being interpreted"
+;; ## "block"  auto  ANS block
+;        ; """https://forth-standard.org/standard/block/BLK"""
+;xt_blk:
+;                ; BLK is at UP + blk_offset
+;                dex
+;                dex
+;                clc
+;                lda up
+;                adc #blk_offset ; Add offset
+;                sta 0,x
+;                lda up+1
+;                adc #0          ; Adding carry
+;                sta 1,x
+;
+;z_blk:          rts
 
 
-; ## BLOCK ( u -- a-addr ) "Fetch a block into a buffer"
-; ## "block"  auto  ANS block
-        ; """https://forth-standard.org/standard/block/BLOCK"""
-.scope
-xt_block:
+;; ## BLKBUFFER ( -- addr ) "Push address of block buffer"
+;; ## "blkbuffer"  auto  Tali block
+;xt_blkbuffer:
+;                ; blkbuffer address is at UP + blkbuffer_offset.
+;                ; Unlike some of the other user variables, we actually
+;                ; want to push the address stored here, which will
+;                ; point to somewhere outside of the user variables.
+;                dex
+;                dex
+;                ; Put the address on the stack.
+;                ldy #blkbuffer_offset
+;                lda (up),y
+;                sta 0,x
+;                iny             ; Move along to the next byte
+;                lda (up),y
+;                sta 1,x
+;
+;z_blkbuffer:    rts
 
-                ; See if the block requested is the same as the one we
-                ; currently have in the buffer. Check the LSB.
-                ldy #buffblocknum_offset
-                lda (up),y
-                cmp 0,x
-                bne _not_in_buffer
 
-                ; Check the MSB.
-                iny
-                lda (up),y
-                cmp 1,x
-                bne _not_in_buffer
-
-                ; The block is in the buffer. See if the buffer is in use.
-                ldy #buffstatus_offset
-                lda (up),y
-                and #1          ; Check the in-use flag (bit 0)
-                bne _done       ; It's already in the buffer and in use.
-                                ; _done will replace the block# with the
-                                ; buffer address.
-_not_in_buffer:
-                ; Check the buffer status
-                ldy #buffstatus_offset
-                lda (up),y      ; Only bits 0 and 1 are used, so only
-                cmp #3          ; LSB is needed.
-                bne _buffer_available ; Unused or not dirty = available
-
-                ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
-
-_buffer_available:
-                ; Save the block number.
-                ldy #buffblocknum_offset
-                lda 0,x
-                sta (up),y
-                iny
-                lda 1,x
-                sta (up),y
-
-                ; Get the requested block.
-                jsr xt_blkbuffer
-                jsr xt_swap
-                jsr xt_block_read
-
-                ; Mark the buffer as clean and in-use.
-                lda #1
-                ldy #buffstatus_offset
-                sta (up),y
-
-                ; Make room on the stack for the return address.
-                dex
-                dex
-
-_done:
-                ; It's in the buffer. Return the buffer address.
-                ldy #blkbuffer_offset
-                lda (up),y
-                sta 0,x
-                iny
-                lda (up),y
-                sta 1,x
-
-z_block:        rts
-.scend
+;; ## BLOCK ( u -- a-addr ) "Fetch a block into a buffer"
+;; ## "block"  auto  ANS block
+;        ; """https://forth-standard.org/standard/block/BLOCK"""
+;.scope
+;xt_block:
+;
+;                ; See if the block requested is the same as the one we
+;                ; currently have in the buffer. Check the LSB.
+;                ldy #buffblocknum_offset
+;                lda (up),y
+;                cmp 0,x
+;                bne _not_in_buffer
+;
+;                ; Check the MSB.
+;                iny
+;                lda (up),y
+;                cmp 1,x
+;                bne _not_in_buffer
+;
+;                ; The block is in the buffer. See if the buffer is in use.
+;                ldy #buffstatus_offset
+;                lda (up),y
+;                and #1          ; Check the in-use flag (bit 0)
+;                bne _done       ; It's already in the buffer and in use.
+;                                ; _done will replace the block# with the
+;                                ; buffer address.
+;_not_in_buffer:
+;                ; Check the buffer status
+;                ldy #buffstatus_offset
+;                lda (up),y      ; Only bits 0 and 1 are used, so only
+;                cmp #3          ; LSB is needed.
+;                bne _buffer_available ; Unused or not dirty = available
+;
+;                ; We need to save the block.
+;                jsr xt_blkbuffer
+;                jsr xt_buffblocknum
+;                jsr xt_fetch
+;                jsr xt_block_write
+;
+;_buffer_available:
+;                ; Save the block number.
+;                ldy #buffblocknum_offset
+;                lda 0,x
+;                sta (up),y
+;                iny
+;                lda 1,x
+;                sta (up),y
+;
+;                ; Get the requested block.
+;                jsr xt_blkbuffer
+;                jsr xt_swap
+;                jsr xt_block_read
+;
+;                ; Mark the buffer as clean and in-use.
+;                lda #1
+;                ldy #buffstatus_offset
+;                sta (up),y
+;
+;                ; Make room on the stack for the return address.
+;                dex
+;                dex
+;
+;_done:
+;                ; It's in the buffer. Return the buffer address.
+;                ldy #blkbuffer_offset
+;                lda (up),y
+;                sta 0,x
+;                iny
+;                lda (up),y
+;                sta 1,x
+;
+;z_block:        rts
+;.scend
 
 
 ;; ## BLOCK_RAMDRIVE_INIT ( u -- ) "Create a ramdrive for blocks"
@@ -1202,94 +1204,94 @@ z_block:        rts
 ;.scend
 
 
-; ## BLOCK_READ ( addr u -- ) "Read a block from storage (deferred word)"
-; ## "block-read"  auto  Tali block
-        ; """BLOCK-READ is a vectored word that the user needs to override
-        ; with their own version to read a block from storage.
-        ; The stack parameters are ( buffer_address block# -- ).
-        ; """
-xt_block_read:
-                ; Execute the BLOCK-READ-VECTOR
-                ldy #blockread_offset
-                lda (up),y
-                sta tmp1
-                iny
-                lda (up),y
-                sta tmp1+1
-
-                jmp (tmp1)
-
-z_block_read:   ; No RTS needed
-
-
-; ## BLOCK_READ_VECTOR ( -- addr ) "Address of the block-read vector"
-; ## "block-read-vector"  auto  Tali block
-        ; """BLOCK-READ is a vectored word that the user needs to override
-        ; with their own version to read a block from storage.
-        ; This word gives the address of the vector so it can be replaced.
-        ; """
-xt_block_read_vector:
-                ; Get the BLOCK-READ-VECTOR address
-                dex
-                dex
-                clc
-                lda up
-                adc #blockread_offset
-                sta 0,x
-                lda up+1
-                adc #0          ; Add carry
-                sta 1,x
-
-z_block_read_vector:
-                rts
-
-
-; This is the default error message the vectored words BLOCK-READ and
-; BLOCK-WRITE start with. This word is not included in the dictionary.
-xt_block_word_error:
-                lda #err_blockwords
-                jmp error       ; no RTS needed
-z_block_word_error:
-
-; ## BLOCK_WRITE ( addr u -- ) "Write a block to storage (deferred word)"
-; ## "block-write"  auto  Tali block
-        ; """BLOCK-WRITE is a vectored word that the user needs to override
-        ; with their own version to write a block to storage.
-        ; The stack parameters are ( buffer_address block# -- ).
-        ; """
-xt_block_write:
-                ; Execute the BLOCK-READ-VECTOR
-                ldy #blockwrite_offset
-                lda (up),y
-                sta tmp1
-                iny
-                lda (up),y
-                sta tmp1+1
-                jmp (tmp1)
-
-z_block_write:  ; No RTS needed
-
-
-; ## BLOCK_WRITE_VECTOR ( -- addr ) "Address of the block-write vector"
-; ## "block-write-vector"  auto  Tali block
-        ; """BLOCK-WRITE is a vectored word that the user needs to override
-        ; with their own version to write a block to storage.
-        ; This word gives the address of the vector so it can be replaced.
-        ; """
-xt_block_write_vector:
-                ; Get the BLOCK-WRITE-VECTOR address
-                dex
-                dex
-                clc
-                lda up
-                adc #blockwrite_offset
-                sta 0,x
-                lda up+1
-                adc #0          ; Add carry
-                sta 1,x
-
-z_block_write_vector:
-                rts
+;; ## BLOCK_READ ( addr u -- ) "Read a block from storage (deferred word)"
+;; ## "block-read"  auto  Tali block
+;        ; """BLOCK-READ is a vectored word that the user needs to override
+;        ; with their own version to read a block from storage.
+;        ; The stack parameters are ( buffer_address block# -- ).
+;        ; """
+;xt_block_read:
+;                ; Execute the BLOCK-READ-VECTOR
+;                ldy #blockread_offset
+;                lda (up),y
+;                sta tmp1
+;                iny
+;                lda (up),y
+;                sta tmp1+1
+;
+;                jmp (tmp1)
+;
+;z_block_read:   ; No RTS needed
+;
+;
+;; ## BLOCK_READ_VECTOR ( -- addr ) "Address of the block-read vector"
+;; ## "block-read-vector"  auto  Tali block
+;        ; """BLOCK-READ is a vectored word that the user needs to override
+;        ; with their own version to read a block from storage.
+;        ; This word gives the address of the vector so it can be replaced.
+;        ; """
+;xt_block_read_vector:
+;                ; Get the BLOCK-READ-VECTOR address
+;                dex
+;                dex
+;                clc
+;                lda up
+;                adc #blockread_offset
+;                sta 0,x
+;                lda up+1
+;                adc #0          ; Add carry
+;                sta 1,x
+;
+;z_block_read_vector:
+;                rts
+;
+;
+;; This is the default error message the vectored words BLOCK-READ and
+;; BLOCK-WRITE start with. This word is not included in the dictionary.
+;xt_block_word_error:
+;                lda #err_blockwords
+;                jmp error       ; no RTS needed
+;z_block_word_error:
+;
+;; ## BLOCK_WRITE ( addr u -- ) "Write a block to storage (deferred word)"
+;; ## "block-write"  auto  Tali block
+;        ; """BLOCK-WRITE is a vectored word that the user needs to override
+;        ; with their own version to write a block to storage.
+;        ; The stack parameters are ( buffer_address block# -- ).
+;        ; """
+;xt_block_write:
+;                ; Execute the BLOCK-READ-VECTOR
+;                ldy #blockwrite_offset
+;                lda (up),y
+;                sta tmp1
+;                iny
+;                lda (up),y
+;                sta tmp1+1
+;                jmp (tmp1)
+;
+;z_block_write:  ; No RTS needed
+;
+;
+;; ## BLOCK_WRITE_VECTOR ( -- addr ) "Address of the block-write vector"
+;; ## "block-write-vector"  auto  Tali block
+;        ; """BLOCK-WRITE is a vectored word that the user needs to override
+;        ; with their own version to write a block to storage.
+;        ; This word gives the address of the vector so it can be replaced.
+;        ; """
+;xt_block_write_vector:
+;                ; Get the BLOCK-WRITE-VECTOR address
+;                dex
+;                dex
+;                clc
+;                lda up
+;                adc #blockwrite_offset
+;                sta 0,x
+;                lda up+1
+;                adc #0          ; Add carry
+;                sta 1,x
+;
+;z_block_write_vector:
+;                rts
 
 
 ; ## BOUNDS ( addr u -- addr+u addr ) "Prepare address for looping"
@@ -1343,65 +1345,65 @@ xt_bracket_tick:
 z_bracket_tick: rts
 
 
-; ## BUFFBLOCKNUM ( -- addr ) "Push address of variable holding block in buffer"
-; ## "buffblocknum"  auto  Tali block
-xt_buffblocknum:
-                ; BUFFBLOCKNUM is at UP + buffblocknum_offset
-                dex
-                dex
-                clc
-                lda up
-                adc #buffblocknum_offset        ; Add offset
-                sta 0,x
-                lda up+1
-                adc #0                          ; Adding carry
-                sta 1,x
+;; ## BUFFBLOCKNUM ( -- addr ) "Push address of variable holding block in buffer"
+;; ## "buffblocknum"  auto  Tali block
+;xt_buffblocknum:
+;                ; BUFFBLOCKNUM is at UP + buffblocknum_offset
+;                dex
+;                dex
+;                clc
+;                lda up
+;                adc #buffblocknum_offset        ; Add offset
+;                sta 0,x
+;                lda up+1
+;                adc #0                          ; Adding carry
+;                sta 1,x
+;
+;z_buffblocknum: rts
 
-z_buffblocknum: rts
 
-
-; ## BUFFER ( u -- a-addr ) "Get a buffer for a block"
-; ## "buffer"  auto  ANS block
-        ; """https://forth-standard.org/standard/block/BUFFER"""
-.scope
-xt_buffer:
-                ; Check the buffer status
-                ldy #buffstatus_offset
-                lda (up),y      ; Only bits 0 and 1 are used, so only
-                cmp #3          ; LSB is needed.
-                bne _buffer_available ; Unused or not dirty = available
-
-                ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
-
-_buffer_available:
-                ; Save the block number.
-                ldy #buffblocknum_offset
-                lda 0,x
-                sta (up),y
-                iny
-                lda 1,x
-                sta (up),y
-
-                ; Mark the buffer as clean and in-use.
-                lda #1
-                ldy #buffstatus_offset
-                sta (up),y
-
-_done:
-                ; Return the buffer address.
-                ldy #blkbuffer_offset
-                lda (up),y
-                sta 0,x
-                iny
-                lda (up),y
-                sta 1,x
-
-z_buffer:       rts
-.scend
+;; ## BUFFER ( u -- a-addr ) "Get a buffer for a block"
+;; ## "buffer"  auto  ANS block
+;        ; """https://forth-standard.org/standard/block/BUFFER"""
+;.scope
+;xt_buffer:
+;                ; Check the buffer status
+;                ldy #buffstatus_offset
+;                lda (up),y      ; Only bits 0 and 1 are used, so only
+;                cmp #3          ; LSB is needed.
+;                bne _buffer_available ; Unused or not dirty = available
+;
+;                ; We need to save the block.
+;                jsr xt_blkbuffer
+;                jsr xt_buffblocknum
+;                jsr xt_fetch
+;                jsr xt_block_write
+;
+;_buffer_available:
+;                ; Save the block number.
+;                ldy #buffblocknum_offset
+;                lda 0,x
+;                sta (up),y
+;                iny
+;                lda 1,x
+;                sta (up),y
+;
+;                ; Mark the buffer as clean and in-use.
+;                lda #1
+;                ldy #buffstatus_offset
+;                sta (up),y
+;
+;_done:
+;                ; Return the buffer address.
+;                ldy #blkbuffer_offset
+;                lda (up),y
+;                sta 0,x
+;                iny
+;                lda (up),y
+;                sta 1,x
+;
+;z_buffer:       rts
+;.scend
 
 
 ; ## BUFFER_COLON ( u "<name>" -- ; -- addr ) "Create an uninitialized buffer"
@@ -1416,21 +1418,21 @@ xt_buffer_colon:
 z_buffer_colon: rts
 
 
-; ## BUFFSTATUS ( -- addr ) "Push address of variable holding buffer status"
-; ## "buffstatus"  auto  Tali block
-xt_buffstatus:
-                ; BUFFSTATUS is at UP + buffstatus_offset
-                dex
-                dex
-                clc
-                lda up
-                adc #buffstatus_offset  ; Add offset
-                sta 0,x
-                lda up+1
-                adc #0                  ; Adding carry
-                sta 1,x
-
-z_buffstatus:   rts
+;; ## BUFFSTATUS ( -- addr ) "Push address of variable holding buffer status"
+;; ## "buffstatus"  auto  Tali block
+;xt_buffstatus:
+;                ; BUFFSTATUS is at UP + buffstatus_offset
+;                dex
+;                dex
+;                clc
+;                lda up
+;                adc #buffstatus_offset  ; Add offset
+;                sta 0,x
+;                lda up+1
+;                adc #0                  ; Adding carry
+;                sta 1,x
+;
+;z_buffstatus:   rts
 
 
 ; ## BYE ( -- ) "Break"
@@ -3812,16 +3814,16 @@ z_emit:         ; never reached
 .scend
 
 
-; ## EMPTY_BUFFERS ( -- ) "Empty all buffers without saving"
-; ## "empty-buffers"  tested  ANS block ext
-        ; """https://forth-standard.org/standard/block/EMPTY-BUFFERS"""
-xt_empty_buffers:
-                ; Set the buffer status to empty.
-                ldy #buffstatus_offset
-                lda #0
-                sta (up),y      ; Only LSB is used.
-z_empty_buffers:
-                rts
+;; ## EMPTY_BUFFERS ( -- ) "Empty all buffers without saving"
+;; ## "empty-buffers"  tested  ANS block ext
+;        ; """https://forth-standard.org/standard/block/EMPTY-BUFFERS"""
+;xt_empty_buffers:
+;                ; Set the buffer status to empty.
+;                ldy #buffstatus_offset
+;                lda #0
+;                sta (up),y      ; Only LSB is used.
+;z_empty_buffers:
+;                rts
 
 
 ; ## ENDCASE (C: case-sys -- ) ( x -- ) "Conditional flow control"
@@ -4610,18 +4612,18 @@ z_find_name:    rts
 .scend
 
 
-; ## FLUSH ( -- ) "Save dirty buffers and empty buffers"
-; ## "flush"  auto  ANS block
-        ; """https://forth-standard.org/standard/block/FLUSH"""
-xt_flush:
-                jsr xt_save_buffers
-
-                ; Set the buffer status to empty.
-                ldy #buffstatus_offset
-                lda #0
-                sta (up),y      ; Only LSB is used.
-z_flush:
-                rts
+;; ## FLUSH ( -- ) "Save dirty buffers and empty buffers"
+;; ## "flush"  auto  ANS block
+;        ; """https://forth-standard.org/standard/block/FLUSH"""
+;xt_flush:
+;                jsr xt_save_buffers
+;
+;                ; Set the buffer status to empty.
+;                ldy #buffstatus_offset
+;                lda #0
+;                sta (up),y      ; Only LSB is used.
+;z_flush:
+;                rts
 
 
 ; ## FM_SLASH_MOD ( d n1  -- rem n2 ) "Floored signed division"
@@ -5674,80 +5676,80 @@ literal_runtime:
 .scend
 
 
-; ## LOAD ( scr# -- ) "Load the Forth code in a screen/block"
-; ## "load"  auto  ANS block
-        ; """https://forth-standard.org/standard/block/LOAD
-        ;
-        ; Note: LOAD current works because there is only one buffer.
-        ; If/when multiple buffers are supported, we'll have to deal
-        ; with the fact that it might re-load the old block into a
-        ; different buffer.
-        ; """
-.scope
-xt_load:
-                jsr underflow_1
-
-                ; Save the current value of BLK on the return stack.
-                ldy #blk_offset+1
-                lda (up),y
-                pha
-                dey
-                lda (up),y
-                pha
-
-                ; Set BLK to the given block/screen number.
-                lda 0,x
-                sta (up),y
-                iny
-                lda 1,x
-                sta (up),y
-
-                ; Load that block into a buffer
-                jsr xt_block
-
-                ; Put 1024 on the stack for the screen length.
-                dex
-                dex
-                lda #4
-                sta 1,x
-                stz 0,x
-
-                ; Jump to a special evluate target. This bypasses the underflow
-                ; check and skips the zeroing of BLK.
-                jsr load_evaluate
-
-                ; Restore the value of BLK from before the LOAD command.
-                ldy #blk_offset
-                pla
-                sta (up),y
-                iny
-                pla
-                sta (up),y
-
-                ; If BLK is not zero, read it back into the buffer.
-                ; A still has MSB
-                dey
-                ora (up),y
-                beq _done
-
-                ; The block needs to be read back into the buffer.
-                dex
-                dex
-                ldy #blk_offset
-                lda (up),y
-                sta 0,x
-                iny
-                lda (up),y
-                sta 1,x
-                jsr xt_block
-
-                ; Drop the buffer address.
-                inx
-                inx
-
-_done:
-z_load:         rts
-.scend
+;; ## LOAD ( scr# -- ) "Load the Forth code in a screen/block"
+;; ## "load"  auto  ANS block
+;        ; """https://forth-standard.org/standard/block/LOAD
+;        ;
+;        ; Note: LOAD current works because there is only one buffer.
+;        ; If/when multiple buffers are supported, we'll have to deal
+;        ; with the fact that it might re-load the old block into a
+;        ; different buffer.
+;        ; """
+;.scope
+;xt_load:
+;                jsr underflow_1
+;
+;                ; Save the current value of BLK on the return stack.
+;                ldy #blk_offset+1
+;                lda (up),y
+;                pha
+;                dey
+;                lda (up),y
+;                pha
+;
+;                ; Set BLK to the given block/screen number.
+;                lda 0,x
+;                sta (up),y
+;                iny
+;                lda 1,x
+;                sta (up),y
+;
+;                ; Load that block into a buffer
+;                jsr xt_block
+;
+;                ; Put 1024 on the stack for the screen length.
+;                dex
+;                dex
+;                lda #4
+;                sta 1,x
+;                stz 0,x
+;
+;                ; Jump to a special evluate target. This bypasses the underflow
+;                ; check and skips the zeroing of BLK.
+;                jsr load_evaluate
+;
+;                ; Restore the value of BLK from before the LOAD command.
+;                ldy #blk_offset
+;                pla
+;                sta (up),y
+;                iny
+;                pla
+;                sta (up),y
+;
+;                ; If BLK is not zero, read it back into the buffer.
+;                ; A still has MSB
+;                dey
+;                ora (up),y
+;                beq _done
+;
+;                ; The block needs to be read back into the buffer.
+;                dex
+;                dex
+;                ldy #blk_offset
+;                lda (up),y
+;                sta 0,x
+;                iny
+;                lda (up),y
+;                sta 1,x
+;                jsr xt_block
+;
+;                ; Drop the buffer address.
+;                inx
+;                inx
+;
+;_done:
+;z_load:         rts
+;.scend
 
 
 ; ## LOOP ( -- ) "Finish loop construct"
@@ -8919,49 +8921,49 @@ z_s_to_d:       rts
 .scend
 
 
-; ## SAVE_BUFFERS ( -- ) "Save all dirty buffers to storage"
-; ## "save-buffers"  tested  ANS block
-        ; """https://forth-standard.org/standard/block/SAVE-BUFFERS"""
-.scope
-xt_save_buffers:
-                ; Check the buffer status
-                ldy #buffstatus_offset
-                lda (up),y      ; Only bits 0 and 1 are used, so only
-                cmp #3          ; LSB is needed.
-                bne _done       ; Either not used or not dirty = done!
+;; ## SAVE_BUFFERS ( -- ) "Save all dirty buffers to storage"
+;; ## "save-buffers"  tested  ANS block
+;        ; """https://forth-standard.org/standard/block/SAVE-BUFFERS"""
+;.scope
+;xt_save_buffers:
+;                ; Check the buffer status
+;                ldy #buffstatus_offset
+;                lda (up),y      ; Only bits 0 and 1 are used, so only
+;                cmp #3          ; LSB is needed.
+;                bne _done       ; Either not used or not dirty = done!
+;
+;                ; We need to save the block.
+;                jsr xt_blkbuffer
+;                jsr xt_buffblocknum
+;                jsr xt_fetch
+;                jsr xt_block_write
+;
+;                ; Mark the buffer as clean now.
+;                lda #1
+;                ldy #buffstatus_offset
+;                sta (up),y
+;
+;_done:
+;z_save_buffers: rts
+;.scend
 
-                ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
 
-                ; Mark the buffer as clean now.
-                lda #1
-                ldy #buffstatus_offset
-                sta (up),y
-
-_done:
-z_save_buffers: rts
-.scend
-
-
-; ## SCR ( -- addr ) "Push address of variable holding last screen listed"
-; ## "scr"  auto  ANS block ext
-        ; """https://forth-standard.org/standard/block/SCR"""
-xt_scr:
-                ; SCR is at UP + scr_offset
-                dex
-                dex
-                clc
-                lda up
-                adc #scr_offset ; Add offset
-                sta 0,x
-                lda up+1
-                adc #0          ; Adding carry
-                sta 1,x
-
-z_scr:          rts
+;; ## SCR ( -- addr ) "Push address of variable holding last screen listed"
+;; ## "scr"  auto  ANS block ext
+;        ; """https://forth-standard.org/standard/block/SCR"""
+;xt_scr:
+;                ; SCR is at UP + scr_offset
+;                dex
+;                dex
+;                clc
+;                lda up
+;                adc #scr_offset ; Add offset
+;                sta 0,x
+;                lda up+1
+;                adc #0          ; Adding carry
+;                sta 1,x
+;
+;z_scr:          rts
 
 
 ; ## SEARCH ( addr1 u1 addr2 u2 -- addr3 u3 flag) "Search for a substring"
@@ -9857,84 +9859,84 @@ xt_then:
 z_then:         rts
 
 
-; ## THRU ( scr# scr# -- ) "Load screens in the given range"
-; ## "list"  tested  ANS block ext
-        ; """https://forth-standard.org/standard/block/THRU"""
-.scope
-xt_thru:
-                jsr underflow_2
-
-                ; We need to loop here, and can't use the data stack
-                ; because the LOADed screens might use it.  We'll
-                ; need to use the same trick that DO loops use, holding
-                ; the limit and current index on the return stack.
-
-                ; Put the ending screen number on the return stack
-                lda 1,x
-                pha
-                lda 0,x
-                pha
-                inx
-                inx
-_thru_loop:
-                ; Put the starting screen number on the stack,
-                ; but keep a copy
-                lda 1,x
-                pha
-                lda 0,x
-                pha
-
-                ; Load this screen.
-                jsr xt_load
-
-                ; Get the number and limit back off the stack.  Rather than
-                ; waste time making room on the stack, just use tmp1 and tmp2.
-
-                ; Get the screen we just loaded.
-                pla
-                sta tmp1
-                pla
-                sta tmp1+1
-
-                ; Get the ending screen.
-                pla
-                sta tmp2
-                pla
-                sta tmp2+1
-
-                ; See if we just loaded the last screen.
-                ; A already has the MSB of the last screen in it.
-                cmp tmp1+1
-                bne _next_screen
-                lda tmp2        ; Compare the LSB
-                cmp tmp1
-                bne _next_screen
-                bra _done       ; We just did the last screen.
-
-_next_screen:
-                ; Put the ending screen back on the data stack.
-                lda tmp2+1
-                pha
-                lda tmp2
-                pha
-
-                ; Increment the current screen.
-                inc tmp1
-                bne +
-                inc tmp1+1
-*
-                ; Put the current screen on the stack to prepare for
-                ; the next loop.
-                dex
-                dex
-                lda tmp1
-                sta 0,x
-                lda tmp1+1
-                sta 1,x
-                bra _thru_loop
-_done:
-z_thru:         rts
-.scend
+;; ## THRU ( scr# scr# -- ) "Load screens in the given range"
+;; ## "list"  tested  ANS block ext
+;        ; """https://forth-standard.org/standard/block/THRU"""
+;.scope
+;xt_thru:
+;                jsr underflow_2
+;
+;                ; We need to loop here, and can't use the data stack
+;                ; because the LOADed screens might use it.  We'll
+;                ; need to use the same trick that DO loops use, holding
+;                ; the limit and current index on the return stack.
+;
+;                ; Put the ending screen number on the return stack
+;                lda 1,x
+;                pha
+;                lda 0,x
+;                pha
+;                inx
+;                inx
+;_thru_loop:
+;                ; Put the starting screen number on the stack,
+;                ; but keep a copy
+;                lda 1,x
+;                pha
+;                lda 0,x
+;                pha
+;
+;                ; Load this screen.
+;                jsr xt_load
+;
+;                ; Get the number and limit back off the stack.  Rather than
+;                ; waste time making room on the stack, just use tmp1 and tmp2.
+;
+;                ; Get the screen we just loaded.
+;                pla
+;                sta tmp1
+;                pla
+;                sta tmp1+1
+;
+;                ; Get the ending screen.
+;                pla
+;                sta tmp2
+;                pla
+;                sta tmp2+1
+;
+;                ; See if we just loaded the last screen.
+;                ; A already has the MSB of the last screen in it.
+;                cmp tmp1+1
+;                bne _next_screen
+;                lda tmp2        ; Compare the LSB
+;                cmp tmp1
+;                bne _next_screen
+;                bra _done       ; We just did the last screen.
+;
+;_next_screen:
+;                ; Put the ending screen back on the data stack.
+;                lda tmp2+1
+;                pha
+;                lda tmp2
+;                pha
+;
+;                ; Increment the current screen.
+;                inc tmp1
+;                bne +
+;                inc tmp1+1
+;*
+;                ; Put the current screen on the stack to prepare for
+;                ; the next loop.
+;                dex
+;                dex
+;                lda tmp1
+;                sta 0,x
+;                lda tmp1+1
+;                sta 1,x
+;                bra _thru_loop
+;_done:
+;z_thru:         rts
+;.scend
 
 
 ; ## TICK ( "name" -- xt ) "Return a word's execution token (xt)"
@@ -11236,18 +11238,18 @@ xt_unused:
 z_unused:       rts
 
 
-; ## UPDATE ( -- ) "Mark current block as dirty"
-; ## "update"  auto  ANS block
-        ; """https://forth-standard.org/standard/block/UPDATE"""
-xt_update:
-                ; Turn on the dirty bit. We can't use TSB here because it only
-                ; has Absolute and Direct Pages addressing modes
-                ldy #buffstatus_offset
-                lda (up),y
-                ora #2          ; Turn on dirty flag (bit 2)
-                sta (up),y
-
-z_update:       rts
+;; ## UPDATE ( -- ) "Mark current block as dirty"
+;; ## "update"  auto  ANS block
+;        ; """https://forth-standard.org/standard/block/UPDATE"""
+;xt_update:
+;                ; Turn on the dirty bit. We can't use TSB here because it only
+;                ; has Absolute and Direct Pages addressing modes
+;                ldy #buffstatus_offset
+;                lda (up),y
+;                ora #2          ; Turn on dirty flag (bit 2)
+;                sta (up),y
+;
+;z_update:       rts
 
 
 ; ## USERADDR ( -- addr ) "Push address of base address of user variables"

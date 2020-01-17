@@ -27,20 +27,10 @@ RTS instruction at the end of each word.
 | BEGIN | `begin` | ANS core | 3 | **auto** |
 | BELL | `bell` | Tali Forth | 5 | tested |
 | BL | `bl` | ANS core | 8 | **auto** |
-| BLK | `block` | ANS block | 15 | **auto** |
-| BLKBUFFER | `blkbuffer` | Tali block | 13 | **auto** |
-| BLOCK | `block` | ANS block | 82 | **auto** |
-| BLOCK_READ | `block-read` | Tali block | 14 | **auto** |
-| BLOCK_READ_VECTOR | `block-read-vector` | Tali block | 15 | **auto** |
-| BLOCK_WRITE | `block-write` | Tali block | 14 | **auto** |
-| BLOCK_WRITE_VECTOR | `block-write-vector` | Tali block | 15 | **auto** |
 | BOUNDS | `bounds` | Gforth | 24 | **auto** |
 | BRACKET_CHAR | `[char]` | ANS core | 6 | **auto** |
 | BRACKET_TICK | `[']` | ANS core | 6 | **auto** |
-| BUFFBLOCKNUM | `buffblocknum` | Tali block | 15 | **auto** |
-| BUFFER | `buffer` | ANS block | 48 | **auto** |
 | BUFFER_COLON | `buffer:` | ANS core ext | 6 | **auto** |
-| BUFFSTATUS | `buffstatus` | Tali block | 15 | **auto** |
 | BYE | `bye` | ANS tools ext | 3 | tested |
 | C_COMMA | `c,` | ANS core | 10 | **auto** |
 | C_FETCH | `c@` | ANS core | 9 | **auto** |
@@ -90,7 +80,6 @@ RTS instruction at the end of each word.
 | DUP | `dup` | ANS core | 13 | **auto** |
 | ELSE | `else` | ANS core | 25 | **auto** |
 | EMIT | `emit` | ANS core | 10 | **auto** |
-| EMPTY_BUFFERS | `empty-buffers` | ANS block ext | 6 | tested |
 | ENDCASE | `endcase` | ANS core ext | 20 | **auto** |
 | ENDOF | `endof` | ANS core ext | 25 | **auto** |
 | EQUAL | `=` | ANS core | 27 | **auto** |
@@ -104,7 +93,6 @@ RTS instruction at the end of each word.
 | FETCH | `@` | ANS core | 18 | **auto** |
 | FIND | `find` | ANS core | 71 | **auto** |
 | FIND_NAME | `find-name` | Gforth | 171 | **auto** |
-| FLUSH | `flush` | ANS block | 9 | **auto** |
 | FM_SLASH_MOD | `fm/mod` | ANS core | 54 | **auto** |
 | EVALUATE | `evaluate` | ANS core | 83 | **auto** |
 | FORTH_WORDLIST | `forth-wordlist` | ANS search | 6 | **auto** |
@@ -131,7 +119,6 @@ RTS instruction at the end of each word.
 | LESS_NUMBER_SIGN | `<#` | ANS core | 13 | **auto** |
 | LESS_THAN | `<` | ANS core | 20 | **auto** |
 | LITERAL | `literal` | ANS core | 13 | **auto** |
-| LOAD | `load` | ANS block | 67 | **auto** |
 | LOOP | `loop` | ANS core | 109 | **auto** |
 | PLUS_LOOP | `+loop` | ANS core | 102 | **auto** |
 | LSHIFT | `lshift` | ANS core | 19 | **auto** |
@@ -189,8 +176,6 @@ RTS instruction at the end of each word.
 | SET_ORDER | `set-order` | ANS search | 51 | **auto** |
 | S_QUOTE | `s"` | ANS core | 348 | **auto** |
 | S_TO_D | `s>d` | ANS core | 17 | **auto** |
-| SAVE_BUFFERS | `save-buffers` | ANS block | 26 | tested |
-| SCR | `scr` | ANS block ext | 15 | **auto** |
 | SEARCH | `search` | ANS string | 158 | **auto** |
 | SEMICOLON | `;` | ANS core | 94 | **auto** |
 | SIGN | `sign` | ANS core | 20 | **auto** |
@@ -211,7 +196,6 @@ RTS instruction at the end of each word.
 | STRIP_UNDERFLOW | `strip-underflow` | Tali Forth | 10 | tested |
 | SWAP | `swap` | ANS core | 19 | **auto** |
 | THEN | `then` | ANS core | 9 | **auto** |
-| THRU | `list` | ANS block ext | 68 | tested |
 | TICK | `'` | ANS core | 31 | **auto** |
 | TO | `to` | ANS core ext | 91 | **auto** |
 | TO_BODY | `>body` | ANS core | 36 | **auto** |
@@ -247,7 +231,6 @@ RTS instruction at the end of each word.
 | UNLOOP | `unloop` | ANS core | 6 | **auto** |
 | UNTIL | `until` | ANS core | 10 | **auto** |
 | UNUSED | `unused` | ANS core ext | 15 | **auto** |
-| UPDATE | `update` | ANS block | 8 | **auto** |
 | USERADDR | `useraddr` | Tali Forth | 10 | tested |
 | VALUE | `value` | ANS core | 61 | **auto** |
 | VARIABLE | `variable` | ANS core | 24 | **auto** |
@@ -264,7 +247,7 @@ RTS instruction at the end of each word.
 | ZERO_LESS | `0<` | ANS core | 15 | **auto** |
 | ZERO_UNEQUAL | `0<>` | ANS core ext | 17 | **auto** |
 
-Found **256** native words in `native_words.asm`.
-Of those, **220** were automatically tested and
+Found **239** native words in `native_words.asm`.
+Of those, **206** were automatically tested and
           **0** are not marked as tested at all.
 
