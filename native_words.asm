@@ -246,8 +246,9 @@ z_quit:         ; no RTS required
 ; This table holds all of the initial values for the variables in zero page.
 ; This table is used by COLD.
 cold_zp_table:
-        .word cp0+256+1024      ; cp moved to make room for user vars and
-                                ; block buffer
+;        .word cp0+256+1024      ; cp moved to make room for user vars and
+;                                ; block buffer
+        .word cp0+256           ; cp moved to make room for user vars
         .word dictionary_start  ; dp
         .word 0                 ; workword
         .word 0                 ; insrc (SOURCE-ID is 0 for keyboard)
