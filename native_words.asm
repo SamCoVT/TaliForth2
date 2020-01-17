@@ -1157,49 +1157,49 @@ z_block:        rts
 .scend
 
 
-; ## BLOCK_RAMDRIVE_INIT ( u -- ) "Create a ramdrive for blocks"
-; ## "block-ramdrive-init"  auto  Tali block
-        ; """Create a RAM drive, with the given number of
-        ; blocks, in the dictionary along with setting up the block words to
-        ; use it.  The read/write routines do not provide bounds checking.
-        ; Expected use: `4 block-ramdrive-init` ( to create blocks 0-3 )
-        ; """
-.scope
-xt_block_ramdrive_init:
-                jsr underflow_1
-
-                ; Store the string to run here as a string literal.
-                ; See SLITERAL for the format information. This way, we
-                ; don't have the words defined below in the Dictionary until
-                ; we really use them.
-                jmp _after_ramdrive_code
-
-_ramdrive_code:
-        .byte "base @ swap decimal"
-        .byte " 1024 *" ; ( Calculate how many bytes are needed for numblocks blocks )
-        .byte " dup"    ; ( Save a copy for formatting it at the end )
-        .byte " buffer: ramdrive" ; ( Create ramdrive )
-        ; ( These routines just copy between the buffer and the ramdrive blocks )
-        .byte " : block-read-ramdrive"  ; ( addr u -- )
-        .byte " ramdrive swap 1024 * + swap 1024 move ;"
-        .byte " : block-write-ramdrive" ; ( addr u -- )
-        .byte " ramdrive swap 1024 * + 1024 move ;"
-        .byte " ' block-read-ramdrive block-read-vector !" ; ( Replace I/O vectors )
-        .byte " ' block-write-ramdrive block-write-vector !"
-        .byte " ramdrive swap blank base !"
-
-_after_ramdrive_code:
-                jsr sliteral_runtime
-
-.word _ramdrive_code, _after_ramdrive_code-_ramdrive_code
-
-                ; The address and length of the ramdrive code is now on the
-                ; stack. Call EVALUATE to run it.
-                jsr xt_evaluate
-
-z_block_ramdrive_init:
-                rts
-.scend
+;; ## BLOCK_RAMDRIVE_INIT ( u -- ) "Create a ramdrive for blocks"
+;; ## "block-ramdrive-init"  auto  Tali block
+;        ; """Create a RAM drive, with the given number of
+;        ; blocks, in the dictionary along with setting up the block words to
+;        ; use it.  The read/write routines do not provide bounds checking.
+;        ; Expected use: `4 block-ramdrive-init` ( to create blocks 0-3 )
+;        ; """
+;.scope
+;xt_block_ramdrive_init:
+;                jsr underflow_1
+;
+;                ; Store the string to run here as a string literal.
+;                ; See SLITERAL for the format information. This way, we
+;                ; don't have the words defined below in the Dictionary until
+;                ; we really use them.
+;                jmp _after_ramdrive_code
+;
+;_ramdrive_code:
+;        .byte "base @ swap decimal"
+;        .byte " 1024 *" ; ( Calculate how many bytes are needed for numblocks blocks )
+;        .byte " dup"    ; ( Save a copy for formatting it at the end )
+;        .byte " buffer: ramdrive" ; ( Create ramdrive )
+;        ; ( These routines just copy between the buffer and the ramdrive blocks )
+;        .byte " : block-read-ramdrive"  ; ( addr u -- )
+;        .byte " ramdrive swap 1024 * + swap 1024 move ;"
+;        .byte " : block-write-ramdrive" ; ( addr u -- )
+;        .byte " ramdrive swap 1024 * + 1024 move ;"
+;        .byte " ' block-read-ramdrive block-read-vector !" ; ( Replace I/O vectors )
+;        .byte " ' block-write-ramdrive block-write-vector !"
+;        .byte " ramdrive swap blank base !"
+;
+;_after_ramdrive_code:
+;                jsr sliteral_runtime
+;
+;.word _ramdrive_code, _after_ramdrive_code-_ramdrive_code
+;
+;                ; The address and length of the ramdrive code is now on the
+;                ; stack. Call EVALUATE to run it.
+;                jsr xt_evaluate
+;
+;z_block_ramdrive_init:
+;                rts
+;.scend
 
 
 ; ## BLOCK_READ ( addr u -- ) "Read a block from storage (deferred word)"
@@ -3862,230 +3862,230 @@ z_endcase:      rts
         ; """
 
 
-; ## ENVIRONMENT_Q  ( addr u -- 0 | i*x true )  "Return system information"
-; ## "environment?"  auto  ANS core
-        ; """https://forth-standard.org/standard/core/ENVIRONMENTq
-        ;
-        ; By ANS definition, we use upper-case strings here, see the
-        ; string file for details. This can be realized as a high-level
-        ; Forth word as
-        ;
-        ; : STRING_OF POSTPONE 2OVER POSTPONE COMPARE POSTPONE 0=
-        ;    POSTPONE IF POSTPONE 2DROP ; IMMEDIATE COMPILE-ONLY
-        ; HEX
-        ; : ENVIRONMENT? ( C-ADDR U -- FALSE | I*X TRUE )
-        ; CASE
-        ; S" /COUNTED-STRING"    STRING_OF  7FFF TRUE ENDOF
-        ; S" /HOLD"              STRING_OF    FF TRUE ENDOF
-        ; S" /PAD"               STRING_OF    54 TRUE ENDOF ( 84 DECIMAL )
-        ; S" ADDRESS-UNIT-BITS"  STRING_OF     8 TRUE ENDOF
-        ; S" FLOORED"            STRING_OF FALSE TRUE ENDOF ( WE HAVE SYMMETRIC )
-        ; S" MAX-CHAR"           STRING_OF   255 TRUE ENDOF
-        ; S" MAX-D"              STRING_OF
-                                     ; 7FFFFFFF. TRUE ENDOF
-        ; S" MAX-N"              STRING_OF  7FFF TRUE ENDOF
-        ; S" MAX-U"              STRING_OF  FFFF TRUE ENDOF
-        ; S" MAX-UD"             STRING_OF
-                                     ; FFFFFFFF. TRUE ENDOF
-        ; S" RETURN-STACK-CELLS" STRING_OF    80 TRUE ENDOF
-        ; S" STACK-CELLS"        STRING_OF    20 TRUE ENDOF ( FROM DEFINITIONS.ASM )
-        ; ( DEFAULT ) 2DROP FALSE FALSE ( ONE FALSE WILL DROPPED BY ENDCASE )
-        ; ENDCASE ;
-        ;
-        ; but that uses lots of memory and increases the start up time. This
-        ; word is rarely used so we can try to keep it short at the expense
-        ; of speed.
-        ; """
-.scope
-xt_environment_q:
-                jsr underflow_1
-
-                ; This code is table-driven: We walk through the list of
-                ; strings until we find one that matches, and then we take
-                ; the equivalent data from the results table. This is made
-                ; a bit harder by the fact that some of these return a
-                ; double-cell number and some a single-cell one.
-
-                ; We will walk through the table with variables that return
-                ; a single-cell result
-                ldy #00                 ; counter for table
-
-                ; We use a flag on the the stack to signal if we have a single-cell
-                ; or double-cell number. We use 0 to signal single-cell and 1 for
-                ; double-cell.
-                phy
-_table_loop:
-                ; We arrived here with the address of the string to be checked
-                ; on the stack. We make a copy. Index is in Y
-                jsr xt_two_dup          ; ( addr u addr u ) 2DUP does not use Y
-
-                ; We do our work on the TOS to speed things up
-                dex
-                dex                     ; ( addr u addr u ? )
-
-                ; Get address of string to check from table
-                lda _env_table_single,y
-                sta 0,x
-                iny
-                lda _env_table_single,y
-                sta 1,x                 ; ( addr u addr u addr-t )
-                iny
-
-                ; See if this is the last entry. The LSB is still in A
-                ora 0,x
-                beq _table_done
-
-                ; We have a string entry. The address there is stored in
-                ; old-style address format, that is, the first byte is the
-                ; length of the string
-                phy                     ; save Y, which is used by COUNT
-                jsr xt_count            ; ( addr u addr u addr-s u-s )
-                jsr xt_compare          ; ( addr u f )
-                ply
-
-                ; If we found a match (flag is zero -- COMPARE is weird
-                ; that way), return the result
-                lda 0,x
-                ora 1,x
-                beq _got_result
-
-                ; Flag is not zero, so not a perfect match, so try next
-                ; word
-                inx                     ; DROP, now ( addr u )
-                inx
-
-                bra _table_loop
-
-_got_result:
-                ; We arrive here with ( addr u -1 ) and know that we've found
-                ; a match. The index of the match+2 is in Y.
-                inx                     ; drop flag, now ( addr u )
-                inx
-                dey                     ; go back to index we had
-                dey
-
-                ; See if this is a single-cell word.
-                pla
-                bne _double_result
-
-                ; Single-cell result
-                lda _env_results_single,y
-                sta 2,x
-                iny
-                lda _env_results_single,y
-                sta 3,x                 ; ( res u )
-
-                bra _set_flag
-
-_double_result:
-                ; This is a double-celled result, which means we have to
-                ; fool around with the index some more. We also need a
-                ; further cell on the stack
-                dex                     ; ( addr u ? )
-                dex
-
-                ; We have 11 single-cell words we check, plus the 0000 as
-                ; a marker for the end of the table, so we arrive here
-                ; with Y as 22 or more. To get the index for the double-
-                ; cell words, we move the result
-                tya
-                sec
-                sbc #24
-
-                ; We have four bytes per entry in the table, but the index
-                ; keeps increasing by two, so we only have to multiply by
-                ; two (shift left once) to get the right result
-                asl
-                tay
-
-                lda _env_results_double,y
-                sta 2,x
-                iny
-                lda _env_results_double,y
-                sta 3,x                 ; ( res u ? )
-                iny
-
-                lda _env_results_double,y
-                sta 4,x
-                iny
-                lda _env_results_double,y
-                sta 5,x                 ; ( res res ? )
-
-                ; fall through to _set_flag
-_set_flag:
-                lda #$ff
-                sta 0,x
-                sta 1,x                 ; ( res f )
-
-                bra _done
-_table_done:
-                ; We're done with a table, because the entry was a zero.
-                ; We arrive here with ( addr u addr u 0 )
-
-                ; We take the flag from stack and increase it by one. If the
-                ; flag is zero, we have just completed the single-cell number
-                ; strings, so we in increase the flag and try again. Otherwise,
-                ; we're done with the double-cell table without having found
-                ; a match, and we're done
-                pla
-                bne _no_match
-
-                ; Flag is zero, increase it to one and start over to check
-                ; double-cell values
-                inc
-                pha
-
-                txa
-                clc
-                adc #6                  ; skip six bytes
-                tax                     ; ( addr u )
-
-                bra _table_loop
-_no_match:
-                ; Bummer, not found. We arrive here with
-                ; ( addr u addr u 0 ) and need to return just a zero
-                txa
-                clc
-                adc #10
-                tax                     ; ( addr ) - not ( 0 ) !
-
-                jsr xt_false
-_done:
-z_environment_q:
-                rts
-.scend
-
-; Tables for ENVIRONMENT?. We use two separate ones, one for the single-cell
-; results and one for the double-celled results. The zero cell at the
-; end of each table marks its, uh, end. The strings themselves are defined
-; in strings.asm. Note if we add more entries to the single-cell table, we
-; have to adapt the result code for double printout, where we subtract 22
-; (two bytes each single-cell string and two bytes for the end-of-table
-; marker 0000
-_env_table_single:
-        .word envs_cs, envs_hold, envs_pad, envs_aub, envs_floored
-        .word envs_max_char, envs_max_n, envs_max_u, envs_rsc
-        .word envs_sc, envs_wl, 0000
-
-_env_table_double:
-        .word envs_max_d, envs_max_ud, 0000
-
-_env_results_single:
-        .word $7FFF     ; /COUNTED-STRING
-        .word $00FF     ; /HOLD
-        .word $0054     ; /PAD (this is 84 decimal)
-        .word $0008     ; ADDRESS-UNIT-BITS (keep "$" to avoid octal!)
-        .word 0000      ; FLOORED ("FALSE", we have symmetric)
-        .word $00FF     ; MAX-CHAR
-        .word $7FFF     ; MAX-N
-        .word $FFFF     ; MAX-U
-        .word $0080     ; RETURN-STACK-CELLS
-        .word $0020     ; STACK-CELLS (from definitions.asm)
-        .word $0009     ; WORDLISTS
-
-_env_results_double:
-        .word $7FFF, $FFFF      ; MAX-D
-        .word $FFFF, $FFFF      ; MAX-UD
+;; ## ENVIRONMENT_Q  ( addr u -- 0 | i*x true )  "Return system information"
+;; ## "environment?"  auto  ANS core
+;        ; """https://forth-standard.org/standard/core/ENVIRONMENTq
+;        ;
+;        ; By ANS definition, we use upper-case strings here, see the
+;        ; string file for details. This can be realized as a high-level
+;        ; Forth word as
+;        ;
+;        ; : STRING_OF POSTPONE 2OVER POSTPONE COMPARE POSTPONE 0=
+;        ;    POSTPONE IF POSTPONE 2DROP ; IMMEDIATE COMPILE-ONLY
+;        ; HEX
+;        ; : ENVIRONMENT? ( C-ADDR U -- FALSE | I*X TRUE )
+;        ; CASE
+;        ; S" /COUNTED-STRING"    STRING_OF  7FFF TRUE ENDOF
+;        ; S" /HOLD"              STRING_OF    FF TRUE ENDOF
+;        ; S" /PAD"               STRING_OF    54 TRUE ENDOF ( 84 DECIMAL )
+;        ; S" ADDRESS-UNIT-BITS"  STRING_OF     8 TRUE ENDOF
+;        ; S" FLOORED"            STRING_OF FALSE TRUE ENDOF ( WE HAVE SYMMETRIC )
+;        ; S" MAX-CHAR"           STRING_OF   255 TRUE ENDOF
+;        ; S" MAX-D"              STRING_OF
+;                                     ; 7FFFFFFF. TRUE ENDOF
+;        ; S" MAX-N"              STRING_OF  7FFF TRUE ENDOF
+;        ; S" MAX-U"              STRING_OF  FFFF TRUE ENDOF
+;        ; S" MAX-UD"             STRING_OF
+;                                     ; FFFFFFFF. TRUE ENDOF
+;        ; S" RETURN-STACK-CELLS" STRING_OF    80 TRUE ENDOF
+;        ; S" STACK-CELLS"        STRING_OF    20 TRUE ENDOF ( FROM DEFINITIONS.ASM )
+;        ; ( DEFAULT ) 2DROP FALSE FALSE ( ONE FALSE WILL DROPPED BY ENDCASE )
+;        ; ENDCASE ;
+;        ;
+;        ; but that uses lots of memory and increases the start up time. This
+;        ; word is rarely used so we can try to keep it short at the expense
+;        ; of speed.
+;        ; """
+;.scope
+;xt_environment_q:
+;                jsr underflow_1
+;
+;                ; This code is table-driven: We walk through the list of
+;                ; strings until we find one that matches, and then we take
+;                ; the equivalent data from the results table. This is made
+;                ; a bit harder by the fact that some of these return a
+;                ; double-cell number and some a single-cell one.
+;
+;                ; We will walk through the table with variables that return
+;                ; a single-cell result
+;                ldy #00                 ; counter for table
+;
+;                ; We use a flag on the the stack to signal if we have a single-cell
+;                ; or double-cell number. We use 0 to signal single-cell and 1 for
+;                ; double-cell.
+;                phy
+;_table_loop:
+;                ; We arrived here with the address of the string to be checked
+;                ; on the stack. We make a copy. Index is in Y
+;                jsr xt_two_dup          ; ( addr u addr u ) 2DUP does not use Y
+;
+;                ; We do our work on the TOS to speed things up
+;                dex
+;                dex                     ; ( addr u addr u ? )
+;
+;                ; Get address of string to check from table
+;                lda _env_table_single,y
+;                sta 0,x
+;                iny
+;                lda _env_table_single,y
+;                sta 1,x                 ; ( addr u addr u addr-t )
+;                iny
+;
+;                ; See if this is the last entry. The LSB is still in A
+;                ora 0,x
+;                beq _table_done
+;
+;                ; We have a string entry. The address there is stored in
+;                ; old-style address format, that is, the first byte is the
+;                ; length of the string
+;                phy                     ; save Y, which is used by COUNT
+;                jsr xt_count            ; ( addr u addr u addr-s u-s )
+;                jsr xt_compare          ; ( addr u f )
+;                ply
+;
+;                ; If we found a match (flag is zero -- COMPARE is weird
+;                ; that way), return the result
+;                lda 0,x
+;                ora 1,x
+;                beq _got_result
+;
+;                ; Flag is not zero, so not a perfect match, so try next
+;                ; word
+;                inx                     ; DROP, now ( addr u )
+;                inx
+;
+;                bra _table_loop
+;
+;_got_result:
+;                ; We arrive here with ( addr u -1 ) and know that we've found
+;                ; a match. The index of the match+2 is in Y.
+;                inx                     ; drop flag, now ( addr u )
+;                inx
+;                dey                     ; go back to index we had
+;                dey
+;
+;                ; See if this is a single-cell word.
+;                pla
+;                bne _double_result
+;
+;                ; Single-cell result
+;                lda _env_results_single,y
+;                sta 2,x
+;                iny
+;                lda _env_results_single,y
+;                sta 3,x                 ; ( res u )
+;
+;                bra _set_flag
+;
+;_double_result:
+;                ; This is a double-celled result, which means we have to
+;                ; fool around with the index some more. We also need a
+;                ; further cell on the stack
+;                dex                     ; ( addr u ? )
+;                dex
+;
+;                ; We have 11 single-cell words we check, plus the 0000 as
+;                ; a marker for the end of the table, so we arrive here
+;                ; with Y as 22 or more. To get the index for the double-
+;                ; cell words, we move the result
+;                tya
+;                sec
+;                sbc #24
+;
+;                ; We have four bytes per entry in the table, but the index
+;                ; keeps increasing by two, so we only have to multiply by
+;                ; two (shift left once) to get the right result
+;                asl
+;                tay
+;
+;                lda _env_results_double,y
+;                sta 2,x
+;                iny
+;                lda _env_results_double,y
+;                sta 3,x                 ; ( res u ? )
+;                iny
+;
+;                lda _env_results_double,y
+;                sta 4,x
+;                iny
+;                lda _env_results_double,y
+;                sta 5,x                 ; ( res res ? )
+;
+;                ; fall through to _set_flag
+;_set_flag:
+;                lda #$ff
+;                sta 0,x
+;                sta 1,x                 ; ( res f )
+;
+;                bra _done
+;_table_done:
+;                ; We're done with a table, because the entry was a zero.
+;                ; We arrive here with ( addr u addr u 0 )
+;
+;                ; We take the flag from stack and increase it by one. If the
+;                ; flag is zero, we have just completed the single-cell number
+;                ; strings, so we in increase the flag and try again. Otherwise,
+;                ; we're done with the double-cell table without having found
+;                ; a match, and we're done
+;                pla
+;                bne _no_match
+;
+;                ; Flag is zero, increase it to one and start over to check
+;                ; double-cell values
+;                inc
+;                pha
+;
+;                txa
+;                clc
+;                adc #6                  ; skip six bytes
+;                tax                     ; ( addr u )
+;
+;                bra _table_loop
+;_no_match:
+;                ; Bummer, not found. We arrive here with
+;                ; ( addr u addr u 0 ) and need to return just a zero
+;                txa
+;                clc
+;                adc #10
+;                tax                     ; ( addr ) - not ( 0 ) !
+;
+;                jsr xt_false
+;_done:
+;z_environment_q:
+;                rts
+;.scend
+;
+;; Tables for ENVIRONMENT?. We use two separate ones, one for the single-cell
+;; results and one for the double-celled results. The zero cell at the
+;; end of each table marks its, uh, end. The strings themselves are defined
+;; in strings.asm. Note if we add more entries to the single-cell table, we
+;; have to adapt the result code for double printout, where we subtract 22
+;; (two bytes each single-cell string and two bytes for the end-of-table
+;; marker 0000
+;_env_table_single:
+;        .word envs_cs, envs_hold, envs_pad, envs_aub, envs_floored
+;        .word envs_max_char, envs_max_n, envs_max_u, envs_rsc
+;        .word envs_sc, envs_wl, 0000
+;
+;_env_table_double:
+;        .word envs_max_d, envs_max_ud, 0000
+;
+;_env_results_single:
+;        .word $7FFF     ; /COUNTED-STRING
+;        .word $00FF     ; /HOLD
+;        .word $0054     ; /PAD (this is 84 decimal)
+;        .word $0008     ; ADDRESS-UNIT-BITS (keep "$" to avoid octal!)
+;        .word 0000      ; FLOORED ("FALSE", we have symmetric)
+;        .word $00FF     ; MAX-CHAR
+;        .word $7FFF     ; MAX-N
+;        .word $FFFF     ; MAX-U
+;        .word $0080     ; RETURN-STACK-CELLS
+;        .word $0020     ; STACK-CELLS (from definitions.asm)
+;        .word $0009     ; WORDLISTS
+;
+;_env_results_double:
+;        .word $7FFF, $FFFF      ; MAX-D
+;        .word $FFFF, $FFFF      ; MAX-UD
 
 
 ; ## EQUAL ( n n -- f ) "See if TOS and NOS are equal"
@@ -4802,31 +4802,31 @@ z_evaluate:     rts
 .scend
 
 
-;; ## FORTH_WORDLIST ( -- u ) "WID for the Forth Wordlist"
-;; ## "forth-wordlist"  auto  ANS search
-;        ; """https://forth-standard.org/standard/search/FORTH-WORDLIST"""
-;        ; This is a dummy entry, the actual code is shared with ZERO.
-;
+; ## FORTH_WORDLIST ( -- u ) "WID for the Forth Wordlist"
+; ## "forth-wordlist"  auto  ANS search
+        ; """https://forth-standard.org/standard/search/FORTH-WORDLIST"""
+        ; This is a dummy entry, the actual code is shared with ZERO.
 
-;; ## GET_CURRENT ( -- wid ) "Get the id of the compilation wordlist"
-;; ## "get-current" auto ANS search
-;        ; """https://forth-standard.org/standard/search/GET-CURRENT"""
-;.scope
-;xt_get_current:
-;                ; This is a little different than some of the variables
-;                ; in the user area as we want the value rather than
-;                ; the address.
-;                dex
-;                dex
-;                ldy #current_offset
-;                lda (up),y
-;                sta 0,x         ; CURRENT is a byte variable
-;                stz 1,x         ; so the MSB is zero.
-;
-;z_get_current:  rts
-;.scend
-;
-;
+
+; ## GET_CURRENT ( -- wid ) "Get the id of the compilation wordlist"
+; ## "get-current" auto ANS search
+        ; """https://forth-standard.org/standard/search/GET-CURRENT"""
+.scope
+xt_get_current:
+                ; This is a little different than some of the variables
+                ; in the user area as we want the value rather than
+                ; the address.
+                dex
+                dex
+                ldy #current_offset
+                lda (up),y
+                sta 0,x         ; CURRENT is a byte variable
+                stz 1,x         ; so the MSB is zero.
+
+z_get_current:  rts
+.scend
+
+
 ;; ## GET_ORDER ( -- wid_n .. wid_1 n) "Get the current search order"
 ;; ## "get-order" auto ANS search
 ;        ; """https://forth-standard.org/standard/search/GET-ORDER"""
@@ -5595,22 +5595,22 @@ z_less_than:    rts
 .scend
 
 
-; ## LIST ( scr# -- ) "List the given screen"
-; ## "list"  tested  ANS block ext
-        ; """https://forth-standard.org/standard/block/LIST"""
-.scope
-xt_list:
-                jsr underflow_1
-
-                ; Save the screen number in SCR
-                jsr xt_scr
-                jsr xt_store
-
-                ; Use L from the editor-wordlist to display the screen.
-                jsr xt_editor_l
-
-z_list:         rts
-.scend
+;; ## LIST ( scr# -- ) "List the given screen"
+;; ## "list"  tested  ANS block ext
+;        ; """https://forth-standard.org/standard/block/LIST"""
+;.scope
+;xt_list:
+;                jsr underflow_1
+;
+;                ; Save the screen number in SCR
+;                jsr xt_scr
+;                jsr xt_store
+;
+;                ; Use L from the editor-wordlist to display the screen.
+;                jsr xt_editor_l
+;
+;z_list:         rts
+;.scend
 
 
 ; ## LITERAL ( n -- ) "Store TOS to be push on stack during runtime"
@@ -8430,84 +8430,84 @@ z_see:          rts
 .scend
 
 
-;; ## SET_CURRENT ( wid -- ) "Set the compilation wordlist"
-;; ## "set-current" auto ANS search
-;        ; """https://forth-standard.org/standard/search/SET-CURRENT"""
-;.scope
-;xt_set_current:
-;                jsr underflow_1
-;
-;                ; Save the value from the data stack.
-;                ldy #current_offset
-;                lda 0,x         ; CURRENT is byte variable
-;                sta (up),y      ; so only the LSB is used.
-;
-;                inx
-;                inx
-;
-;z_set_current:  rts
-;.scend
+; ## SET_CURRENT ( wid -- ) "Set the compilation wordlist"
+; ## "set-current" auto ANS search
+        ; """https://forth-standard.org/standard/search/SET-CURRENT"""
+.scope
+xt_set_current:
+                jsr underflow_1
+
+                ; Save the value from the data stack.
+                ldy #current_offset
+                lda 0,x         ; CURRENT is byte variable
+                sta (up),y      ; so only the LSB is used.
+
+                inx
+                inx
+
+z_set_current:  rts
+.scend
 
 
-;; ## SET_ORDER ( wid_n .. wid_1 n -- ) "Set the current search order"
-;; ## "set-order" auto ANS search
-;        ; """https://forth-standard.org/standard/search/SET-ORDER"""
-;.scope
-;xt_set_order:
-;                ; Test for -1 TOS
-;                lda #$FF
-;                cmp 1,x
-;                bne _start
-;                cmp 0,x
-;                bne _start
-;
-;                ; There is a -1 TOS.  Replace it with the default
-;                ; search order, which is just the FORTH-WORDLIST.
-;                dex             ; Make room for the count.
-;                dex
-;                stz 3,x         ; ROOT-WORDLIST is 3
-;                lda #3
-;                sta 2,x
-;                stz 1,x         ; Count is 1.
-;                lda #1
-;                sta 0,x
-;
-;                ; Continue processing with ( forth-wordlist 1 -- )
-;_start:
-;                ; Set #ORDER - the number of wordlists in the search order.
-;                ldy #num_order_offset
-;                lda 0,x
-;                sta (up),y      ; #ORDER is a byte variable.
-;                sta tmp1        ; Save a copy for zero check and looping.
-;                                ; Only the low byte is saved in tmp1 as
-;                                ; only 8 wordlists are allowed.
-;
-;                inx             ; Drop the count off the data stack.
-;                inx
-;
-;                ; Check if there are zero wordlists.
-;                lda tmp1
-;                beq _done       ; If zero, there are no wordlists.
-;
-;                ; Move the wordlist ids from the data stack to the search order.
-;                ldy #search_order_offset
-;_loop:
-;                ; Move one wordlist id over into the search order.
-;                lda 0,x         ; The search order is a byte array
-;                sta (up),y      ; so only save the LSB
-;                iny
-;
-;                ; Remove it from the data stack.
-;                inx
-;                inx
-;
-;                ; See if that was the last one to process (first in the list).
-;                dec tmp1
-;                bne _loop
-;
-;_done:
-;z_set_order:    rts
-;.scend
+; ## SET_ORDER ( wid_n .. wid_1 n -- ) "Set the current search order"
+; ## "set-order" auto ANS search
+        ; """https://forth-standard.org/standard/search/SET-ORDER"""
+.scope
+xt_set_order:
+                ; Test for -1 TOS
+                lda #$FF
+                cmp 1,x
+                bne _start
+                cmp 0,x
+                bne _start
+
+                ; There is a -1 TOS.  Replace it with the default
+                ; search order, which is just the FORTH-WORDLIST.
+                dex             ; Make room for the count.
+                dex
+                stz 3,x         ; ROOT-WORDLIST is 3
+                lda #3
+                sta 2,x
+                stz 1,x         ; Count is 1.
+                lda #1
+                sta 0,x
+
+                ; Continue processing with ( forth-wordlist 1 -- )
+_start:
+                ; Set #ORDER - the number of wordlists in the search order.
+                ldy #num_order_offset
+                lda 0,x
+                sta (up),y      ; #ORDER is a byte variable.
+                sta tmp1        ; Save a copy for zero check and looping.
+                                ; Only the low byte is saved in tmp1 as
+                                ; only 8 wordlists are allowed.
+
+                inx             ; Drop the count off the data stack.
+                inx
+
+                ; Check if there are zero wordlists.
+                lda tmp1
+                beq _done       ; If zero, there are no wordlists.
+
+                ; Move the wordlist ids from the data stack to the search order.
+                ldy #search_order_offset
+_loop:
+                ; Move one wordlist id over into the search order.
+                lda 0,x         ; The search order is a byte array
+                sta (up),y      ; so only save the LSB
+                iny
+
+                ; Remove it from the data stack.
+                inx
+                inx
+
+                ; See if that was the last one to process (first in the list).
+                dec tmp1
+                bne _loop
+
+_done:
+z_set_order:    rts
+.scend
 
 
 
@@ -11724,268 +11724,268 @@ z_zero_unequal: rts
 .scend
 
 
-; ==========================================================
-; EDITOR words
-
-; This routine is used by both enter-screen and erase-screen
-; to get a buffer for the given screen number and set SCR to
-; the given screen number.  This word is not in the dictionary.
-xt_editor_screen_helper:
-                jsr xt_dup
-                jsr xt_scr
-                jsr xt_store
-                jsr xt_buffer
-z_editor_screen_helper:
-                rts
-
-
-; ## EDITOR_ENTER_SCREEN ( scr# -- ) "Enter all lines for given screen"
-; ## "enter-screen"  auto  Tali Editor
-.scope
-xt_editor_enter_screen:
-                ; Set the variable SCR and get a buffer for the
-                ; given screen number.
-                jsr xt_editor_screen_helper
-
-                ; Drop the buffer address.
-                jsr xt_drop
-
-                ; Overwrite the lines one at a time.
-                stz editor1
-_prompt_loop:
-                ; Put the current line number on the stack.
-                dex
-                dex
-                lda editor1
-                sta 0,x
-                stz 1,x
-
-                ; Use the O word to prompt for overwrite.
-                jsr xt_editor_o
-
-                ; Move on to the next line.
-                inc editor1
-                lda #16
-                cmp editor1
-                bne _prompt_loop
-
-z_editor_enter_screen:
-                rts
-.scend
-
-
-; ## EDITOR_ERASE_SCREEN ( scr# -- ) "Erase all lines for given screen"
-; ## "erase-screen"  tested  Tali Editor
-xt_editor_erase_screen:
-                ; Set the variable SCR and get a buffer for the
-                ; given screen number.
-                jsr xt_editor_screen_helper
-
-                ; Put 1024 (chars/screen) on stack.
-                dex
-                dex
-                stz 0,x
-                lda #4          ; 4 in MSB makes 1024 ($400).
-                sta 1,x
-
-                ; Erase the entire block (fill with spaces).
-                jsr xt_blank
-
-                ; Mark buffer as updated.
-                jsr xt_update
-
-z_editor_erase_screen:
-                rts
-
-
-; ## EDITOR_EL ( line# -- ) "Erase the given line number"
-; ## "el"  tested  Tali Editor
-xt_editor_el:
-                ; Turn the line number into buffer offset.
-                ; This also loads the block into the buffer if it's
-                ; not there for some reason.
-                jsr xt_editor_line
-
-                ; Put 64 (# of chars/line) on the stack.
-                dex
-                dex
-                lda #64
-                sta 0,x
-                stz 1,x
-
-                ; Fill with spaces.
-                jsr xt_blank
-
-                ; Mark buffer as updated.
-                jsr xt_update
-
-z_editor_el:    rts
-
-
-; ## EDITOR_L ( -- ) "List the current screen"
-; ## "l"  tested  Tali Editor
-.scope
-xt_editor_l:
-                ; Load the current screen
-                dex             ; Put SCR on the stack.
-                dex
-                ldy #scr_offset
-                lda (up),y
-                sta 0,x
-                iny
-                lda (up),y
-                sta 1,x
-                jsr xt_block    ; Get the current screen.
-
-                jsr xt_cr
-
-                ; Print the screen number.
-                ; We're using sliteral, so we need to set up the
-                ; appropriate data structure (see sliteral)
-                bra _after_screen_msg
-
-_screen_msg:
-                .byte "Screen #"
-
-_after_screen_msg:
-                jsr sliteral_runtime
-                .word _screen_msg, _after_screen_msg-_screen_msg
-
-                jsr xt_type
-
-                ; Put the screen number and printed size for u.r on the stack.
-                jsr xt_scr
-                jsr xt_fetch
-                dex
-                dex
-                lda #4          ; four spaces
-                sta 0,x
-                stz 1,x
-                jsr xt_u_dot_r
-
-                ; The address of the buffer is currently on the stack.
-                ; Print 64 chars at a time. TYPE uses tmp1, so we'll
-                ; keep track of the line number in tmp3.
-                stz tmp3
-
-_line_loop:
-                jsr xt_cr
-
-                ; Print the line number (2-space fixed width)
-                dex
-                dex
-                dex
-                dex
-                stz 3,x
-                lda tmp3
-                sta 2,x
-                stz 1,x
-                lda #2
-                sta 0,x
-                jsr xt_u_dot_r
-                jsr xt_space
-
-                ; Print one line using the address on the stack.
-                jsr xt_dup
-                dex
-                dex
-                lda #64
-                sta 0,x
-                stz 1,x
-                jsr xt_type
-
-                ; Add 64 to the address on the stack to move to the next line.
-                clc
-                lda #64
-                adc 0,x
-                sta 0,x
-                lda 1,x
-                adc #0      ; Add carry
-                sta 1,x
-
-                ; Increment the line number (held in tmp3)
-                inc tmp3
-
-                ; See if we are done.
-                lda tmp3
-                cmp #16
-                bne _line_loop
-
-                jsr xt_cr
-                ; Drop the address on the stack.
-                inx
-                inx
-
-z_editor_l:            rts
-.scend
-
-
-; ## EDITOR_LINE ( line# -- c-addr ) "Turn a line number into address in current screen"
-; ## "line"  tested  Tali Editor
-.scope
-xt_editor_line:
-                jsr underflow_1
-
-                ; Multiply the TOS by 64 (chars/line) to compute offset.
-                ldy #6          ; *64 is same as left shift 6 times.
-_shift_tos_left:
-                asl 0,x         ; Shift TOS to the left
-                rol 1,x         ; ROL brings MSb from lower byte.
-                dey
-                bne _shift_tos_left
-                ; Load the current screen into a buffer
-                ; and get the buffer address
-                jsr xt_scr
-                jsr xt_fetch
-                jsr xt_block
-
-                ; Add the offset to the buffer base address.
-                jsr xt_plus
-
-z_editor_line:  rts
-.scend
-
-
-; ## EDITOR_O ( line# -- ) "Overwrite the given line"
-; ## "o"  tested  Tali Editor
-xt_editor_o:
-                ; Print prompt
-                jsr xt_cr
-                jsr xt_dup
-                jsr xt_two
-                jsr xt_u_dot_r
-                jsr xt_space
-                lda #42         ; ASCII for *
-                jsr emit_a
-                jsr xt_space
-
-                ; Accept new input (directly into the buffer)
-                jsr xt_editor_line
-                jsr xt_dup      ; Save a copy of the line address for later.
-                dex
-                dex
-                lda #64         ; chars/line
-                sta 0,x
-                stz 1,x
-                jsr xt_accept
-
-                ; Fill the rest with spaces.
-                ; Stack is currently ( line_address numchars_from_accept )
-                jsr xt_dup
-                jsr xt_not_rote ; -rot
-                jsr xt_plus
-                dex
-                dex
-                lda #64         ; chars/line
-                sta 0,x
-                stz 1,x
-                jsr xt_rot
-                jsr xt_minus
-                jsr xt_blank
-
-                ; Mark buffer as updated.
-                jsr xt_update
-
-z_editor_o:     rts
+;; ==========================================================
+;; EDITOR words
+;
+;; This routine is used by both enter-screen and erase-screen
+;; to get a buffer for the given screen number and set SCR to
+;; the given screen number.  This word is not in the dictionary.
+;xt_editor_screen_helper:
+;                jsr xt_dup
+;                jsr xt_scr
+;                jsr xt_store
+;                jsr xt_buffer
+;z_editor_screen_helper:
+;                rts
+;
+;
+;; ## EDITOR_ENTER_SCREEN ( scr# -- ) "Enter all lines for given screen"
+;; ## "enter-screen"  auto  Tali Editor
+;.scope
+;xt_editor_enter_screen:
+;                ; Set the variable SCR and get a buffer for the
+;                ; given screen number.
+;                jsr xt_editor_screen_helper
+;
+;                ; Drop the buffer address.
+;                jsr xt_drop
+;
+;                ; Overwrite the lines one at a time.
+;                stz editor1
+;_prompt_loop:
+;                ; Put the current line number on the stack.
+;                dex
+;                dex
+;                lda editor1
+;                sta 0,x
+;                stz 1,x
+;
+;                ; Use the O word to prompt for overwrite.
+;                jsr xt_editor_o
+;
+;                ; Move on to the next line.
+;                inc editor1
+;                lda #16
+;                cmp editor1
+;                bne _prompt_loop
+;
+;z_editor_enter_screen:
+;                rts
+;.scend
+;
+;
+;; ## EDITOR_ERASE_SCREEN ( scr# -- ) "Erase all lines for given screen"
+;; ## "erase-screen"  tested  Tali Editor
+;xt_editor_erase_screen:
+;                ; Set the variable SCR and get a buffer for the
+;                ; given screen number.
+;                jsr xt_editor_screen_helper
+;
+;                ; Put 1024 (chars/screen) on stack.
+;                dex
+;                dex
+;                stz 0,x
+;                lda #4          ; 4 in MSB makes 1024 ($400).
+;                sta 1,x
+;
+;                ; Erase the entire block (fill with spaces).
+;                jsr xt_blank
+;
+;                ; Mark buffer as updated.
+;                jsr xt_update
+;
+;z_editor_erase_screen:
+;                rts
+;
+;
+;; ## EDITOR_EL ( line# -- ) "Erase the given line number"
+;; ## "el"  tested  Tali Editor
+;xt_editor_el:
+;                ; Turn the line number into buffer offset.
+;                ; This also loads the block into the buffer if it's
+;                ; not there for some reason.
+;                jsr xt_editor_line
+;
+;                ; Put 64 (# of chars/line) on the stack.
+;                dex
+;                dex
+;                lda #64
+;                sta 0,x
+;                stz 1,x
+;
+;                ; Fill with spaces.
+;                jsr xt_blank
+;
+;                ; Mark buffer as updated.
+;                jsr xt_update
+;
+;z_editor_el:    rts
+;
+;
+;; ## EDITOR_L ( -- ) "List the current screen"
+;; ## "l"  tested  Tali Editor
+;.scope
+;xt_editor_l:
+;                ; Load the current screen
+;                dex             ; Put SCR on the stack.
+;                dex
+;                ldy #scr_offset
+;                lda (up),y
+;                sta 0,x
+;                iny
+;                lda (up),y
+;                sta 1,x
+;                jsr xt_block    ; Get the current screen.
+;
+;                jsr xt_cr
+;
+;                ; Print the screen number.
+;                ; We're using sliteral, so we need to set up the
+;                ; appropriate data structure (see sliteral)
+;                bra _after_screen_msg
+;
+;_screen_msg:
+;                .byte "Screen #"
+;
+;_after_screen_msg:
+;                jsr sliteral_runtime
+;                .word _screen_msg, _after_screen_msg-_screen_msg
+;
+;                jsr xt_type
+;
+;                ; Put the screen number and printed size for u.r on the stack.
+;                jsr xt_scr
+;                jsr xt_fetch
+;                dex
+;                dex
+;                lda #4          ; four spaces
+;                sta 0,x
+;                stz 1,x
+;                jsr xt_u_dot_r
+;
+;                ; The address of the buffer is currently on the stack.
+;                ; Print 64 chars at a time. TYPE uses tmp1, so we'll
+;                ; keep track of the line number in tmp3.
+;                stz tmp3
+;
+;_line_loop:
+;                jsr xt_cr
+;
+;                ; Print the line number (2-space fixed width)
+;                dex
+;                dex
+;                dex
+;                dex
+;                stz 3,x
+;                lda tmp3
+;                sta 2,x
+;                stz 1,x
+;                lda #2
+;                sta 0,x
+;                jsr xt_u_dot_r
+;                jsr xt_space
+;
+;                ; Print one line using the address on the stack.
+;                jsr xt_dup
+;                dex
+;                dex
+;                lda #64
+;                sta 0,x
+;                stz 1,x
+;                jsr xt_type
+;
+;                ; Add 64 to the address on the stack to move to the next line.
+;                clc
+;                lda #64
+;                adc 0,x
+;                sta 0,x
+;                lda 1,x
+;                adc #0      ; Add carry
+;                sta 1,x
+;
+;                ; Increment the line number (held in tmp3)
+;                inc tmp3
+;
+;                ; See if we are done.
+;                lda tmp3
+;                cmp #16
+;                bne _line_loop
+;
+;                jsr xt_cr
+;                ; Drop the address on the stack.
+;                inx
+;                inx
+;
+;z_editor_l:            rts
+;.scend
+;
+;
+;; ## EDITOR_LINE ( line# -- c-addr ) "Turn a line number into address in current screen"
+;; ## "line"  tested  Tali Editor
+;.scope
+;xt_editor_line:
+;                jsr underflow_1
+;
+;                ; Multiply the TOS by 64 (chars/line) to compute offset.
+;                ldy #6          ; *64 is same as left shift 6 times.
+;_shift_tos_left:
+;                asl 0,x         ; Shift TOS to the left
+;                rol 1,x         ; ROL brings MSb from lower byte.
+;                dey
+;                bne _shift_tos_left
+;                ; Load the current screen into a buffer
+;                ; and get the buffer address
+;                jsr xt_scr
+;                jsr xt_fetch
+;                jsr xt_block
+;
+;                ; Add the offset to the buffer base address.
+;                jsr xt_plus
+;
+;z_editor_line:  rts
+;.scend
+;
+;
+;; ## EDITOR_O ( line# -- ) "Overwrite the given line"
+;; ## "o"  tested  Tali Editor
+;xt_editor_o:
+;                ; Print prompt
+;                jsr xt_cr
+;                jsr xt_dup
+;                jsr xt_two
+;                jsr xt_u_dot_r
+;                jsr xt_space
+;                lda #42         ; ASCII for *
+;                jsr emit_a
+;                jsr xt_space
+;
+;                ; Accept new input (directly into the buffer)
+;                jsr xt_editor_line
+;                jsr xt_dup      ; Save a copy of the line address for later.
+;                dex
+;                dex
+;                lda #64         ; chars/line
+;                sta 0,x
+;                stz 1,x
+;                jsr xt_accept
+;
+;                ; Fill the rest with spaces.
+;                ; Stack is currently ( line_address numchars_from_accept )
+;                jsr xt_dup
+;                jsr xt_not_rote ; -rot
+;                jsr xt_plus
+;                dex
+;                dex
+;                lda #64         ; chars/line
+;                sta 0,x
+;                stz 1,x
+;                jsr xt_rot
+;                jsr xt_minus
+;                jsr xt_blank
+;
+;                ; Mark buffer as updated.
+;                jsr xt_update
+;
+;z_editor_o:     rts
 
 ; END

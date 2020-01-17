@@ -30,7 +30,6 @@ RTS instruction at the end of each word.
 | BLK | `block` | ANS block | 15 | **auto** |
 | BLKBUFFER | `blkbuffer` | Tali block | 13 | **auto** |
 | BLOCK | `block` | ANS block | 82 | **auto** |
-| BLOCK_RAMDRIVE_INIT | `block-ramdrive-init` | Tali block | 296 | **auto** |
 | BLOCK_READ | `block-read` | Tali block | 14 | **auto** |
 | BLOCK_READ_VECTOR | `block-read-vector` | Tali block | 15 | **auto** |
 | BLOCK_WRITE | `block-write` | Tali block | 14 | **auto** |
@@ -94,7 +93,6 @@ RTS instruction at the end of each word.
 | EMPTY_BUFFERS | `empty-buffers` | ANS block ext | 6 | tested |
 | ENDCASE | `endcase` | ANS core ext | 20 | **auto** |
 | ENDOF | `endof` | ANS core ext | 25 | **auto** |
-| ENVIRONMENT_Q | `environment?` | ANS core | 124 | **auto** |
 | EQUAL | `=` | ANS core | 27 | **auto** |
 | BLANK | `blank` | ANS string | 82 | **auto** |
 | ERASE | `erase` | ANS core ext | 72 | **auto** |
@@ -109,6 +107,8 @@ RTS instruction at the end of each word.
 | FLUSH | `flush` | ANS block | 9 | **auto** |
 | FM_SLASH_MOD | `fm/mod` | ANS core | 54 | **auto** |
 | EVALUATE | `evaluate` | ANS core | 83 | **auto** |
+| FORTH_WORDLIST | `forth-wordlist` | ANS search | 6 | **auto** |
+| GET_CURRENT | `get-current` | ANS search | 10 | **auto** |
 | GREATER_THAN | `>` | ANS core | 20 | **auto** |
 | HERE | `here` | ANS core | 10 | **auto** |
 | HEX | `hex` | ANS core ext | 6 | **auto** |
@@ -130,7 +130,6 @@ RTS instruction at the end of each word.
 | LEFT_BRACKET | `[` | ANS core | 4 | **auto** |
 | LESS_NUMBER_SIGN | `<#` | ANS core | 13 | **auto** |
 | LESS_THAN | `<` | ANS core | 20 | **auto** |
-| LIST | `list` | ANS block ext | 12 | tested |
 | LITERAL | `literal` | ANS core | 13 | **auto** |
 | LOAD | `load` | ANS block | 67 | **auto** |
 | LOOP | `loop` | ANS core | 109 | **auto** |
@@ -186,6 +185,8 @@ RTS instruction at the end of each word.
 | RSHIFT | `rshift` | ANS core | 19 | **auto** |
 | S_BACKSLASH_QUOTE | `s\"` | ANS core | 9 | **auto** |
 | SEE | `see` | ANS tools | 141 | tested |
+| SET_CURRENT | `set-current` | ANS search | 11 | **auto** |
+| SET_ORDER | `set-order` | ANS search | 51 | **auto** |
 | S_QUOTE | `s"` | ANS core | 348 | **auto** |
 | S_TO_D | `s>d` | ANS core | 17 | **auto** |
 | SAVE_BUFFERS | `save-buffers` | ANS block | 26 | tested |
@@ -262,14 +263,8 @@ RTS instruction at the end of each word.
 | ZERO_GREATER | `0>` | ANS core ext | 19 | **auto** |
 | ZERO_LESS | `0<` | ANS core | 15 | **auto** |
 | ZERO_UNEQUAL | `0<>` | ANS core ext | 17 | **auto** |
-| EDITOR_ENTER_SCREEN | `enter-screen` | Tali Editor | 27 | **auto** |
-| EDITOR_ERASE_SCREEN | `erase-screen` | Tali Editor | 17 | tested |
-| EDITOR_EL | `el` | Tali Editor | 17 | tested |
-| EDITOR_L | `l` | Tali Editor | 123 | tested |
-| EDITOR_LINE | `line` | Tali Editor | 24 | tested |
-| EDITOR_O | `o` | Tali Editor | 69 | tested |
 
-Found **261** native words in `native_words.asm`.
-Of those, **219** were automatically tested and
+Found **256** native words in `native_words.asm`.
+Of those, **220** were automatically tested and
           **0** are not marked as tested at all.
 

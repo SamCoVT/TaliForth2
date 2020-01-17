@@ -112,10 +112,11 @@ nt_see: .byte 3, NN
 ;        .word nt_also, xt_only, z_only
 ;        .byte "only"
 ;
-;nt_forth_wordlist:      ; shares code with ZERO
-;        .byte 14, 0
+nt_forth_wordlist:      ; shares code with ZERO
+        .byte 14, 0
 ;        .word nt_only, xt_forth_wordlist, z_forth_wordlist
-;        .byte "forth-wordlist"
+        .word nt_see, xt_forth_wordlist, z_forth_wordlist
+        .byte "forth-wordlist"
 ;
 ;nt_editor_wordlist:     ; shares code with ONE
 ;        .byte 15, 0
@@ -137,50 +138,54 @@ nt_see: .byte 3, NN
 ;        .word nt_root_wordlist, xt_get_order, z_get_order
 ;        .byte "get-order"
 ;
-;nt_set_order:
-;        .byte 9, 0
+nt_set_order:
+        .byte 9, 0
 ;        .word nt_get_order, xt_set_order, z_set_order
-;        .byte "set-order"
-;
-;nt_get_current:
-;        .byte 11, 0
-;        .word nt_set_order, xt_get_current, z_get_current
-;        .byte "get-current"
-;
-;nt_set_current:
-;        .byte 11, UF
-;        .word nt_get_current, xt_set_current, z_set_current
-;        .byte "set-current"
-;
+        .word nt_forth_wordlist, xt_set_order, z_set_order
+        .byte "set-order"
+
+nt_get_current:
+        .byte 11, 0
+        .word nt_set_order, xt_get_current, z_get_current
+        .byte "get-current"
+
+nt_set_current:
+        .byte 11, UF
+        .word nt_get_current, xt_set_current, z_set_current
+        .byte "set-current"
+
 ;nt_search_wordlist:
 ;        .byte 15, UF
 ;        .word nt_set_current, xt_search_wordlist, z_search_wordlist
 ;        .byte "search-wordlist"
 ;
-;nt_wordlist:
-;        .byte 8, 0
+nt_wordlist:
+        .byte 8, 0
 ;        .word nt_search_wordlist, xt_wordlist, z_wordlist
-;        .byte "wordlist"
-;
+        .word nt_set_current, xt_wordlist, z_wordlist
+        .byte "wordlist"
+
 ;nt_definitions:
 ;        .byte 11, 0
 ;        .word nt_wordlist, xt_definitions, z_definitions
 ;        .byte "definitions"
 
-nt_block_ramdrive_init:
-        .byte 19, UF
-;        .word nt_definitions, xt_block_ramdrive_init, z_block_ramdrive_init
-        .word nt_see, xt_block_ramdrive_init, z_block_ramdrive_init
-        .byte "block-ramdrive-init"
+;nt_block_ramdrive_init:
+;        .byte 19, UF
+;;        .word nt_definitions, xt_block_ramdrive_init, z_block_ramdrive_init
+;        .word nt_wordlist, xt_block_ramdrive_init, z_block_ramdrive_init
+;        .byte "block-ramdrive-init"
 
-nt_list:
-        .byte 4, UF
-        .word nt_block_ramdrive_init, xt_list, z_list
-        .byte "list"
+;nt_list:
+;        .byte 4, UF
+;;        .word nt_block_ramdrive_init, xt_list, z_list
+;        .word nt_wordlist, xt_list, z_list
+;        .byte "list"
 
 nt_thru:
         .byte 4, UF
-        .word nt_list, xt_thru, z_thru
+;        .word nt_list, xt_thru, z_thru
+        .word nt_wordlist, xt_thru, z_thru
         .byte "thru"
 
 nt_load:
@@ -363,14 +368,15 @@ nt_find:
         .word nt_word, xt_find, z_find
         .byte "find"
 
-nt_environment_q:
-        .byte 12, UF
-        .word nt_find, xt_environment_q, z_environment_q
-        .byte "environment?"
+;nt_environment_q:
+;        .byte 12, UF
+;        .word nt_find, xt_environment_q, z_environment_q
+;        .byte "environment?"
 
 nt_search:
         .byte 6, UF+NN
-        .word nt_environment_q, xt_search, z_search
+;        .word nt_environment_q, xt_search, z_search
+        .word nt_find, xt_search, z_search
         .byte "search"
 
 nt_compare:
@@ -1438,8 +1444,13 @@ nt_drop:
         ; This is a short wordlist that has just the words needed to
         ; set the wordlists. These words are also included in the
         ; FORTH-WORDLIST as well.
-; Dictionary start moved to be just this one word.        
+
+; Dictionary start moved to be just this one word for root, editor,
+; and assembler wordlists (just in case they accidentally are activated).
 root_dictionary_start:
+editor_dictionary_start:
+assembler_dictionary_start:
+        
 nt_root_words:
         .byte 5, 0
         .word 0000, xt_words, z_words
@@ -1466,37 +1477,37 @@ nt_root_words:
 
 ; EDITOR-WORDLIST
 
-nt_editor_enter_screen:
-        .byte 12, 0
-        .word 0000, xt_editor_enter_screen, z_editor_enter_screen
-        .byte "enter-screen"
-
-nt_editor_erase_screen:
-        .byte 12, 0
-        .word nt_editor_enter_screen, xt_editor_erase_screen, z_editor_erase_screen
-        .byte "erase-screen"
-
-nt_editor_el:
-        .byte 2, 0
-        .word nt_editor_erase_screen, xt_editor_el, z_editor_el
-        .byte "el"
-
-nt_editor_l:
-        .byte 1, 0
-        .word nt_editor_el, xt_editor_l, z_editor_l
-        .byte "l"
-
-nt_editor_line:
-        .byte 4, UF
-        .word nt_editor_l, xt_editor_line, z_editor_line
-        .byte "line"
-
-editor_dictionary_start:
-nt_editor_o:
-        .byte 1, 0
-        .word nt_editor_line, xt_editor_o, z_editor_o
-        .byte "o"
-
+;nt_editor_enter_screen:
+;        .byte 12, 0
+;        .word 0000, xt_editor_enter_screen, z_editor_enter_screen
+;        .byte "enter-screen"
+;
+;nt_editor_erase_screen:
+;        .byte 12, 0
+;        .word nt_editor_enter_screen, xt_editor_erase_screen, z_editor_erase_screen
+;        .byte "erase-screen"
+;
+;nt_editor_el:
+;        .byte 2, 0
+;        .word nt_editor_erase_screen, xt_editor_el, z_editor_el
+;        .byte "el"
+;
+;nt_editor_l:
+;        .byte 1, 0
+;        .word nt_editor_el, xt_editor_l, z_editor_l
+;        .byte "l"
+;
+;nt_editor_line:
+;        .byte 4, UF
+;        .word nt_editor_l, xt_editor_line, z_editor_line
+;        .byte "line"
+;
+;editor_dictionary_start:
+;nt_editor_o:
+;        .byte 1, 0
+;        .word nt_editor_line, xt_editor_o, z_editor_o
+;        .byte "o"
+;
 ; END of EDITOR-WORDLIST
 
 
@@ -1506,7 +1517,7 @@ nt_editor_o:
 ; underscore replaces any dot present in the SAN mnemonic. The hash sign for
 ; immediate addressing is replaced by an "h" (for example, the label code for
 ; "lda.#" is "xt_adm_lda_h"). All opcodes are immediate.
-assembler_dictionary_start:
+;assembler_dictionary_start:
 ;nt_asm_adc_h:
 ;		.byte 5, IM
 ;                .word nt_asm_adc_x
