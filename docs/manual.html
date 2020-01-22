@@ -7134,15 +7134,6 @@ this should be a pure number string.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>&gt;order</code>
-</td>
-<td class="hdlist2">
-<p><em>Gforth search</em> ( wid&#8201;&#8212;&#8201;) "Add wordlist at beginning of search order"
-<a href="https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Word-Lists.html" class="bare">https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Word-Lists.html</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>&gt;r</code>
 </td>
 <td class="hdlist2">
@@ -7346,15 +7337,6 @@ Dictionary. See <a href="http://forth-standard.org/standard/core/ALLOT" class="b
 </tr>
 <tr>
 <td class="hdlist1">
-<code>also</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search ext</em> (&#8201;&#8212;&#8201;) "Make room in the search order for another wordlist"
-<a href="http://forth-standard.org/standard/search/ALSO" class="bare">http://forth-standard.org/standard/search/ALSO</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>always-native</code>
 </td>
 <td class="hdlist2">
@@ -7368,18 +7350,6 @@ Dictionary. See <a href="http://forth-standard.org/standard/core/ALLOT" class="b
 <td class="hdlist2">
 <p><em>ANS core</em> ( n n&#8201;&#8212;&#8201;n ) "Logically AND TOS and NOS"
 <a href="https://forth-standard.org/standard/core/AND" class="bare">https://forth-standard.org/standard/core/AND</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>assembler-wordlist</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Assembler</em> (&#8201;&#8212;&#8201;u ) "WID for the Assembler wordlist"
- Commonly used like <code>assembler-wordlist &gt;order</code> to add the
-assembler words to the search order so they can be used.
-See the tutorial on Wordlists and the Search Order for
-more information.</p>
 </td>
 </tr>
 <tr>
@@ -7441,80 +7411,6 @@ ingore the MSB</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>blkbuffer</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> (&#8201;&#8212;&#8201;addr ) "Push address of block buffer"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>block</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block</em> ( u&#8201;&#8212;&#8201;a-addr ) "Fetch a block into a buffer"
-<a href="https://forth-standard.org/standard/block/BLK" class="bare">https://forth-standard.org/standard/block/BLK</a>
-<a href="https://forth-standard.org/standard/block/BLOCK" class="bare">https://forth-standard.org/standard/block/BLOCK</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>block-ramdrive-init</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> ( u&#8201;&#8212;&#8201;) "Create a ramdrive for blocks"
-Create a RAM drive, with the given number of
-blocks, in the dictionary along with setting up the block words to
-use it.  The read/write routines do not provide bounds checking.
-Expected use: <code>4 block-ramdrive-init</code> ( to create blocks 0-3 )</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>block-read</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> ( addr u&#8201;&#8212;&#8201;) "Read a block from storage (deferred word)"
-BLOCK-READ is a vectored word that the user needs to override
-with their own version to read a block from storage.
-The stack parameters are ( buffer_address block#&#8201;&#8212;&#8201;).</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>block-read-vector</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> (&#8201;&#8212;&#8201;addr ) "Address of the block-read vector"
-BLOCK-READ is a vectored word that the user needs to override
-with their own version to read a block from storage.
-This word gives the address of the vector so it can be replaced.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>block-write</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> ( addr u&#8201;&#8212;&#8201;) "Write a block to storage (deferred word)"
-BLOCK-WRITE is a vectored word that the user needs to override
-with their own version to write a block to storage.
-The stack parameters are ( buffer_address block#&#8201;&#8212;&#8201;).</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>block-write-vector</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> (&#8201;&#8212;&#8201;addr ) "Address of the block-write vector"
-BLOCK-WRITE is a vectored word that the user needs to override
-with their own version to write a block to storage.
-This word gives the address of the vector so it can be replaced.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>bounds</code>
 </td>
 <td class="hdlist2">
@@ -7527,23 +7423,6 @@ OVER + SWAP in Forth, but we do it a lot faster in assembler</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>buffblocknum</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> (&#8201;&#8212;&#8201;addr ) "Push address of variable holding block in buffer"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>buffer</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block</em> ( u&#8201;&#8212;&#8201;a-addr ) "Get a buffer for a block"
-<a href="https://forth-standard.org/standard/block/BUFFER" class="bare">https://forth-standard.org/standard/block/BUFFER</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>buffer:</code>
 </td>
 <td class="hdlist2">
@@ -7551,14 +7430,6 @@ OVER + SWAP in Forth, but we do it a lot faster in assembler</p>
 <a href="https://forth-standard.org/standard/core/BUFFERColon" class="bare">https://forth-standard.org/standard/core/BUFFERColon</a>
 Create a buffer of size u that puts its address on the stack
 when its name is used.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>buffstatus</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali block</em> (&#8201;&#8212;&#8201;addr ) "Push address of variable holding buffer status"</p>
 </td>
 </tr>
 <tr>
@@ -7878,14 +7749,6 @@ Reserve an name that can be linked to various xt by IS.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>definitions</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search</em> (&#8201;&#8212;&#8201;) "Make first wordlist in search order the current wordlist"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>depth</code>
 </td>
 <td class="hdlist2">
@@ -7905,19 +7768,6 @@ Rewritten from DIGIT&gt;NUMBER in Tali Forth. Note in contrast to
 pForth, we get the base (radix) ourselves instead of having the
 user provide it. There is no standard name for this routine, which
 itself is not ANS; we use DIGIT? following pForth and Gforth.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>disasm</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Forth</em> ( addr u&#8201;&#8212;&#8201;) "Disassemble a block of memory"
-Convert a segment of memory to assembler output. This
-word is vectored so people can add their own disassembler.
-Natively, this produces Simpler Assembly Notation (SAN)
-code, see the section on The Disassembler in the manual and
-the file disassembler.asm for more details.</p>
 </td>
 </tr>
 <tr>
@@ -7980,37 +7830,6 @@ DOES&gt;'s internal workings. This uses tmp1 and tmp2.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>ed</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Forth</em> (&#8201;&#8212;&#8201;u ) "Line-based editor"
-Start the line-based editor ed6502. See separate file
-ed.asm or the manual for details.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>editor-wordlist</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> (&#8201;&#8212;&#8201;u ) "WID for the Editor wordlist"
- Commonly used like <code>editor-wordlist &gt;order</code> to add the editor
-words to the search order so they can be used.  This will need
-to be done before any of the words marked "Tali Editor" can be
-used.  See the tutorial on Wordlists and the Search Order for
-more information.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>el</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> ( line#&#8201;&#8212;&#8201;) "Erase the given line number"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>else</code>
 </td>
 <td class="hdlist2">
@@ -8029,15 +7848,6 @@ Run-time default for EMIT. The user can revector this by changing
 the value of the OUTPUT variable. We ignore the MSB completely, and
 do not check to see if we have been given a valid ASCII character.
 Don&#8217;t make this native compile.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>empty-buffers</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block ext</em> (&#8201;&#8212;&#8201;) "Empty all buffers without saving"
-<a href="https://forth-standard.org/standard/block/EMPTY-BUFFERS" class="bare">https://forth-standard.org/standard/block/EMPTY-BUFFERS</a></p>
 </td>
 </tr>
 <tr>
@@ -8061,23 +7871,6 @@ This is a dummy entry, the code is shared with ELSE</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>enter-screen</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> ( scr#&#8201;&#8212;&#8201;) "Enter all lines for given screen"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>environment?</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS core</em> ( addr u&#8201;&#8212;&#8201;0 | i*x true )  "Return system information"
-<a href="https://forth-standard.org/standard/core/ENVIRONMENTq" class="bare">https://forth-standard.org/standard/core/ENVIRONMENTq</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>erase</code>
 </td>
 <td class="hdlist2">
@@ -8085,14 +7878,6 @@ This is a dummy entry, the code is shared with ELSE</p>
 <a href="https://forth-standard.org/standard/core/ERASE" class="bare">https://forth-standard.org/standard/core/ERASE</a>
 Note that ERASE works with "address" units
 (bytes), not cells.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>erase-screen</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> ( scr#&#8201;&#8212;&#8201;) "Erase all lines for given screen"</p>
 </td>
 </tr>
 <tr>
@@ -8192,30 +7977,12 @@ FIND-NAME, we get this all over with as quickly as possible. See
 </tr>
 <tr>
 <td class="hdlist1">
-<code>flush</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block</em> (&#8201;&#8212;&#8201;) "Save dirty buffers and empty buffers"
-<a href="https://forth-standard.org/standard/block/FLUSH" class="bare">https://forth-standard.org/standard/block/FLUSH</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>fm/mod</code>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( d n1 &#8201;&#8212;&#8201;rem n2 ) "Floored signed division"
 <a href="https://forth-standard.org/standard/core/FMDivMOD" class="bare">https://forth-standard.org/standard/core/FMDivMOD</a>
 Note that by default, Tali Forth uses SM/REM for most things.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>forth</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search ext</em> (&#8201;&#8212;&#8201;) "Replace first WID in search order with Forth-Wordlist"
-<a href="https://forth-standard.org/standard/search/FORTH" class="bare">https://forth-standard.org/standard/search/FORTH</a></p>
 </td>
 </tr>
 <tr>
@@ -8235,15 +8002,6 @@ This is a dummy entry, the actual code is shared with ZERO.</p>
 <td class="hdlist2">
 <p><em>ANS search</em> (&#8201;&#8212;&#8201;wid ) "Get the id of the compilation wordlist"
 <a href="https://forth-standard.org/standard/search/GET-CURRENT" class="bare">https://forth-standard.org/standard/search/GET-CURRENT</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>get-order</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search</em> (&#8201;&#8212;&#8201;wid_n .. wid_1 n) "Get the current search order"
-<a href="https://forth-standard.org/standard/search/GET-ORDER" class="bare">https://forth-standard.org/standard/search/GET-ORDER</a></p>
 </td>
 </tr>
 <tr>
@@ -8396,14 +8154,6 @@ implementation would just have two.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>l</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> (&#8201;&#8212;&#8201;) "List the current screen"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>latestnt</code>
 </td>
 <td class="hdlist2">
@@ -8435,24 +8185,6 @@ contrast to other versions such as discussed at
 </tr>
 <tr>
 <td class="hdlist1">
-<code>line</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> ( line#&#8201;&#8212;&#8201;c-addr ) "Turn a line number into address in current screen"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>list</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block ext</em> ( scr# scr#&#8201;&#8212;&#8201;) "Load screens in the given range"
-<a href="https://forth-standard.org/standard/block/LIST" class="bare">https://forth-standard.org/standard/block/LIST</a>
-<a href="https://forth-standard.org/standard/block/THRU" class="bare">https://forth-standard.org/standard/block/THRU</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>literal</code>
 </td>
 <td class="hdlist2">
@@ -8461,15 +8193,6 @@ contrast to other versions such as discussed at
 Compile-only word to store TOS so that it is pushed on stack
 during runtime. This is a immediate, compile-only word. At runtime,
 it works by calling literal_runtime by compling JSR LITERAL_RT.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>load</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block</em> ( scr#&#8201;&#8212;&#8201;) "Load the Forth code in a screen/block"
-<a href="https://forth-standard.org/standard/block/LOAD" class="bare">https://forth-standard.org/standard/block/LOAD</a></p>
 </td>
 </tr>
 <tr>
@@ -8638,14 +8361,6 @@ character of the string.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>o</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> ( line#&#8201;&#8212;&#8201;) "Overwrite the given line"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>of</code>
 </td>
 <td class="hdlist2">
@@ -8655,32 +8370,11 @@ character of the string.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>only</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search ext</em> (&#8201;&#8212;&#8201;) "Set earch order to minimum wordlist"
-<a href="https://forth-standard.org/standard/search/ONLY" class="bare">https://forth-standard.org/standard/search/ONLY</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>or</code>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( m n&#8201;&#8212;&#8201;n ) "Logically OR TOS and NOS"
 <a href="https://forth-standard.org/standard/core/OR" class="bare">https://forth-standard.org/standard/core/OR</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>order</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Print current word order list and current WID"
-<a href="https://forth-standard.org/standard/search/ORDER" class="bare">https://forth-standard.org/standard/search/ORDER</a>
-Note the search order is displayed from first search to last
-searched and is therefore exactly the reverse of the order in which
-Forth stacks are displayed.</p>
 </td>
 </tr>
 <tr>
@@ -8786,15 +8480,6 @@ itself used for a new word. Tricky, but very useful.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>previous</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search ext</em> (&#8201;&#8212;&#8201;) "Remove the first wordlist in the search order"
-<a href="http://forth-standard.org/standard/search/PREVIOUS" class="bare">http://forth-standard.org/standard/search/PREVIOUS</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>quit</code>
 </td>
 <td class="hdlist2">
@@ -8875,14 +8560,6 @@ entire block as a 1024 byte string.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>root-wordlist</code>
-</td>
-<td class="hdlist2">
-<p><em>Tali Editor</em> (&#8201;&#8212;&#8201;u ) "WID for the Root (minimal) wordlist"</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>rot</code>
 </td>
 <td class="hdlist2">
@@ -8939,24 +8616,6 @@ that it allows for some special escaped characters.</p>
 </tr>
 <tr>
 <td class="hdlist1">
-<code>save-buffers</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block</em> (&#8201;&#8212;&#8201;) "Save all dirty buffers to storage"
-<a href="https://forth-standard.org/standard/block/SAVE-BUFFERS" class="bare">https://forth-standard.org/standard/block/SAVE-BUFFERS</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>scr</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block ext</em> (&#8201;&#8212;&#8201;addr ) "Push address of variable holding last screen listed"
-<a href="https://forth-standard.org/standard/block/SCR" class="bare">https://forth-standard.org/standard/block/SCR</a></p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
 <code>search</code>
 </td>
 <td class="hdlist2">
@@ -8968,15 +8627,6 @@ addr3 will have the address of the start of the match and u3 will have
 the number of characters remaining from the match point to the end
 of the original string1. If a match is not found, the flag will be
 false and addr3 and u3 will be the original string1&#8217;s addr1 and u1.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>search-wordlist</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS search</em> ( caddr u wid&#8201;&#8212;&#8201;0 | xt 1 | xt -1) "Search for a word in a wordlist"
-<a href="https://forth-standard.org/standard/search/SEARCH_WORDLIST" class="bare">https://forth-standard.org/standard/search/SEARCH_WORDLIST</a></p>
 </td>
 </tr>
 <tr>
@@ -9263,15 +8913,6 @@ Forth code, modified by Garth Wilson, see
 UNUSED does not include the ACCEPT history buffers. Total RAM
 should be HERE + UNUSED + &lt;history buffer size&gt;, the last of which
 defaults to $400</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-<code>update</code>
-</td>
-<td class="hdlist2">
-<p><em>ANS block</em> (&#8201;&#8212;&#8201;) "Mark current block as dirty"
-<a href="https://forth-standard.org/standard/block/UPDATE" class="bare">https://forth-standard.org/standard/block/UPDATE</a></p>
 </td>
 </tr>
 <tr>
@@ -9850,7 +9491,7 @@ under <a href="https://www.ubuntu.com/">Ubuntu</a> Linux 16.04 LTS.</p>
 <div id="footer">
 <div id="footer-text">
 Version 1.0<br>
-Last updated 2019-07-02 17:51:09 CEST
+Last updated 2019-12-18 14:15:17 EST
 </div>
 </div>
 </body>

@@ -125,17 +125,18 @@ _load_user_vars_loop:
 
                 jsr xt_evaluate
 
-                ; Initialize all of the history buffers by putting a zero in
-                ; each length byte.
-                stz hist_buff
-                stz hist_buff+$80
-                stz hist_buff+$100
-                stz hist_buff+$180
-                stz hist_buff+$200
-                stz hist_buff+$280
-                stz hist_buff+$300
-                stz hist_buff+$380
-
+    ;; Removing history buffer - SamCo
+;                ; Initialize all of the history buffers by putting a zero in
+;                ; each length byte.
+;                stz hist_buff
+;                stz hist_buff+$80
+;                stz hist_buff+$100
+;                stz hist_buff+$180
+;                stz hist_buff+$200
+;                stz hist_buff+$280
+;                stz hist_buff+$300
+;                stz hist_buff+$380
+;
                 ; fall through to ABORT
 
 
@@ -403,20 +404,21 @@ _not_zero:
 
                 ldy #0
 
-                ; Select the next history buffer. Clear bit 3 first (so overflow
-                ; from bit 2 to 3 is OK)
-                lda status
-                and #$f7
-
-                ; Increment the buffer number (overflow from 7 to 0 OK)
-                inc
-
-                ; Set bit 3 for detecting if CTRL-n has been pressed the first
-                ; time. This bit will be cleared on the first CTRL-n or CTRL-p
-                ; received and won't be used to calculate the history buffer
-                ; offset.
-                ora #$08
-                sta status
+    ;; Removing history buffer - SamCo
+;                ; Select the next history buffer. Clear bit 3 first (so overflow
+;                ; from bit 2 to 3 is OK)
+;                lda status
+;                and #$f7
+;
+;                ; Increment the buffer number (overflow from 7 to 0 OK)
+;                inc
+;
+;                ; Set bit 3 for detecting if CTRL-n has been pressed the first
+;                ; time. This bit will be cleared on the first CTRL-n or CTRL-p
+;                ; received and won't be used to calculate the history buffer
+;                ; offset.
+;                ora #$08
+;                sta status
 
 _loop:
                 ; Out of the box, py65mon catches some CTRL sequences such as
@@ -439,12 +441,13 @@ _loop:
                 cmp #AscDEL     ; (CTRL-h)
                 beq _backspace
 
-                ; Check for CTRL-p and CTRL-n to recall input history
-                cmp #AscCP
-                beq _ctrl_p
-                cmp #AscCN
-                beq _ctrl_n
-
+    ;; Removing history buffer - SamCo
+;                ; Check for CTRL-p and CTRL-n to recall input history
+;                cmp #AscCP
+;                beq _ctrl_p
+;                cmp #AscCN
+;                beq _ctrl_n
+;
                 ; That's enough for now. Save and echo character.
                 sta (tmp1),y
                 iny
@@ -485,189 +488,189 @@ _backspace:
                 jsr emit_a
 
                 bra _loop
-
-_ctrl_p:
-                ; CTRL-p was pressed. Recall the previous input buffer.
-
-                ; Select the previous buffer
-                lda status
-
-                ; Check for 0 (need to wrap back to 7)
-                and #7
-                bne _ctrl_p_dec
-
-                ; We need to wrap back to 7.
-                lda status
-                ora #7
-                sta status
-                bra _recall_history
-
-_ctrl_p_dec:
-                ; It's safe to decrement the buffer index directly.
-                dec status
-                bra _recall_history
-
-_ctrl_n:
-                ; CTRL-n was pressed. Recall the next input buffer. Select
-                ; the next buffer Check bit 3. If it's set, this is the first
-                ; time CTRL-n has been pressed and we should select the CURRENT
-                ; history buffer.
-                lda #$8
-                bit status
-                bne _recall_history
-
-                ; This isn't the first time CTRL-n has been pressed, select the
-                ; next history buffer. Clear bit 3 first (so overflow is OK)
-                lda status
-                and #$f7
-
-                ; Increment the buffer number (overflow from 7 to 0 OK)
-                inc
-
-                ; Bit 3 (if it got set by going from buffer 7 to 0) will
-                ; be cleared below.
-                sta status
-
-                ; Falls through to _recall_history
-
-_recall_history:
-                ; Clear bit 3 (first time ctrl-n recall) bit in status
-                lda #%00001000
-                trb status
-
-                jsr _total_recall
-
-                ; tmp3 now has the address of the previous history buffer.
-                ; First byte of buffer is length. Clear the line by sending
-                ; CR, Y spaces, then CR.
-                lda #AscCR
-                jsr emit_a
-
-input_clear:
-                cpy #0
-                beq input_cleared
-
-                lda #AscSP
-                jsr emit_a
-                dey
-                bra input_clear
-
-input_cleared:
-                lda #AscCR
-                jsr emit_a
-
-                ; Save the history length byte into histinfo+1
-                ; ldy #0        ; Y is already 0 by clearing the line.
-                lda (tmp3),y
-                sta status+1
-
-                ; Increment the tmp3 pointer so we can use ,y addressing
-                ; on both tmp1 (the input buffer) and tmp3 (the history
-                ; buffer)
-                inc tmp3
-                bne +           ; Increment the upper byte on carry.
-                inc tmp3+1
-*
-                ; Copy the history buffer into the input buffer,
-                ; sending the characters to the output as we go.
-                lda #AscCR
-                jsr emit_a
-
-_history_loop:
-                ; See if we have reached the end of the history buffer.
-                cpy status+1
-                bne +
-                jmp _loop       ; Needs a long jump
-*
-                ; See if we have reached the end of the input buffer.
-                ; (only comparing to lower byte as we currently limit
-                ; to 255 characters max)
-                cpy tmp2
-                beq _hist_filled_buffer
-
-                ; Copy a character and echo.
-                lda (tmp3),y
-                sta (tmp1),y
-                jsr emit_a
-
-                ; Move to the next character.
-                iny
-                bra _history_loop
-
-_hist_filled_buffer:
-                ; We don't want a history recall to EOL our buffer,
-                ; so back up one character and return to editing.
-                dey
-                jmp _loop
+    ;; Removing history buffer - SamCo
+;_ctrl_p:
+;                ; CTRL-p was pressed. Recall the previous input buffer.
+;
+;                ; Select the previous buffer
+;                lda status
+;
+;                ; Check for 0 (need to wrap back to 7)
+;                and #7
+;                bne _ctrl_p_dec
+;
+;                ; We need to wrap back to 7.
+;                lda status
+;                ora #7
+;                sta status
+;                bra _recall_history
+;
+;_ctrl_p_dec:
+;                ; It's safe to decrement the buffer index directly.
+;                dec status
+;                bra _recall_history
+;
+;_ctrl_n:
+;                ; CTRL-n was pressed. Recall the next input buffer. Select
+;                ; the next buffer Check bit 3. If it's set, this is the first
+;                ; time CTRL-n has been pressed and we should select the CURRENT
+;                ; history buffer.
+;                lda #$8
+;                bit status
+;                bne _recall_history
+;
+;                ; This isn't the first time CTRL-n has been pressed, select the
+;                ; next history buffer. Clear bit 3 first (so overflow is OK)
+;                lda status
+;                and #$f7
+;
+;                ; Increment the buffer number (overflow from 7 to 0 OK)
+;                inc
+;
+;                ; Bit 3 (if it got set by going from buffer 7 to 0) will
+;                ; be cleared below.
+;                sta status
+;
+;                ; Falls through to _recall_history
+;
+;_recall_history:
+;                ; Clear bit 3 (first time ctrl-n recall) bit in status
+;                lda #%00001000
+;                trb status
+;
+;                jsr _total_recall
+;
+;                ; tmp3 now has the address of the previous history buffer.
+;                ; First byte of buffer is length. Clear the line by sending
+;                ; CR, Y spaces, then CR.
+;                lda #AscCR
+;                jsr emit_a
+;
+;input_clear:
+;                cpy #0
+;                beq input_cleared
+;
+;                lda #AscSP
+;                jsr emit_a
+;                dey
+;                bra input_clear
+;
+;input_cleared:
+;                lda #AscCR
+;                jsr emit_a
+;
+;                ; Save the history length byte into histinfo+1
+;                ; ldy #0        ; Y is already 0 by clearing the line.
+;                lda (tmp3),y
+;                sta status+1
+;
+;                ; Increment the tmp3 pointer so we can use ,y addressing
+;                ; on both tmp1 (the input buffer) and tmp3 (the history
+;                ; buffer)
+;                inc tmp3
+;                bne +           ; Increment the upper byte on carry.
+;                inc tmp3+1
+;*
+;                ; Copy the history buffer into the input buffer,
+;                ; sending the characters to the output as we go.
+;                lda #AscCR
+;                jsr emit_a
+;
+;_history_loop:
+;                ; See if we have reached the end of the history buffer.
+;                cpy status+1
+;                bne +
+;                jmp _loop       ; Needs a long jump
+;*
+;                ; See if we have reached the end of the input buffer.
+;                ; (only comparing to lower byte as we currently limit
+;                ; to 255 characters max)
+;                cpy tmp2
+;                beq _hist_filled_buffer
+;
+;                ; Copy a character and echo.
+;                lda (tmp3),y
+;                sta (tmp1),y
+;                jsr emit_a
+;
+;                ; Move to the next character.
+;                iny
+;                bra _history_loop
+;
+;_hist_filled_buffer:
+;                ; We don't want a history recall to EOL our buffer,
+;                ; so back up one character and return to editing.
+;                dey
+;                jmp _loop
 
 _done:
-                ; Copy the input buffer into the currently
-                ; selected history buffer.
-                jsr _total_recall
-                sta status+1
-
-                ; Also save it in the first buffer byte.
-                ldy #0
-                sta (tmp3),y
-
-                ; Move path the count to the data bytes
-                inc tmp3
-                bne +           ; Increment the upper byte on carry.
-                inc tmp3+1
-*
-                ; Copy the characters from the input buffer to the
-                ; history buffer.
-
-_save_history_loop:
-                cpy status+1
-                beq _save_history_done
-
-                lda (tmp1),y
-                sta (tmp3),y
-                iny
-                bra _save_history_loop
-
-_save_history_done:
+;                ; Copy the input buffer into the currently
+;                ; selected history buffer.
+;                jsr _total_recall
+;                sta status+1
+;
+;                ; Also save it in the first buffer byte.
+;                ldy #0
+;                sta (tmp3),y
+;
+;                ; Move path the count to the data bytes
+;                inc tmp3
+;                bne +           ; Increment the upper byte on carry.
+;                inc tmp3+1
+;*
+;                ; Copy the characters from the input buffer to the
+;                ; history buffer.
+;
+;_save_history_loop:
+;                cpy status+1
+;                beq _save_history_done
+;
+;                lda (tmp1),y
+;                sta (tmp3),y
+;                iny
+;                bra _save_history_loop
+;
+;_save_history_done:
 z_accept:
                 rts
 
-_total_recall:
-        ; """Internal subroutine for ACCEPT that recalls history entry"""
-
-                ; Generate the address of the buffer in tmp3. Start with the
-                ; base address.
-                lda #<hist_buff
-                sta tmp3
-                lda #>hist_buff
-                sta tmp3+1
-
-                ; This is a bit annoying as some bits go into each byte.
-                ; .....xxx gets put into address like ......xx x.......
-                lda status
-                ror
-                and #3
-                clc
-                adc tmp3+1
-                sta tmp3+1
-
-                lda status
-                ror             ; Rotate through carry into msb.
-                ror
-                and #$80
-                clc
-                adc tmp3
-                sta tmp3
-                bcc +           ; Increment the upper byte on carry.
-                inc tmp3+1
-*
-                ; Save the current length of the input buffer in
-                ; histinfo+1 temporarily.  Reduce to 127 if larger.
-                tya
-                cmp #$80
-                bcc +
-                lda #$7F
-*
-                rts
+;_total_recall:
+;        ; """Internal subroutine for ACCEPT that recalls history entry"""
+;
+;                ; Generate the address of the buffer in tmp3. Start with the
+;                ; base address.
+;                lda #<hist_buff
+;                sta tmp3
+;                lda #>hist_buff
+;                sta tmp3+1
+;
+;                ; This is a bit annoying as some bits go into each byte.
+;                ; .....xxx gets put into address like ......xx x.......
+;                lda status
+;                ror
+;                and #3
+;                clc
+;                adc tmp3+1
+;                sta tmp3+1
+;
+;                lda status
+;                ror             ; Rotate through carry into msb.
+;                ror
+;                and #$80
+;                clc
+;                adc tmp3
+;                sta tmp3
+;                bcc +           ; Increment the upper byte on carry.
+;                inc tmp3+1
+;*
+;                ; Save the current length of the input buffer in
+;                ; histinfo+1 temporarily.  Reduce to 127 if larger.
+;                tya
+;                cmp #$80
+;                bcc +
+;                lda #$7F
+;*
+;                rts
 .scend
 
 
