@@ -10,19 +10,19 @@
 ; All general strings must be zero-terminated, names start with "s_",
 ; aliases with "str_"
 
-.alias str_ok              0
-.alias str_compile         1
-.alias str_redefined       2
-.alias str_wid_forth       3
-.alias str_abc_lower       4
-.alias str_abc_upper       5
-.alias str_wid_editor      6
-.alias str_wid_assembler   7
-.alias str_wid_root        8
-.alias str_see_flags       9
-.alias str_see_nt         10
-.alias str_see_xt         11
-.alias str_see_size       12
+str_ok             =  0
+str_compile        =  1
+str_redefined      =  2
+str_wid_forth      =  3
+str_abc_lower      =  4
+str_abc_upper      =  5
+str_wid_editor     =  6
+str_wid_assembler  =  7
+str_wid_root       =  8
+str_see_flags      =  9
+str_see_nt         = 10
+str_see_xt         = 11
+str_see_size       = 12
 
 ; Since we can't fit a 16-bit address in a register, we use indexes as offsets
 ; to tables as error and string numbers.
@@ -55,19 +55,19 @@ s_see_size:   .byte "size (decimal): ", 0
 ; aliases with "err_". If the string texts are changed, the test suite must be
 ; as well
 
-.alias err_allot        0
-.alias err_badsource    1
-.alias err_compileonly  2
-.alias err_defer        3
-.alias err_divzero      4
-.alias err_noname       5
-.alias err_refill       6
-.alias err_state        7
-.alias err_syntax       8
-.alias err_underflow    9
-.alias err_negallot     10
-.alias err_wordlist     11
-.alias err_blockwords   12
+err_allot        = 0
+err_badsource    = 1
+err_compileonly  = 2
+err_defer        = 3
+err_divzero      = 4
+err_noname       = 5
+err_refill       = 6
+err_state        = 7
+err_syntax       = 8
+err_underflow    = 9
+err_negallot     = 10
+err_wordlist     = 11
+err_blockwords   = 12
 
 error_table:
         .word es_allot, es_badsource, es_compileonly, es_defer  ;  0-3

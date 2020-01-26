@@ -958,9 +958,9 @@ asm_common:
 
                 tya             ; retrieve opcode
                 asl             ; times two for offset
-                bcc+
+                bcc :+
                 inc tmp2+1
-*
+:
                 tay             ; use Y as the index
 
                 ; Get address of the entry in the opcode table. We put it in
@@ -1010,7 +1010,7 @@ _done_drop:
                 inx             ; Fall through to _done
 _done:
                 rts             ; Returns to original caller
-.scend
+.endscope
 
 
 ; ==========================================================
@@ -1024,7 +1024,7 @@ xt_asm_push_a:
 .scope
                 ldy #0
 _loop:
-                lda _data,y
+                lda _asmdata,y
                 cmp #$FF
                 beq _done
 
@@ -1032,13 +1032,14 @@ _loop:
                 iny
                 bra _loop
 _done:
+.endscope
 z_asm_push_a:
                 rts
-_data:
+_asmdata:
         ; We can't use 00 as a terminator because STA 0,X assembles to 95 00
         .byte $CA, $CA, $95, 00, $74, $01
         .byte $FF               ; terminator
-.scend
+
 
 
 ; ==========================================================

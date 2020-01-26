@@ -17,8 +17,8 @@
 ; humans, we don't care that much about speed and put the emphasis at being
 ; small.
 
-.scope
 disassembler:
+.scope
                 jsr xt_cr       ; ( addr u )
 _byte_loop:
                 ; Print address at start of the line. Note we use whatever
@@ -38,9 +38,9 @@ _byte_loop:
                 lda (2,x)       ; get opcode that addr points to
 
                 asl             ; multiply by two for offset
-                bcc +
+                bcc :+
                 inc tmp2+1      ; we're on second page
-*
+:
                 tay             ; use Y as the index
 
                 ; Get address of the entry in the opcode table. We put it
@@ -90,13 +90,13 @@ _byte_loop:
                 ; We have a copy of the opcode on the stack, so we can now move
                 ; to the next byte
                 inc 4,x
-                bne +
+                bne :+
                 inc 5,x                 ; ( addr+1 u 0 )
-*
+:
                 lda 2,x
-                bne +
+                bne :+
                 dec 3,x
-*
+:
                 dec 2,x                 ; ( addr+1 u-1 0 )
 
                 lda (4,x)
@@ -112,13 +112,13 @@ _byte_loop:
                 ; We have a three-byte instruction, so we need to get the MSB
                 ; of the operand. Move to the next byte
                 inc 4,x
-                bne +
+                bne :+
                 inc 5,x                 ; ( addr+2 u-1 LSB )
-*
+:
                 lda 2,x
-                bne +
+                bne :+
                 dec 3,x
-*
+:
                 dec 2,x                 ; ( addr+2 u-2 LSB )
 
                 lda (4,x)
@@ -183,9 +183,9 @@ _print_mnemonic:
 
                 ; Housekeeping: Next byte
                 inc 2,x
-                bne +
+                bne :+
                 inc 3,x                 ; ( addr+1 u )
-*
+:
                 jsr xt_one_minus        ; ( addr+1 u-1 )
 
                 lda 0,x                 ; All done?
@@ -199,7 +199,7 @@ _print_mnemonic:
 _done:
                 ; Clean up and leave
                 jmp xt_two_drop         ; JSR/RTS
-.scend
+.endscope
 
 ; =========================================================
 oc_index_table:

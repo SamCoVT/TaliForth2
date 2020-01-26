@@ -10,15 +10,15 @@
 ; other hardware configurations
 code0:
 
-.require "definitions.asm"      ; Top-level definitions, memory map
+.include "definitions.asm"      ; Top-level definitions, memory map
 
 ; Insert point for Tali Forth after kernel hardware setup
 forth:
 
-.require "native_words.asm"     ; Native Forth words. Starts with COLD
-.require "assembler.asm"        ; SAN assembler
-.require "disassembler.asm"     ; SAN disassembler
-.require "ed.asm"               ; Line-based editor ed6502
+.include "native_words.asm"     ; Native Forth words. Starts with COLD
+.include "assembler.asm"        ; SAN assembler
+.include "disassembler.asm"     ; SAN disassembler
+.include "ed.asm"               ; Line-based editor ed6502
 
 ; High-level Forth words, see forth_code/README.md
 forth_words_start:
@@ -30,8 +30,8 @@ user_words_start:
 .incbin "user_words.asc"
 user_words_end:
 
-.require "headers.asm"          ; Headers of native words
-.require "strings.asm"          ; Strings, including error messages
+.include "headers.asm"          ; Headers of native words
+.include "strings.asm"          ; Strings, including error messages
 
 
 ; =====================================================================
@@ -51,7 +51,7 @@ user_words_end:
 ;               jsr cmpl_subroutine
 
 ; Also, we keep a routine here to compile a single byte passed through A.
-.scope
+
 cmpl_subroutine:
                 ; This is the entry point to compile JSR <ADDR>
                 pha             ; save LSB of address
@@ -72,6 +72,7 @@ cmpl_word:
                 jsr cmpl_a      ; compile LSB of address
                 tya             ; fall thru for MSB
 cmpl_a:
+.scope
                 ; This is the entry point to compile a single byte which
                 ; is passed in A. The built-in assembler assumes that this
                 ; routine does not modify Y.
@@ -81,7 +82,7 @@ cmpl_a:
                 inc cp+1
 _done:
                 rts
-.scend
+.endscope
 
 
 ; =====================================================================
@@ -155,9 +156,9 @@ dodoes:
                 ply             ; LSB
                 pla             ; MSB
                 iny
-                bne +
+                bne :+
                 inc
-*
+:
                 sty tmp2
                 sta tmp2+1
 
@@ -170,9 +171,9 @@ dodoes:
                 ply
                 pla
                 iny
-                bne +
+                bne :+
                 inc
-*
+:
                 sty 0,x         ; LSB
                 sta 1,x         ; MSB
 
@@ -196,9 +197,9 @@ dovar:
                 ply             ; LSB
                 pla             ; MSB
                 iny
-                bne +
+                bne :+
                 inc
-*
+:
                 dex
                 dex
 
@@ -229,15 +230,15 @@ _nibble_to_ascii:
         ; of A and and EMIT it. This does the actual work.
         ; """
                 and #$0F
-                ora #'0
+                ora #'0'
                 cmp #$3A        ; '9+1
-                bcc +
+                bcc :+
                 adc #$06
 
-*               jmp emit_a
+:               jmp emit_a
 
                 rts
-.scend
+.endscope
 
 compare_16bit:
         ; """Compare TOS/NOS and return results in form of the 65c02 flags
@@ -278,7 +279,7 @@ _not_equal:
                 ora #1                  ; if overflow, we can't be eqal
 _done:
                 rts
-.scend
+.endscope
 
 current_to_dp:
         ; """Look up the current (compilation) dictionary pointer
@@ -469,7 +470,7 @@ _line_done:
                 inx
 
                 rts
-.scend
+.endscope
 
 
 is_printable:
@@ -482,7 +483,7 @@ is_printable:
         ; discussion of various ways to do this
                 cmp #AscSP              ; $20
                 bcc _done
-                cmp #'~ + 1             ; $7E
+                cmp #'~' + 1             ; $7E
                 bcs _failed
 
                 sec
@@ -491,7 +492,7 @@ _failed:
                 clc
 _done:
                 rts
-.scend
+.endscope
 
 
 is_whitespace:
@@ -514,7 +515,7 @@ _failed:
                 clc
 _done:
                 rts
-.scend
+.endscope
 
 
 ; Underflow tests. We jump to the label with the number of cells (not: bytes)
@@ -608,7 +609,7 @@ _loop:
                 bra _loop
 _done:
                 rts
-.scend
+.endscope
 
 print_string:
         ; """Print a zero-terminated string to the console/screen, adding a LF.
