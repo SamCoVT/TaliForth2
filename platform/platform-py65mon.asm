@@ -1,5 +1,7 @@
-.org $8000
-
+;.org $8000
+        .SEGMENT "CODE"
+; Use 65C02 instruction set.
+.PC02
 ; I/O facilities are handled in the separate kernel files because of their
 ; hardware dependencies. See docs/memorymap.txt for a discussion of Tali's
 ; memory layout.
@@ -95,9 +97,6 @@ padoffset = $ff              ; offset from CP to PAD (holds number strings)
 ; and the last eight (from $E000 to $FFFF) are left for whatever the user
 ; wants to use them for.
 
-.org $e000
-platform_bye:
-    brk
 
 ; Default kernel file for Tali Forth 2
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
@@ -120,8 +119,9 @@ platform_bye:
 ; The main file of Tali got us to $e000. However, py65mon by default puts
 ; the basic I/O routines at the beginning of $f000. We don't want to change
 ; that because it would make using it out of the box harder, so we just
-; advance past the virtual hardware addresses.
-.org $f010
+; advance past the virtual hardware addresses.  The py65mon.cfg starts
+; this segment at $f010.
+.segment "TALIKERNEL"
 
 ; All vectors currently end up in the same place - we restart the system
 ; hard. If you want to use them on actual hardware, you'll have to redirect
@@ -176,6 +176,8 @@ kernel_putc:
                 sta $f001
                 rts
 
+platform_bye:
+    brk
 
 ; Leave the following string as the last entry in the kernel routine so it
 ; is easier to see where the kernel ends in hex dumps. This string is
@@ -185,7 +187,7 @@ s_kernel_id:
 
 
 ; Add the interrupt vectors
-.org $fffa
+.SEGMENT "VECTORS"
 
 .word v_nmi
 .word v_reset
