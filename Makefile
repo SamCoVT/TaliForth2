@@ -33,10 +33,10 @@ clean:
 	$(RM) *.bin *.prg
 
 taliforth-%.bin: platform/platform-%.asm $(COMMON_SOURCES)
-	cl65 -t none \
+	cl65 -g -t none \
 	-C platform/$*.cfg \
 	--listing docs/$*-listing.txt \
-	--mapfile docs/$*-labelmap.txt \
+	-Ln docs/$*-labelmap.txt \
 	-o $@ \
 	$<
 
