@@ -272,7 +272,7 @@ RTS instruction at the end of each word.
 | WITHIN | `within` | ANS core ext | 21 | **auto** |
 | WORD | `word` | ANS core | 69 | **auto** |
 | WORDLIST | `wordlist` | ANS search | 22 | **auto** |
-| WORDS | `words` | ANS tools | 91 | tested |
+| WORDS | `words` | ANS tools | 92 | tested |
 | WORDSIZE | `wordsize` | Tali Forth | 32 | **auto** |
 | XOR | `xor` | ANS core | 17 | **auto** |
 | ZERO | `0` | Tali Forth | 6 | **auto** |

@@ -11522,8 +11522,9 @@ _loop:
                 bcc +
 
                 jsr xt_cr
-                lda 0,x
-                inc
+    
+                lda 0,x                 ; After moving to next line, start
+                inc                     ; count with this word's length.
 *
                 pha
                 jsr xt_type             ; ( nt )
