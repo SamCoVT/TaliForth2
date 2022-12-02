@@ -622,6 +622,18 @@ _second_number:
                 ; fall through to _check_command
 
 _check_command:
+                ; There should be a command next.  Check if we had any line
+                ; numbers specified, and if not, load in the current line number.
+                bit ed_flags
+                bmi _check_command_have_arg
+
+                ; No parameters - put the current line number in the first parameter.
+                lda ed_cur
+                sta 2,x
+                lda ed_cur+1
+                sta 3,x
+
+_check_command_have_arg:
                 ; At this point, we assume that we have handled any parameters
                 ; which are now in their place on the stack, which must have
                 ; the format ( addr-t u-t para1 para2 ). Also, any offset to CIB
@@ -733,15 +745,16 @@ _cmd_a:
                 inx
                 inx                     ;  DROP ( addr-t u-t para1 )
 
-                ; If we weren't given a parameter, make the current line the
-                ; parameter
-                bit ed_flags
-                bmi _cmd_a_have_para
-
-                lda ed_cur
-                sta 0,x
-                lda ed_cur+1
-                sta 1,x                 ;  ( addr-t u-t cur ) drop through
+                ; This is now handled at the top of check_command.                
+;                ; If we weren't given a parameter, make the current line the
+;                ; parameter
+;                bit ed_flags
+;                bmi _cmd_a_have_para
+;
+;                lda ed_cur
+;                sta 0,x
+;                lda ed_cur+1
+;                sta 1,x                 ;  ( addr-t u-t cur ) drop through
 
 _entry_cmd_i:
                 ; This is where i enters with a parameter that is calculated to
@@ -1176,6 +1189,12 @@ _cmd_p_entry_for_cmd_n:
                 ora 1,x
                 bne _cmd_p_loop
 
+                ; Update the current line to this line.
+                lda 2,x
+                sta ed_cur
+                lda 3,x
+                sta ed_cur+1
+
                 ; Print a single line and be done with it. We could use
                 ; DROP here and leave immediately but we want this routine
                 ; to have a single exit at the bottom.
@@ -1213,6 +1232,13 @@ _cmd_p_done:
                 ; We arrive here with ( addr-t u-t para1 para2 f )
                 inx
                 inx                     ; fall through to _cmp_p_all_done
+                
+                ; Update the current line number with the last line printed.
+                lda 0,x
+                sta ed_cur
+                lda 1,x
+                sta ed_cur+1
+                
 _cmd_p_all_done:
                 jmp _next_command
 
