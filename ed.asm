@@ -1,7 +1,7 @@
 ; ed6502 - Ed-like line-based editor for Tali Forth 2
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; First version: 13. Okt 2018
-; This version: 28. Dec 2018
+; This version: 04. Dec 2022
 
 ; Ed is a line-orientated editor for Tali Forth 2 based on the classic Unix
 ; editor of the same name. It is included because a) I like line editors and

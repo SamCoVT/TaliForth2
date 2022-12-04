@@ -20,8 +20,8 @@
 \ high-level definitions worked (or at least didn't crash)
 
         cr .( Tali Forth 2 for the 65c02)
-        cr .( Version 1.0  24. Jan 2020 )
-        cr .( Copyright 2014-2020 Scot W. Stevenson)
+        cr .( Version 1.0  04. Dec 2022 )
+        cr .( Copyright 2014-2022 Scot W. Stevenson, Sam Colwell)
         cr .( Tali Forth 2 comes with absolutely NO WARRANTY)
         cr .( Type 'bye' to exit) cr
 

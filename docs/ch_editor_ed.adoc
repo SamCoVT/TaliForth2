@@ -24,6 +24,8 @@ a:: Add new lines below given line
 d:: Delete line
 f:: Show current target address for writes (`w`)
 i:: Add new lines above given line
+p:: Print lines
+n:: Print lines with line numbers
 q:: Quit if no unsaved work
 Q:: Unconditional quit, unsaved work is lost
 w:: Write text to given memory location (eg `7000w`)
@@ -67,8 +69,9 @@ Apart from missing about 90 percent of the features:
   Where Unix ed uses the format `w <FILENAME>`, ed6502 takes the address
   to write the text to as `7000w`.
 
-WARNING: `ed` currently only works with decimal numbers. When in doubt, use
-`decimal` to make sure your using base ten.
+WARNING: `ed` currently only works with decimal numbers.  It saves and
+restores BASE, but all numbers inside ed will be decimal.  This includes
+the address used with `w`.
 
 
 ==== Using `ed` for programming
