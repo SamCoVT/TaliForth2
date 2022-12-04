@@ -58,10 +58,16 @@
 ;       bit 6 changed    - 0: text not changed, 1: text was changed
 ;       bit 0 printing   - 0: no line numbers (p), 1: with line numbers (n)
 
-;  Byte editor3+1 is currently unused
+;  Byte editor3+1 is used to hold BASE and put it back at the end.
 
 .scope
 ed6502:
+                ; Save the current base and set to decimal.
+                lda base
+                sta editor3+1
+                lda #10
+                sta base
+
                 ; Start a new empty linked list at HERE. This is also
                 ; the current line
                 stz ed_head
@@ -709,6 +715,10 @@ _all_done:
 
                 ; Clean up the stack
                 jsr xt_two_drop                 ; 2DROP ( addr-t u-t )
+
+                ; Restore the base
+                lda editor3+1
+                sta base
 
                 rts
 
