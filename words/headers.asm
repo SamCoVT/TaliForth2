@@ -41,8 +41,9 @@
 ;       AN - Always Native Compile (may not be called by JSR)
 ;       UF - Contains underflow check
 ;       HC - Has CFA (words created by CREATE and DOES> only)
+;       ST - Uses stack manipulation stripped for native compile (R>, >R etc)
 
-; Note there are currently two bits unused.
+; Note there is currently one bit unused.
 
 ; By default, all existing words can be natively compiled (compiled inline) or
 ; as a subroutine jump target; the system decides which variant to use based on
@@ -81,66 +82,65 @@ dhdr .macro label, flags=0, name="", last=false
 
 ; FORTH-WORDLIST
 
-; DROP is always the first native word in the Dictionary
 dictionary_start:
 
-#dhdr drop,     UF
-#dhdr dup,      UF
-#dhdr swap,     UF
-#dhdr store,    UF, "!"
-#dhdr fetch,    UF, "@"
-#dhdr over,     UF
-#dhdr to_r,     CO+UF, ">r"     ; see strip_table
-#dhdr r_from,   CO, "r>"        ; see strip_table
-#dhdr r_fetch,  CO, "r@"        ; see strip_table
-#dhdr nip,      UF
-#dhdr rot,      UF
-#dhdr not_rote, UF, "-rot"
-#dhdr tuck,     UF
-#dhdr comma,    UF, ","
-#dhdr c_fetch,  UF, "c@"
-#dhdr c_store,  UF, "c!"
-#dhdr plus_store, UF, "+!"
-#dhdr zero,     , "0"
-#dhdr one,      , "1"
-#dhdr two,      , "2"
-#dhdr execute,  UF
-#dhdr emit,     NN+UF
-#dhdr type,     UF
-#dhdr dot,      UF, "."
-#dhdr u_dot,    UF, "u."
-#dhdr u_dot_r,  UF, "u.r"
-#dhdr dot_r,    UF, ".r"
-#dhdr d_dot,    UF, "d."
-#dhdr d_dot_r,  UF, "d.r"
-#dhdr ud_dot,   UF, "ud."
-#dhdr ud_dot_r, UF, "ud.r"
-#dhdr question, , "?"
-#dhdr false,    , "false"
-#dhdr true,     , "true"
+#dhdr drop,             UF              ; DROP is always the first native word in the Dictionary
+#dhdr dup,              UF
+#dhdr swap,             UF
+#dhdr store,            UF, "!"
+#dhdr fetch,            UF, "@"
+#dhdr over,             UF
+#dhdr to_r,             CO+UF+ST, ">r"
+#dhdr r_from,           CO+ST, "r>"
+#dhdr r_fetch,          CO+ST, "r@"
+#dhdr nip,              UF
+#dhdr rot,              UF
+#dhdr not_rote,         UF, "-rot"
+#dhdr tuck,             UF
+#dhdr comma,            UF, ","
+#dhdr c_fetch,          UF, "c@"
+#dhdr c_store,          UF, "c!"
+#dhdr plus_store,       UF, "+!"
+#dhdr zero,             , "0"
+#dhdr one,              , "1"
+#dhdr two,              , "2"
+#dhdr execute,          UF
+#dhdr emit,             NN+UF
+#dhdr type,             UF
+#dhdr dot,              UF, "."
+#dhdr u_dot,            UF, "u."
+#dhdr u_dot_r,          UF, "u.r"
+#dhdr dot_r,            UF, ".r"
+#dhdr d_dot,            UF, "d."
+#dhdr d_dot_r,          UF, "d.r"
+#dhdr ud_dot,           UF, "ud."
+#dhdr ud_dot_r,         UF, "ud.r"
+#dhdr question,         , "?"
+#dhdr false,            , "false"
+#dhdr true,             , "true"
 #dhdr space
-#dhdr two_dup,  UF, "2dup"
-#dhdr question_dup, UF, "?dup"
-#dhdr plus,     UF, "+"
-#dhdr minus,    UF, "-"
-#dhdr one_minus, UF, "1-"
-#dhdr one_plus, UF, "1+"
-#dhdr two_star, UF, "2*"
-#dhdr two_slash, UF, "2/"
-#dhdr abs,      UF
-#dhdr dabs,     UF
-#dhdr and,      UF
-#dhdr or,       UF
-#dhdr xor,      UF
-#dhdr rshift,   UF
-#dhdr lshift,   UF
-#dhdr pick                      ; underflow check is complicated, leave off here
+#dhdr two_dup,          UF, "2dup"
+#dhdr question_dup,     UF, "?dup"
+#dhdr plus,             UF, "+"
+#dhdr minus,            UF, "-"
+#dhdr one_minus,        UF, "1-"
+#dhdr one_plus,         UF, "1+"
+#dhdr two_star,         UF, "2*"
+#dhdr two_slash,        UF, "2/"
+#dhdr abs,              UF
+#dhdr dabs,             UF
+#dhdr and,              UF
+#dhdr or,               UF
+#dhdr xor,              UF
+#dhdr rshift,           UF
+#dhdr lshift,           UF
+#dhdr pick                              ; underflow check is complicated, leave off here
 #dhdr char
-#dhdr bracket_char, CO+IM, "[char]"
-#dhdr char_plus, , "char+"
-#dhdr chars,    UF              ; becomes no-op when underflow stripped
-#dhdr cells                     ; same as 2*
-#dhdr cell_plus, UF, "cell+"
+#dhdr bracket_char,     CO+IM, "[char]"
+#dhdr char_plus,        , "char+"
+#dhdr chars,            UF              ; becomes no-op when underflow stripped
+#dhdr cells                             ; same as 2*
+#dhdr cell_plus,        UF, "cell+"
 #dhdr here
 #dhdr equal,            UF, "="
 #dhdr not_equals,       UF, "<>"
@@ -152,483 +152,139 @@ dictionary_start:
 #dhdr zero_unequal,     UF, "0<>"
 #dhdr zero_greater,     UF, "0>"
 #dhdr zero_less,        UF, "0<"
-#dhdr min,      UF
-#dhdr max,      UF
-#dhdr two_drop, UF, "2drop"
-#dhdr two_swap, UF, "2swap"
-#dhdr two_over, UF, "2over"
-#dhdr two_store, UF, "2!"
-#dhdr two_fetch, UF, "2@"
-#dhdr two_variable, , "2variable"
-#dhdr two_constant, UF, "2constant"
-#dhdr two_literal, UF+IM, "2literal"
-#dhdr two_r_fetch, CO+NN, "2r@"         ; see strip_table, leave NN for now
-#dhdr two_r_from, CO, "2r>"             ; see strip_table
-#dhdr two_to_r, CO+UF, "2>r"            ; see strip_table
-#dhdr invert,   UF
-#dhdr negate,   UF
-#dhdr dnegate,  UF
-#dhdr c_comma,  UF, "c,"
-#dhdr bounds,   UF
-#dhdr spaces,   UF
+#dhdr min,              UF
+#dhdr max,              UF
+#dhdr two_drop,         UF, "2drop"
+#dhdr two_swap,         UF, "2swap"
+#dhdr two_over,         UF, "2over"
+#dhdr two_store,        UF, "2!"
+#dhdr two_fetch,        UF, "2@"
+#dhdr two_variable,     , "2variable"
+#dhdr two_constant,     UF, "2constant"
+#dhdr two_literal,      UF+IM, "2literal"
+#dhdr two_r_fetch,      CO+NN+ST, "2r@"
+#dhdr two_r_from,       CO+ST, "2r>"
+#dhdr two_to_r,         CO+UF+ST, "2>r"
+#dhdr invert,           UF
+#dhdr negate,           UF
+#dhdr dnegate,          UF
+#dhdr c_comma,          UF, "c,"
+#dhdr bounds,           UF
+#dhdr spaces,           UF
 #dhdr bl
-#dhdr minus_trailing, UF, "-trailing"
-#dhdr minus_leading, UF, "-leading"
-#dhdr slash_string, UF, "/string"
+#dhdr minus_trailing,   UF, "-trailing"
+#dhdr minus_leading,    UF, "-leading"
+#dhdr slash_string,     UF, "/string"
 #dhdr refill
-#dhdr accept,   UF+NN
-#dhdr input_to_r, NN, "input>r"
-#dhdr r_to_input, NN, "r>input"
+#dhdr accept,           UF+NN
+#dhdr input_to_r,       NN, "input>r"
+#dhdr r_to_input,       NN, "r>input"
 #dhdr unused
 #dhdr depth
 #dhdr key
-#dhdr allot,    UF
+#dhdr allot,            UF
 #dhdr create
-#dhdr does,     CO+IM, "does>"
+#dhdr does,             CO+IM, "does>"
 #dhdr variable
-#dhdr constant, UF
-#dhdr value,    UF                      ; same code as CONSTANT
-#dhdr to,       NN+IM
-#dhdr s_to_d,   UF, "s>d"
-#dhdr d_to_s,   UF, "d>s"
-#dhdr d_minus,  UF, "d-"
-#dhdr d_plus,   UF, "d+"
-#dhdr erase                             ; underflow checked by FILL
-#dhdr blank                             ; underflow checked by FILL
-#dhdr fill,     UF
-#dhdr find_name, UF, "find-name"
-#dhdr tick,     , "'"
-#dhdr bracket_tick, CO+IM, "[']"
-
-nt_name_to_int:
-        .byte 8, UF
-        .word nt_int_to_name, xt_name_to_int, z_name_to_int
-        .text "name>int"
-
-nt_int_to_name:
-        .byte 8, UF
-        .word nt_name_to_string, xt_int_to_name, z_int_to_name
-        .text "int>name"
-
-nt_name_to_string:
-        .byte 11, UF
-        .word nt_to_body, xt_name_to_string, z_name_to_string
-        .text "name>string"
-
-nt_to_body:
-        .byte 5, UF
-        .word nt_defer, xt_to_body, z_to_body
-        .text ">body"
-
-nt_defer:
-        .byte 5, 0
-        .word nt_latestxt, xt_defer, z_defer
-        .text "defer"
-
-nt_latestxt:
-        .byte 8, 0
-        .word nt_latestnt, xt_latestxt, z_latestxt
-        .text "latestxt"
-
-nt_latestnt:
-        .byte 8, 0
-        .word nt_parse_name, xt_latestnt, z_latestnt
-        .text "latestnt"
-
-nt_parse_name:
-        .byte 10, NN
-        .word nt_parse, xt_parse_name, z_parse_name
-        .text "parse-name"
-
-nt_parse:
-        .byte 5, UF
-        .word nt_execute_parsing, xt_parse, z_parse
-        .text "parse"
-
-nt_execute_parsing:
-        .byte 15, UF
-        .word nt_source, xt_execute_parsing, z_execute_parsing
-        .text "execute-parsing"
-
-nt_source:
-        .byte 6, 0
-        .word nt_source_id, xt_source, z_source
-        .text "source"
-
-nt_source_id:
-        .byte 9, 0
-        .word nt_colon, xt_source_id, z_source_id
-        .text "source-id"
-
-nt_colon:
-        .byte 1, 0
-        .word nt_semicolon, xt_colon, z_colon
-        .text ":"
-
-nt_semicolon:
-        .byte 1, CO+IM
-        .word nt_colon_noname, xt_semicolon, z_semicolon
-        .text ";"
-
-nt_colon_noname:
-        .byte 7, 0
-        .word nt_compile_comma, xt_colon_noname, z_colon_noname
-        .text ":noname"
-
-nt_compile_comma:
-        .byte 8, UF+NN
-        .word nt_left_bracket, xt_compile_comma, z_compile_comma
-        .text "compile,"
-
-nt_left_bracket:
-        .byte 1, IM+CO
-        .word nt_right_bracket, xt_left_bracket, z_left_bracket
-        .text "["
-
-nt_right_bracket:
-        .byte 1, IM
-        .word nt_literal, xt_right_bracket, z_right_bracket
-        .text "]"
-
-nt_literal:
-        .byte 7, IM+CO+UF
-        .word nt_sliteral, xt_literal, z_literal
-        .text "literal"
-
-nt_sliteral:
-        .byte 8, CO+IM+UF
-        .word nt_dot_quote, xt_sliteral, z_sliteral
-        .text "sliteral"
-
-nt_dot_quote:
-        .byte 2, CO+IM
-        .word nt_s_quote, xt_dot_quote, z_dot_quote
-        .text ".", $22
-
-nt_s_quote:
-        .byte 2, IM+NN
-        .word nt_s_backslash_quote, xt_s_quote, z_s_quote
-        .text "s", $22
-
-nt_s_backslash_quote:
-        .byte 3, IM
-        .word nt_postpone, xt_s_backslash_quote, z_s_backslash_quote
-        .text "s", $5C, $22
-
-nt_postpone:
-        .byte 8, IM+CO
-        .word nt_immediate, xt_postpone, z_postpone
-        .text "postpone"
-
-nt_immediate:
-        .byte 9, 0
-        .word nt_compile_only, xt_immediate, z_immediate
-        .text "immediate"
-
-nt_compile_only:
-        .byte 12, 0
-        .word nt_never_native, xt_compile_only, z_compile_only
-        .text "compile-only"
-
-nt_never_native:
-        .byte 12, 0
-        .word nt_always_native, xt_never_native, z_never_native
-        .text "never-native"
-
-nt_always_native:
-        .byte 13, 0
-        .word nt_allow_native, xt_always_native, z_always_native
-        .text "always-native"
-
-nt_allow_native:
-        .byte 12, 0
-        .word nt_nc_limit, xt_allow_native, z_allow_native
-        .text "allow-native"
-
-nt_nc_limit:
-        .byte 8, NN
-        .word nt_strip_underflow, xt_nc_limit, z_nc_limit
-        .text "nc-limit"
-
-nt_strip_underflow:
-        .byte 15, NN
-        .word nt_abort, xt_strip_underflow, z_strip_underflow
-        .text "strip-underflow"
-
-nt_abort:
-        .byte 5, 0
-        .word nt_abort_quote, xt_abort, z_abort
-        .text "abort"
-
-nt_abort_quote:
-        .byte 6, CO+IM+NN
-        .word nt_do, xt_abort_quote, z_abort_quote
-        .text "abort", $22
-
-nt_do:
-        .byte 2, CO+IM+NN
-        .word nt_question_do, xt_do, z_do
-        .text "do"
-
-nt_question_do:
-        .byte 3, CO+IM+NN
-        .word nt_i, xt_question_do, z_question_do
-        .text "?do"
-
-nt_i:
-        .byte 1, CO
-        .word nt_j, xt_i, z_i
-        .text "i"
-
-nt_j:
-        .byte 1, CO
-        .word nt_loop, xt_j, z_j
-        .text "j"
-
-nt_loop:
-        .byte 4, CO+IM
-        .word nt_plus_loop, xt_loop, z_loop
-        .text "loop"
-
-nt_plus_loop:
-        .byte 5, CO+IM
-        .word nt_exit, xt_plus_loop, z_plus_loop
-        .text "+loop"
-
-nt_exit:
-        .byte 4, AN+CO
-        .word nt_unloop, xt_exit, z_exit
-        .text "exit"
-
-nt_unloop:
-        .byte 6, CO
-        .word nt_leave, xt_unloop, z_unloop
-        .text "unloop"
-
-nt_leave:
-        .byte 5, CO+IM
-        .word nt_recurse, xt_leave, z_leave
-        .text "leave"
-
-nt_recurse:
-        .byte 7, CO+IM+NN
-        .word nt_quit, xt_recurse, z_recurse
-        .text "recurse"
-
-nt_quit:
-        .byte 4, 0
-        .word nt_begin, xt_quit, z_quit
-        .text "quit"
-
-nt_begin:
-        .byte 5, CO+IM
-        .word nt_again, xt_begin, z_begin
-        .text "begin"
-
-nt_again:
-        .byte 5, CO+IM+UF
-        .word nt_state, xt_again, z_again
-        .text "again"
-
-nt_state:
-        .byte 5, 0
-        .word nt_evaluate, xt_state, z_state
-        .text "state"
-
-nt_evaluate:
-        .byte 8, UF
-        .word nt_base, xt_evaluate, z_evaluate
-        .text "evaluate"
-
-nt_base:
-        .byte 4, 0
-        .word nt_digit_question, xt_base, z_base
-        .text "base"
-
-nt_digit_question:
-        .byte 6, UF
-        .word nt_number, xt_digit_question, z_digit_question
-        .text "digit?"
-
-nt_number:
-        .byte 6, UF
-        .word nt_to_number, xt_number, z_number
-        .text "number"
-
-nt_to_number:
-        .byte 7, UF
-        .word nt_hex, xt_to_number, z_to_number
-        .text ">number"
-
-nt_hex:
-        .byte 3, 0
-        .word nt_decimal, xt_hex, z_hex
-        .text "hex"
-
-nt_decimal:
-        .byte 7, 0
-        .word nt_count, xt_decimal, z_decimal
-        .text "decimal"
-
-nt_count:
-        .byte 5, UF
-        .word nt_m_star, xt_count, z_count
-        .text "count"
-
-nt_m_star:
-        .byte 2, UF
-        .word nt_um_star, xt_m_star, z_m_star
-        .text "m*"
-
-nt_um_star:
-        .byte 3, UF
-        .word nt_star, xt_um_star, z_um_star
-        .text "um*"
-
-nt_star:
-        .byte 1, UF
-        .word nt_um_slash_mod, xt_star, z_star
-        .text "*"
-
-nt_um_slash_mod:
-        .byte 6, UF
-        .word nt_sm_slash_rem, xt_um_slash_mod, z_um_slash_mod
-        .text "um/mod"
-
-nt_sm_slash_rem:
-        .byte 6, UF
-        .word nt_fm_slash_mod, xt_sm_slash_rem, z_sm_slash_rem
-        .text "sm/rem"
-
-nt_fm_slash_mod:
-        .byte 6, UF
-        .word nt_slash, xt_fm_slash_mod, z_fm_slash_mod
-        .text "fm/mod"
-
-nt_slash:
-        .byte 1, UF
-        .word nt_slash_mod, xt_slash, z_slash
-        .text "/"
-
-nt_slash_mod:
-        .byte 4, UF
-        .word nt_mod, xt_slash_mod, z_slash_mod
-        .text "/mod"
-
-nt_mod:
-        .byte 3, UF
-        .word nt_star_slash_mod, xt_mod, z_mod
-        .text "mod"
-
-nt_star_slash_mod:
-        .byte 5, UF
-        .word nt_star_slash, xt_star_slash_mod, z_star_slash_mod
-        .text "*/mod"
-
-nt_star_slash:
-        .byte 2, UF
-        .word nt_backslash, xt_star_slash, z_star_slash
-        .text "*/"
-
-nt_backslash:
-        .byte 1, IM
-        .word nt_move, xt_backslash, z_backslash
-        .byte '\'
-
-nt_move:
-        .byte 4, NN+UF
-        .word nt_cmove_up, xt_move, z_move
-        .text "move"
-
-nt_cmove_up:
-        .byte 6, UF
-        .word nt_cmove, xt_cmove_up, z_cmove_up
-        .text "cmove>"
-
-nt_cmove:
-        .byte 5, UF
-        .word nt_pad, xt_cmove, z_cmove
-        .text "cmove"
-
-nt_pad:
-        .byte 3, 0
-        .word nt_cleave, xt_pad, z_pad
-        .text "pad"
-
-nt_cleave:
-        .byte 6, UF
-        .word nt_hexstore, xt_cleave, z_cleave
-        .text "cleave"
-
-nt_hexstore:
-        .byte 8, UF
-        .word nt_within, xt_hexstore, z_hexstore
-        .text "hexstore"
-
-nt_within:
-        .byte 6, UF
-        .word nt_to_in, xt_within, z_within
-        .text "within"
-
-nt_to_in:
-        .byte 3, 0
-        .word nt_less_number_sign, xt_to_in, z_to_in
-        .text ">in"
-
-nt_less_number_sign:
-        .byte 2, 0
-        .word nt_number_sign, xt_less_number_sign, z_less_number_sign
-        .text "<#"
-
-nt_number_sign:
-        .byte 1, UF
-        .word nt_number_sign_s, xt_number_sign, z_number_sign
-        .text "#"
-
-nt_number_sign_s:
-        .byte 2, UF
-        .word nt_number_sign_greater, xt_number_sign_s, z_number_sign_s
-        .text "#s"
-
-nt_number_sign_greater:
-        .byte 2, UF
-        .word nt_hold, xt_number_sign_greater, z_number_sign_greater
-        .text "#>"
-
-nt_hold:
-        .byte 4, UF
-        .word nt_sign, xt_hold, z_hold
-        .text "hold"
-
-nt_sign:
-        .byte 4, UF
-        .word nt_output, xt_sign, z_sign
-        .text "sign"
-
-nt_output:
-        .byte 6, 0
-        .word nt_input, xt_output, z_output
-        .text "output"
-
-nt_input:
-        .byte 5, 0
-        .word nt_cr, xt_input, z_input
-        .text "input"
-
-nt_cr:
-        .byte 2, 0
-        .word nt_page, xt_cr, z_cr
-        .text "cr"
-
-nt_page:
-        .byte 4, 0
-        .word nt_at_xy, xt_page, z_page
-        .text "page"
-
-nt_at_xy:
-        .byte 5, UF
-        .word nt_marker, xt_at_xy, z_at_xy
-        .text "at-xy"
+#dhdr constant,         UF
+#dhdr value,            UF              ; same code as CONSTANT
+#dhdr to,               NN+IM
+#dhdr s_to_d,           UF, "s>d"
+#dhdr d_to_s,           UF, "d>s"
+#dhdr d_minus,          UF, "d-"
+#dhdr d_plus,           UF, "d+"
+#dhdr erase                             ; underflow checked by FILL - TODO
+#dhdr blank                             ; underflow checked by FILL - TODO
+#dhdr fill,             UF
+#dhdr find_name,        UF, "find-name"
+#dhdr tick,             , "'"
+#dhdr bracket_tick,     CO+IM, "[']"
+#dhdr name_to_int,      UF, "name>int"
+#dhdr int_to_name,      UF, "int>name"
+#dhdr name_to_string,   UF, "name>string"
+#dhdr to_body,          UF, ">body"
+#dhdr defer
+#dhdr latestxt
+#dhdr latestnt
+#dhdr parse_name,       NN, "parse-name"
+#dhdr parse,            UF
+#dhdr execute_parsing,  UF, "execute-parsing"
+#dhdr source
+#dhdr source_id,        , "source-id"
+#dhdr colon,            , ":"
+#dhdr semicolon,        CO+IM, ";"
+#dhdr colon_noname,     , ":noname"
+#dhdr compile_comma,    UF+NN, "compile,"
+#dhdr left_bracket,     IM+CO, "["
+#dhdr right_bracket,    IM, "]"
+#dhdr literal,          IM+CO+UF, "literal"
+#dhdr sliteral,         CO+IM+UF, "sliteral"
+#dhdr dot_quote,        CO+IM, '."'
+#dhdr s_quote,          IM+NN, 's"'
+#dhdr s_backslash_quote, IM, 's\"'
+#dhdr postpone,         IM+CO, "postpone"
+#dhdr immediate
+#dhdr compile_only,     , "compile-only"
+#dhdr never_native,     , "never-native"
+#dhdr always_native,    , "always-native"
+#dhdr allow_native,     , "allow-native"
+#dhdr nc_limit,         NN, "nc-limit"
+#dhdr strip_underflow,  NN, "strip-underflow"
+#dhdr abort
+#dhdr abort_quote,      CO+IM+NN, 'abort"'
+#dhdr do,               CO+IM+NN
+#dhdr question_do,      CO+IM+NN, "?do"
+#dhdr i,                CO
+#dhdr j,                CO
+#dhdr loop,             CO+IM
+#dhdr plus_loop,        CO+IM, "+loop"
+#dhdr exit,             AN+CO
+#dhdr unloop,           CO
+#dhdr leave,            CO+IM
+#dhdr recurse,          CO+IM+NN
+#dhdr quit
+#dhdr begin,            CO+IM
+#dhdr again,            CO+IM+UF
+#dhdr state
+#dhdr evaluate,         UF
+#dhdr base
+#dhdr digit_question,   UF, "digit?"
+#dhdr number,           UF
+#dhdr to_number,        UF, ">number"
+#dhdr hex
+#dhdr decimal
+#dhdr count,            UF
+#dhdr m_star,           UF, "m*"
+#dhdr um_star,          UF, "um*"
+#dhdr star,             UF, "*"
+#dhdr um_slash_mod,     UF, "um/mod"
+#dhdr sm_slash_rem,     UF, "sm/rem"
+#dhdr fm_slash_mod,     UF, "fm/mod"
+#dhdr slash,            UF, "/"
+#dhdr slash_mod,        UF, "/mod"
+#dhdr mod,              UF
+#dhdr star_slash_mod,   UF, "*/mod"
+#dhdr star_slash,       UF, "*/"
+#dhdr backslash,        IM, "\"
+#dhdr move,             NN+UF
+#dhdr cmove_up,         UF, "cmove>"
+#dhdr cmove,            UF
+#dhdr pad
+#dhdr cleave,           UF
+#dhdr hexstore,         UF
+#dhdr within,           UF
+#dhdr to_in,            , ">in"
+#dhdr less_number_sign, , "<#"
+#dhdr number_sign,      UF, "#"
+#dhdr number_sign_s,    UF, "#s"
+#dhdr number_sign_greater, UF, "#>"
+#dhdr hold,             UF
+#dhdr sign,             UF
+#dhdr output
+#dhdr input
+#dhdr cr
+#dhdr page
+#dhdr at_xy,            UF, "at-xy"
 
 nt_marker:
         .byte 6, IM
