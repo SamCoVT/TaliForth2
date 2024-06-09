@@ -285,404 +285,115 @@ dictionary_start:
 #dhdr cr
 #dhdr page
 #dhdr at_xy,            UF, "at-xy"
-
-nt_marker:
-        .byte 6, IM
-        .word nt_words, xt_marker, z_marker
-        .text "marker"
-
-nt_words:
-        .byte 5, 0
-        .word nt_wordsize, xt_words, z_words
-        .text "words"
-
-nt_wordsize:
-        .byte 8, UF
-        .word nt_aligned, xt_wordsize, z_wordsize
-        .text "wordsize"
-
-nt_aligned:
-        .byte 7, 0
-        .word nt_align, xt_aligned, z_aligned   ; same code as ALIGN
-        .text "aligned"
-
-nt_align:
-        .byte 5, 0
-        .word nt_bell, xt_align, z_align
-        .text "align"
-
-nt_bell:
-        .byte 4, 0
-        .word nt_dump, xt_bell, z_bell
-        .text "bell"
-
-nt_dump:
-        .byte 4, UF
-        .word nt_dot_s, xt_dump, z_dump
-        .text "dump"
-
-nt_dot_s:
-        .byte 2, 0
-        .word +, xt_dot_s, z_dot_s
-        .text ".s"
-+
+#dhdr marker,           IM
+#dhdr words
+#dhdr wordsize,         UF
+#dhdr aligned                           ; same code as ALIGN
+#dhdr align
+#dhdr bell
+#dhdr dump, UF
+#dhdr dot_s,            , ".s"
 
 .if "disassembler" in TALI_OPTIONAL_WORDS
-nt_disasm:
-        .byte 6, UF
-        .word +, xt_disasm, z_disasm
-        .text "disasm"
-+
+#dhdr disasm,           UF
 .endif
 
-nt_compare:
-        .byte 7, UF
-        .word nt_search, xt_compare, z_compare
-        .text "compare"
+#dhdr compare,          UF
+#dhdr search,           UF+NN
 
-nt_search:
-        .byte 6, UF+NN
-        .word +, xt_search, z_search
-        .text "search"
-+
 .if "environment?" in TALI_OPTIONAL_WORDS
-nt_environment_q:
-        .byte 12, UF
-        .word +, xt_environment_q, z_environment_q
-        .text "environment?"
-+
+#dhdr environment_q,    UF, "environment?"
 .endif
-nt_find:
-        .byte 4, UF
-        .word nt_word, xt_find, z_find
-        .text "find"
 
-nt_word:
-        .byte 4, UF
-        .word nt_paren, xt_word, z_word
-        .text "word"
+#dhdr find,             UF
+#dhdr word,             UF
+#dhdr paren,            IM, "("
+#dhdr dot_paren,        IM, ".("
+#dhdr if,               IM+CO+NN
+#dhdr then,             IM+CO+NN
+#dhdr else,             IM+CO+NN
+#dhdr repeat,           IM+CO+NN
+#dhdr until,            IM+CO+NN
+#dhdr while,            IM+CO+NN
+#dhdr case,             IM+CO+NN        ; shares code with ZERO
+#dhdr of,               IM+CO+NN
+#dhdr endof,            IM+CO+NN
+#dhdr endcase,          IM+CO+NN
+#dhdr defer_fetch,      , "defer@"
+#dhdr defer_store,      , "defer!"
+#dhdr is,               IM, "is"
+#dhdr action_of,        IM, "action-of"
+#dhdr useraddr,         , "useraddr"
+#dhdr buffer_colon,     , "buffer:"
 
-nt_paren:
-        .byte 1, IM
-        .word nt_dot_paren, xt_paren, z_paren
-        .text "("
-
-nt_dot_paren:
-        .byte 2, IM
-        .word nt_if, xt_dot_paren, z_dot_paren
-        .text ".("
-
-nt_if:
-        .byte 2, IM+CO+NN
-        .word nt_then, xt_if, z_if
-        .text "if"
-
-nt_then:
-        .byte 4, IM+CO+NN
-        .word nt_else, xt_then, z_then
-        .text "then"
-
-nt_else:
-        .byte 4, IM+CO+NN
-        .word nt_repeat, xt_else, z_else
-        .text "else"
-
-nt_repeat:
-        .byte 6, IM+CO+NN
-        .word nt_until, xt_repeat, z_repeat
-        .text "repeat"
-
-nt_until:
-        .byte 5, IM+CO+NN
-        .word nt_while, xt_until, z_until
-        .text "until"
-
-nt_while:
-        .byte 5, IM+CO+NN
-        .word nt_case, xt_while, z_while
-        .text "while"
-
-nt_case:
-        .byte 4, IM+CO+NN
-        .word nt_of, xt_case, z_case    ; shares code with ZERO
-        .text "case"
-
-nt_of:
-        .byte 2, IM+CO+NN
-        .word nt_endof, xt_of, z_of
-        .text "of"
-
-nt_endof:
-        .byte 5, IM+CO+NN
-        .word nt_endcase, xt_endof, z_endof ; shares code with ELSE
-        .text "endof"
-
-nt_endcase:
-        .byte 7, IM+CO+NN
-        .word nt_defer_fetch, xt_endcase, z_endcase
-        .text "endcase"
-
-nt_defer_fetch:
-        .byte 6, 0
-        .word nt_defer_store, xt_defer_fetch, z_defer_fetch
-        .text "defer@"
-
-nt_defer_store:
-        .byte 6, 0
-        .word nt_is, xt_defer_store, z_defer_store
-        .text "defer!"
-
-nt_is:
-        .byte 2, IM
-        .word nt_action_of, xt_is, z_is
-        .text "is"
-
-nt_action_of:
-        .byte 9, IM
-        .word nt_useraddr, xt_action_of, z_action_of
-        .text "action-of"
-
-nt_useraddr:
-        .byte 8, 0
-        .word nt_buffer_colon, xt_useraddr, z_useraddr
-        .text "useraddr"
-
-nt_buffer_colon:
-        .byte 7, 0
-        .word +, xt_buffer_colon, z_buffer_colon
-        .text "buffer:"
-+
 .if "block" in TALI_OPTIONAL_WORDS
-nt_buffstatus:
-        .byte 10, 0
-        .word nt_buffblocknum, xt_buffstatus, z_buffstatus
-        .text "buffstatus"
-
-nt_buffblocknum:
-        .byte 12, 0
-        .word nt_blkbuffer, xt_buffblocknum, z_buffblocknum
-        .text "buffblocknum"
-
-nt_blkbuffer:
-        .byte 9, 0
-        .word nt_scr, xt_blkbuffer, z_blkbuffer
-        .text "blkbuffer"
-
-nt_scr:
-        .byte 3, NN
-        .word nt_blk, xt_scr, z_scr
-        .text "scr"
-
-nt_blk:
-        .byte 3, NN
-        .word nt_block_write, xt_blk, z_blk
-        .text "blk"
-
-nt_block_write:
-        .byte 11, NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_block_write_vector, xt_block_write, z_block_write
-        .text "block-write"
-
-nt_block_write_vector:
-        .byte 18, NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_block_read, xt_block_write_vector, z_block_write_vector
-        .text "block-write-vector"
-
-nt_block_read:
-        .byte 10, HC+NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_block_read_vector, xt_block_read, z_block_read
-        .text "block-read"
-
-nt_block_read_vector:
-        .byte 17, HC+NN ; Deferred words need the HC (Code Field) flag.
-        .word nt_save_buffers, xt_block_read_vector, z_block_read_vector
-        .text "block-read-vector"
-
-nt_save_buffers:
-        .byte 12, 0
-        .word nt_block, xt_save_buffers, z_save_buffers
-        .text "save-buffers"
-
-nt_block:
-        .byte 5, 0
-        .word nt_update, xt_block, z_block
-        .text "block"
-
-nt_update:
-        .byte 6, 0
-        .word nt_buffer, xt_update, z_update
-        .text "update"
-
-nt_buffer:
-        .byte 6, 0
-        .word nt_empty_buffers, xt_buffer, z_buffer
-        .text "buffer"
-
-nt_empty_buffers:
-        .byte 13, 0
-        .word nt_flush, xt_empty_buffers, z_empty_buffers
-        .text "empty-buffers"
-
-nt_flush:
-        .byte 5, 0
-        .word nt_load, xt_flush, z_flush
-        .text "flush"
-
-nt_load:
-        .byte 4, UF
-        .word nt_thru, xt_load, z_load
-        .text "load"
-
-nt_thru:
-        .byte 4, UF
-        .word +, xt_thru, z_thru
-        .text "thru"
-+
+#dhdr buffstatus
+#dhdr buffblocknum
+#dhdr blkbuffer
+#dhdr scr,              NN
+#dhdr blk,              NN
+;TODO these mention HC but don't have the flag?
+#dhdr block_write,      NN, "block-write"       ; Deferred words need the HC (Code Field) flag.
+#dhdr block_write_vector, NN, "block-write-vector" ; Deferred words need the HC (Code Field) flag.
+#dhdr block_read,       HC+NN, "block-read"     ; Deferred words need the HC (Code Field) flag.
+#dhdr block_read_vector, HC+NN, "block-read-vector" ; Deferred words need the HC (Code Field) flag.
+#dhdr save_buffers,     , "save-buffers"
+#dhdr block
+#dhdr update
+#dhdr buffer
+#dhdr empty_buffers,    , "empty-buffers"
+#dhdr flush
+#dhdr load,             UF
+#dhdr thru,             UF
 
 .if "editor" in TALI_OPTIONAL_WORDS
-nt_list:
-        .byte 4, UF
-        .word nt_block_c65_init, xt_list, z_list
-        .text "list"
-
-nt_block_c65_init:
-        .byte 14, 0
-        .word +, xt_block_c65_init, z_block_c65_init
-        .text "block-c65-init"
-+
+#dhdr list,             UF
+#dhdr block_c65_init,   , "block-c65-init"
 .endif
+
 .endif
 
 .if "block" in TALI_OPTIONAL_WORDS && "ramdrive" in TALI_OPTIONAL_WORDS
-nt_block_ramdrive_init:
-        .byte 19, UF
-        .word +, xt_block_ramdrive_init, z_block_ramdrive_init
-        .text "block-ramdrive-init"
-+
+#dhdr block_ramdrive_init, UF, "block-ramdrive-init"
 .endif
 
 .if "wordlist" in TALI_OPTIONAL_WORDS
-nt_definitions:
-        .byte 11, 0
-        .word nt_wordlist, xt_definitions, z_definitions
-        .text "definitions"
-
-nt_wordlist:
-        .byte 8, 0
-        .word nt_search_wordlist, xt_wordlist, z_wordlist
-        .text "wordlist"
-
-nt_search_wordlist:
-        .byte 15, UF
-        .word nt_set_current, xt_search_wordlist, z_search_wordlist
-        .text "search-wordlist"
-
-nt_set_current:
-        .byte 11, UF
-        .word nt_get_current, xt_set_current, z_set_current
-        .text "set-current"
-
-nt_get_current:
-        .byte 11, 0
-        .word nt_set_order, xt_get_current, z_get_current
-        .text "get-current"
-
-nt_set_order:
-        .byte 9, 0
-        .word nt_get_order, xt_set_order, z_set_order
-        .text "set-order"
-
-nt_get_order:
-        .byte 9, 0
-        .word nt_root_wordlist, xt_get_order, z_get_order
-        .text "get-order"
-
-nt_root_wordlist:
-        .byte 13, 0
-        .word +, xt_root_wordlist, z_root_wordlist
-        .text "root-wordlist"
-+
+#dhdr definitions
+#dhdr wordlist
+#dhdr search_wordlist,  UF, "search-wordlist"
+#dhdr set_current,      UF, "set-current"
+#dhdr get_current,      , "get-current"
+#dhdr set_order,        , "set-order"
+#dhdr get_order,        , "get-order"
+#dhdr root_wordlist,    , "root-wordlist"
 .endif
 
 .if "assembler" in TALI_OPTIONAL_WORDS && "wordlist" in TALI_OPTIONAL_WORDS
-nt_assembler_wordlist:  ; shares code with TWO
-        .byte 18, 0
-        .word +, xt_assembler_wordlist, z_assembler_wordlist
-        .text "assembler-wordlist"
-+
+#dhdr assembler_wordlist, , "assembler-wordlist"
 .endif
 
 .if "editor" in TALI_OPTIONAL_WORDS && "wordlist" in TALI_OPTIONAL_WORDS
-nt_editor_wordlist:     ; shares code with ONE
-        .byte 15, 0
-        .word +, xt_editor_wordlist, z_editor_wordlist
-        .text "editor-wordlist"
-+
+#dhdr editor_wordlist,  , "editor-wordlist"
 .endif
 
 .if "wordlist" in TALI_OPTIONAL_WORDS
-nt_forth_wordlist:      ; shares code with ZERO
-        .byte 14, 0
-        .word nt_only, xt_forth_wordlist, z_forth_wordlist
-        .text "forth-wordlist"
-
-nt_only:
-        .byte 4, 0
-        .word nt_also, xt_only, z_only
-        .text "only"
-
-nt_also:
-        .byte 4, 0
-        .word nt_previous, xt_also, z_also
-        .text "also"
-
-nt_previous:
-        .byte 8, 0
-        .word nt_to_order, xt_previous, z_previous
-        .text "previous"
-
-nt_to_order:
-        .byte 6, 0
-        .word nt_order, xt_to_order, z_to_order
-        .text ">order"
-
-nt_order:
-        .byte 5, 0
-        .word nt_forth, xt_order, z_order
-        .text "order"
-
-nt_forth:
-        .byte 5, 0
-        .word +, xt_forth, z_forth
-        .text "forth"
-+
+#dhdr forth_wordlist,   , "forth-wordlist"
+#dhdr only
+#dhdr also
+#dhdr previous
+#dhdr to_order,         , ">order"
+#dhdr order
+#dhdr forth
 .endif
 
-nt_see: .byte 3, NN
-        .word +, xt_see, z_see
-        .text "see"
-+
+#dhdr see,              NN
 
 .if "ed" in TALI_OPTIONAL_WORDS
-nt_ed:                  ; ed6502
-        .byte 3, NN
-        .word +, xt_ed, z_ed
-        .text "ed:"
-+
+#dhdr ed,               NN, "ed:"       ; ed6502
 .endif
 
-nt_cold:
-        .byte 4, 0
-        .word nt_bye, xt_cold, z_cold
-        .text "cold"
-
-nt_bye:
-        .byte 3         ; length of word strings
-        .byte 0         ; status byte
-        .word 0000      ; next word in Dictionary, 0000 signals end
-        .word xt_bye    ; start of code block (xt of this word)
-        .word z_bye     ; end of code (RTS)
-        .text "bye"     ; word name, always lower case, not zero-terminated
+#dhdr cold
+#dhdr bye,              , , true        ; true flags last word in the wordlist
 
 ; END of FORTH-WORDLIST
 
