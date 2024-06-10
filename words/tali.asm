@@ -1158,6 +1158,7 @@ xt_case:
 xt_false:
 xt_forth_wordlist:
 xt_zero:
+w_zero:
                 dex             ; push
                 dex
                 stz 0,x

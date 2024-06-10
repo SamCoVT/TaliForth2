@@ -54,7 +54,7 @@ _done:
         ; """
 xt_abs:
                 jsr underflow_1
-
+w_abs:
                 lda 1,x
                 bpl _done       ; positive number, easy money!
 
@@ -684,6 +684,7 @@ z_backslash:    rts
         ; ingore the MSB
         ; """
 xt_base:
+w_base:
                 dex
                 dex
                 lda #<base
@@ -1755,17 +1756,17 @@ does_runtime:
 
 xt_dot:
                 jsr underflow_1
-
-                jsr xt_dup                      ; ( n n )
-                jsr xt_abs                      ; ( n u )
-                jsr xt_zero                     ; ( n u 0 )
-                jsr xt_less_number_sign         ; ( n u 0 )
-                jsr xt_number_sign_s            ; ( n ud )
-                jsr xt_rot                      ; ( ud n )
-                jsr xt_sign                     ; ( ud )
-                jsr xt_number_sign_greater      ; ( addr u )
-                jsr xt_type
-                jsr xt_space
+w_dot:
+                jsr w_dup                      ; ( n n )
+                jsr w_abs                      ; ( n u )
+                jsr w_zero                     ; ( n u 0 )
+                jsr w_less_number_sign         ; ( n u 0 )
+                jsr w_number_sign_s            ; ( n ud )
+                jsr w_rot                      ; ( ud n )
+                jsr w_sign                     ; ( ud )
+                jsr w_number_sign_greater      ; ( addr u )
+                jsr w_type
+                jsr w_space
 
 z_dot:          rts
 
@@ -1862,7 +1863,7 @@ z_drop:         rts
         ; """https://forth-standard.org/standard/core/DUP"""
 xt_dup:
                 jsr underflow_1
-
+w_dup:
                 dex
                 dex
 
@@ -2400,7 +2401,7 @@ z_exit:                         ; never reached
         ; """https://forth-standard.org/standard/core/Fetch"""
 xt_fetch:
                 jsr underflow_1
-
+w_fetch:
                 lda (0,x)               ; LSB
                 tay
                 inc 0,x
@@ -2737,7 +2738,7 @@ z_hex:          rts
         ; """
 xt_hold:
                 jsr underflow_1
-
+w_hold:
                 lda tohold
                 bne +
                 dec tohold+1
@@ -2986,7 +2987,8 @@ z_left_bracket: rts
         ; internal variable tohold instead of HLD.
         ; """
 xt_less_number_sign:
-                jsr xt_pad      ; ( addr )
+w_less_number_sign:
+                jsr w_pad      ; ( addr )
 
                 lda 0,x
                 sta tohold
@@ -3811,9 +3813,9 @@ z_not_equals:   rts
         ; """
 xt_number_sign:
                 jsr underflow_2         ; double number
-
-                jsr xt_base
-                jsr xt_fetch            ; ( ud1 base )
+w_number_sign:
+                jsr w_base
+                jsr w_fetch             ; ( ud1 base )
 
                 ; The following code is the ancient Forth word UD/MOD, which in
                 ; various Forths (including Gforth) lives on under the hood,
@@ -3821,18 +3823,18 @@ xt_number_sign:
                 ; in the docs, it's only used here, and there are no tests for
                 ; it. This is why we got rid of it. We'll be converting this
                 ; mess to something more sane in the long run.
-                jsr xt_to_r             ; >r
-                jsr xt_zero             ; 0
-                jsr xt_r_fetch          ; r@
-                jsr xt_um_slash_mod     ; um/mod
-                jsr xt_rot              ; rot
-                jsr xt_rot              ; rot
-                jsr xt_r_from           ; r>
-                jsr xt_um_slash_mod     ; um/mod
-                jsr xt_rot              ; rot
+                jsr w_to_r              ; >r
+                jsr w_zero              ; 0
+                jsr w_r_fetch           ; r@
+                jsr w_um_slash_mod      ; um/mod
+                jsr w_rot               ; rot
+                jsr w_rot               ; rot
+                jsr w_r_from            ; r>
+                jsr w_um_slash_mod      ; um/mod
+                jsr w_rot               ; rot
                 ; end of UD/MOD ( rem ud )
 
-                jsr xt_rot              ; ( ud rem )
+                jsr w_rot               ; ( ud rem )
 
                 ; Convert the number that is left over to an ASCII character. We
                 ; use a string lookup for speed. Use either abc_str_lower for
@@ -3843,7 +3845,7 @@ xt_number_sign:
                 sta 0,x
                 stz 1,x                 ; paranoid; now ( ud char )
 
-                jsr xt_hold
+                jsr w_hold
 
 z_number_sign:
                 rts
@@ -3863,7 +3865,7 @@ z_number_sign:
 xt_number_sign_greater:
 
                 jsr underflow_2         ; double number
-
+w_number_sign_greater:
                 ; The start address lives in tohold
                 lda tohold
                 sta 0,x         ; LSB of tohold
@@ -3873,7 +3875,7 @@ xt_number_sign_greater:
                 sta 3,x         ; ( addr addr )
 
                 ; The length of the string is pad - addr
-                jsr xt_pad      ; ( addr addr pad )
+                jsr w_pad       ; ( addr addr pad )
 
                 sec
                 lda 0,x         ; LSB of pad address
@@ -3904,9 +3906,10 @@ z_number_sign_greater:
 
 xt_number_sign_s:
                 jsr underflow_2
+w_number_sign_s:
 _loop:
                 ; convert a single number ("#")
-                jsr xt_number_sign
+                jsr w_number_sign
 
                 ; stop when double-celled number in TOS is zero:
                 lda 0,x
@@ -4034,6 +4037,7 @@ z_over:         rts
         ; This area is reserved for the user and not used by the system
         ; """
 xt_pad:
+w_pad:
                 dex
                 dex
 
@@ -4578,6 +4582,7 @@ z_question_dup: rts
         ; does, these versions should be compared at some point.
         ; """
 xt_r_fetch:
+w_r_fetch:
                 ; --- START FOR JSR (save return address + 1) ---
 
                 pla                     ; LSB
@@ -4622,6 +4627,7 @@ z_r_fetch:      jmp (tmp1)
         ; """
 
 xt_r_from:
+w_r_from:
                 ; --- START FOR JSR (save return address + 1) ---
 
                 pla                     ; LSB
@@ -4846,7 +4852,7 @@ z_right_bracket:
 
 xt_rot:
                 jsr underflow_3
-
+w_rot:
                 ldy 5,x         ; MSB first
                 lda 3,x
                 sta 5,x
@@ -5379,7 +5385,7 @@ z_semicolon:    rts
 
 xt_sign:
                 jsr underflow_1
-
+w_sign:
                 lda 1,x         ; check MSB of TOS
                 bmi _minus
 
@@ -5391,7 +5397,7 @@ _minus:
                 sta 0,x         ; overwrite TOS
                 stz 1,x         ; paranoid
 
-                jsr xt_hold
+                jsr w_hold
 _done:
 z_sign:         rts
 
@@ -5555,6 +5561,7 @@ z_source_id:    rts
 ; ## "space"  auto  ANS core
         ; """https://forth-standard.org/standard/core/SPACE"""
 xt_space:
+w_space:
                 lda #AscSP
                 jsr emit_a
 
@@ -5700,7 +5707,7 @@ z_store:        rts
         ; """https://forth-standard.org/standard/core/SWAP"""
 xt_swap:
                 jsr underflow_2
-
+w_swap:
                 lda 0,x         ; LSB
                 ldy 2,x
                 sta 2,x
@@ -6095,6 +6102,7 @@ z_to_number:    rts
         ; word.
         ; """
 xt_to_r:
+w_to_r:
                 ; --- START FOR JSR (save return address + 1) ---
 
                 pla                     ; LSB
@@ -6521,7 +6529,7 @@ z_two_to_r:     jmp (tmp1)
 
 xt_type:
                 jsr underflow_2
-
+w_type:
                 ; Save the starting address into tmp1
                 lda 2,x
                 sta tmp1
@@ -6654,7 +6662,7 @@ z_u_less_than:    rts
 
 xt_um_slash_mod:
                 jsr underflow_3
-
+w_um_slash_mod:
                 ; catch division by zero
                 lda 0,x
                 ora 1,x
@@ -6707,7 +6715,7 @@ _done:
                 inx
                 inx
 
-                jsr xt_swap
+                jsr w_swap
 
 z_um_slash_mod: rts
 
