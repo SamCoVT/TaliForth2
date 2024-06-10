@@ -6290,23 +6290,23 @@ xt_two_r_fetch:
                 ; --- START FOR NATIVE CODING (via ST flag) ---
 
                 ; copy four bytes from return stack to the data stack
-                ; where $100+SP is the first item on the stack
-                ; we need to reduce X by four, and copy four bytes
 
-                txa             ; set up tos as $100+SP
+                txa             ; set Y = SP; X -= 4
                 tsx
-                stx tmptos
+                phx
+                ply
+                sec
+                sbc #4
                 tax
-                lda #1
-                sta tmptos+1
 
-                ldy #4
--
-                dex
-                lda (tmptos),y    ; $100+SP+Y
+                lda $101,y
                 sta 0,x
-                dey
-                bne -
+                lda $102,y
+                sta 1,x
+                lda $103,y
+                sta 2,x
+                lda $104,y
+                sta 3,x
 
 z_two_r_fetch:  jmp (tmp1)
 
@@ -6341,21 +6341,21 @@ xt_two_r_from:
                 ; Stack. However, given the traffic there with an STC
                 ; Forth, that's probably not really useful
 
-                ; use a bit of trickery with X here.  We want to pull
-                ; four items and push them to X-4, ... X-1, and
-                ; leave X := X-4.   So we do X -= 8 and then
-                ; store at X+4 while incrementing X four times.
-                txa
-                sec
-                sbc #8
-                tax
-                ldy #4
--
-                pla
-                sta 4,x
-                inx
-                dey
-                bne -
+		; make room on stack
+                dex
+                dex
+                dex
+                dex
+
+                pla                     ; LSB
+                sta 0,x
+                pla                     ; MSB
+                sta 1,x
+
+                pla                     ; LSB
+                sta 2,x
+                pla                     ; MSB
+                sta 3,x
 
 z_two_r_from:   jmp (tmp1)
 
@@ -6492,20 +6492,22 @@ xt_two_to_r:
 
                 jsr underflow_2
 
-                ; We want to push four items from X+3 ... X and leave X := X+4
-                ; So we do X += 8 and then decrement four times while reading X-4
-
-                txa
-                clc
-                adc #8
-                tax
-                ldy #4
--
-                dex
-                lda $fc,x
+                ; now we can move the data
+                lda 3,x         ; MSB
                 pha
-                dey
-                bne -
+                lda 2,x         ; LSB
+                pha
+
+                ; now we can move the data
+                lda 1,x         ; MSB
+                pha
+                lda 0,x         ; LSB
+                pha
+
+                inx
+                inx
+                inx
+                inx
 
 z_two_to_r:     jmp (tmp1)
 
