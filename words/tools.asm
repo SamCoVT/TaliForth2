@@ -23,7 +23,7 @@ z_bye:
         ; """
 
 xt_dot_s:
-                jsr xt_depth    ; ( -- u )
+                jsr w_depth    ; ( -- u )
 
                 ; Print stack depth in brackets
                 lda #'<'
@@ -77,7 +77,7 @@ _loop:
                 dec tmp3
                 phy
 
-                jsr xt_dot
+                jsr w_dot
 
                 ply
                 dey
@@ -111,7 +111,7 @@ _row:
                 ; start saving them at HERE (CP)
                 stz tmp2
 
-                jsr xt_cr
+                jsr w_cr
 
                 ; print address number
                 lda 3,x
@@ -119,8 +119,8 @@ _row:
                 lda 2,x
                 jsr byte_to_ascii
 
-                jsr xt_space
-                jsr xt_space
+                jsr w_space
+                jsr w_space
 _loop:
                 ; if there are zero bytes left to display, we're done
                 lda 0,x
@@ -131,7 +131,7 @@ _loop:
                 lda (2,x)
                 pha                     ; byte_to_ascii destroys A
                 jsr byte_to_ascii
-                jsr xt_space
+                jsr w_space
                 pla
 
                 ; Handle ASCII printing
@@ -148,7 +148,7 @@ _printable:
                 ; extra space after eight bytes
                 cpy #9
                 bne _next_char
-                jsr xt_space
+                jsr w_space
 
 _next_char:
                 inc 2,x
@@ -167,7 +167,7 @@ _counter:
 
                 ; Done with one line, print the ASCII version of these
                 ; characters
-                jsr xt_space
+                jsr w_space
                 jsr dump_print_ascii
 
                 bra _row                ; new row
@@ -184,10 +184,10 @@ _all_printed:
                 ; then there is the gap after eight entries) and it
                 ; makes it harder to read. We settle for one extra
                 ; space instead for the moment
-                jsr xt_space
+                jsr w_space
                 jsr dump_print_ascii
 _done:
-                jsr xt_two_drop         ; one byte less than 4x INX
+                jsr w_two_drop         ; one byte less than 4x INX
 z_dump:         rts
 
 
@@ -205,7 +205,7 @@ _ascii_loop:
                 ; extra space after eight chars
                 cpy #8
                 bne +
-                jsr xt_space
+                jsr w_space
 +
                 dec tmp2
                 bne _ascii_loop
@@ -223,8 +223,8 @@ _ascii_loop:
         ; """
 xt_question:
                 ; FETCH takes care of underflow check
-                jsr xt_fetch
-                jsr xt_dot
+                jsr w_fetch
+                jsr w_dot
 
 z_question:     rts
 
@@ -239,8 +239,8 @@ z_question:     rts
         ; """
 
 xt_see:
-                jsr xt_parse_name       ; ( addr u )
-                jsr xt_find_name        ; ( nt | 0 )
+                jsr w_parse_name       ; ( addr u )
+                jsr w_find_name        ; ( nt | 0 )
 
                 ; If we got back a zero we don't know that word and so we quit
                 ; with an error
@@ -251,39 +251,39 @@ xt_see:
                 lda #err_noname
                 jmp error
 +
-                jsr xt_cr
+                jsr w_cr
 
                 ; We have a legal word, so let's get serious. Save the current
                 ; number base and use hexadecimal instead.
                 lda base
                 pha
-                jsr xt_hex
+                jsr w_hex
 
                 lda #str_see_nt
                 jsr print_string_no_lf
 
-                jsr xt_dup              ; ( nt nt )
-                jsr xt_u_dot
-                jsr xt_space            ; ( nt )
+                jsr w_dup              ; ( nt nt )
+                jsr w_u_dot
+                jsr w_space            ; ( nt )
 
-                jsr xt_dup              ; ( nt nt )
-                jsr xt_name_to_int      ; ( nt xt )
+                jsr w_dup              ; ( nt nt )
+                jsr w_name_to_int      ; ( nt xt )
 
                 lda #str_see_xt
                 jsr print_string_no_lf
 
-                jsr xt_dup              ; ( nt xt xt )
-                jsr xt_u_dot
-                jsr xt_cr               ; ( nt xt )
+                jsr w_dup              ; ( nt xt xt )
+                jsr w_u_dot
+                jsr w_cr               ; ( nt xt )
 
                 ; We print letters for flags and then later follow it with 1 or
                 ; 0 to mark if which flag is set
                 lda #str_see_flags
                 jsr print_string_no_lf
 
-                jsr xt_over             ; ( nt xt nt )
-                jsr xt_one_plus         ; ( nt xt nt+1 )
-                jsr xt_fetch            ; ( nt xt flags )
+                jsr w_over             ; ( nt xt nt )
+                jsr w_one_plus         ; ( nt xt nt+1 )
+                jsr w_fetch            ; ( nt xt flags )
 
                 lda 0,x
 
@@ -295,7 +295,7 @@ _flag_loop:
                 clc
                 adc #'0'
                 jsr emit_a
-                jsr xt_space
+                jsr w_space
 
                 pla
                 ror                     ; Next flag
@@ -303,7 +303,7 @@ _flag_loop:
                 dey
                 bne _flag_loop
 
-                jsr xt_cr
+                jsr w_cr
 
                 inx
                 inx                     ; ( nt xt )
@@ -312,22 +312,22 @@ _flag_loop:
                 lda #str_see_size
                 jsr print_string_no_lf
 
-                jsr xt_swap             ; ( xt nt )
-                jsr xt_wordsize         ; ( xt u )
-                jsr xt_dup              ; ( xt u u ) for DUMP and DISASM
-                jsr xt_decimal
-                jsr xt_u_dot            ; ( xt u )
-                jsr xt_hex
-                jsr xt_cr
+                jsr w_swap             ; ( xt nt )
+                jsr w_wordsize         ; ( xt u )
+                jsr w_dup              ; ( xt u u ) for DUMP and DISASM
+                jsr w_decimal
+                jsr w_u_dot            ; ( xt u )
+                jsr w_hex
+                jsr w_cr
 
                 ; Dump hex and disassemble
 .if "disassembler" in TALI_OPTIONAL_WORDS
-                jsr xt_two_dup          ; ( xt u xt u )
+                jsr w_two_dup          ; ( xt u xt u )
 .endif
-                jsr xt_dump
-                jsr xt_cr
+                jsr w_dump
+                jsr w_cr
 .if "disassembler" in TALI_OPTIONAL_WORDS
-                jsr xt_disasm
+                jsr w_disasm
 .endif
                 pla
                 sta base
@@ -346,7 +346,7 @@ z_see:          rts
 xt_words:
                 ; we follow Gforth by starting on the next
                 ; line
-                jsr xt_cr
+                jsr w_cr
 
                 ; We pretty-format the output by inserting a line break
                 ; before the end of the line. We can get away with pushing
@@ -389,8 +389,8 @@ _have_wordlist:
                 sta 1,x
 
 _loop:
-                jsr xt_dup              ; ( nt nt )
-                jsr xt_name_to_string   ; ( nt addr u )
+                jsr w_dup              ; ( nt nt )
+                jsr w_name_to_string   ; ( nt addr u )
 
                 ; Insert line break if we're about to go past the end of the
                 ; line
@@ -401,21 +401,21 @@ _loop:
                 cmp #MAX_LINE_LENGTH    ; usually 79
                 bcc +
 
-                jsr xt_cr
+                jsr w_cr
 
                 lda 0,x                 ; After going to next line, start
                 ina                     ; with length of this word.
 +
                 pha
-                jsr xt_type             ; ( nt )
+                jsr w_type             ; ( nt )
 
                 lda #AscSP
                 jsr emit_a
 
                 ; get next word, which begins two down
-                jsr xt_one_plus         ; 1+
-                jsr xt_one_plus         ; 1+
-                jsr xt_fetch            ; @ ( nt+1 )
+                jsr w_one_plus         ; 1+
+                jsr w_one_plus         ; 1+
+                jsr w_fetch            ; @ ( nt+1 )
 
                 ; if next address is zero, we're done
                 lda 0,x

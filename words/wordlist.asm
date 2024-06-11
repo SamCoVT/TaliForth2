@@ -2,11 +2,11 @@
 ; ## "also"  auto  ANS search ext
         ; """http://forth-standard.org/standard/search/ALSO"""
 xt_also:
-                jsr xt_get_order
-                jsr xt_over
-                jsr xt_swap
-                jsr xt_one_plus
-                jsr xt_set_order
+                jsr w_get_order
+                jsr w_over
+                jsr w_swap
+                jsr w_one_plus
+                jsr w_set_order
 
 z_also:         rts
 
@@ -141,9 +141,9 @@ z_get_order:    rts
 
 xt_only:
                 ; Put -1 on data stack.
-                jsr xt_true
+                jsr w_true
                 ; Invoke set-order to set the minimum search order.
-                jsr xt_set_order
+                jsr w_set_order
 
 z_only:         rts
 
@@ -176,8 +176,8 @@ z_only:         rts
         ; """
 
 xt_order:
-                jsr xt_cr
-                jsr xt_get_order        ; ( wid_n ... wid_1 n )
+                jsr w_cr
+                jsr w_get_order        ; ( wid_n ... wid_1 n )
 
                 ; Paranoid: Check if there are no wordlists, a rather
                 ; pathological case. this would mean ( 0 ) on the stack. In
@@ -202,13 +202,13 @@ _loop:
 
                 ; We've printed the wordlists, now we add the current wordlist.
                 ; This follows the convention of Gforth
-                jsr xt_space
-                jsr xt_space
-                jsr xt_get_current      ; ( wid )
+                jsr w_space
+                jsr w_space
+                jsr w_get_current      ; ( wid )
 
                 lda 0,x
                 jsr order_print_wid_string
-                jsr xt_cr
+                jsr w_cr
 
 _drop_done:
                 inx
@@ -264,10 +264,10 @@ _wid_data:
         ; """http://forth-standard.org/standard/search/PREVIOUS"""
 
 xt_previous:
-                jsr xt_get_order
-                jsr xt_nip
-                jsr xt_one_minus
-                jsr xt_set_order
+                jsr w_get_order
+                jsr w_nip
+                jsr w_one_minus
+                jsr w_set_order
 
 z_previous:     rts
 
@@ -355,9 +355,9 @@ xt_search_wordlist:
 
                 ; Change the nt into an xt, but save a copy of the nt
                 ; to look up whether the word is immediate or not.
-                jsr xt_dup              ; ( nt nt )
-                jsr xt_name_to_int      ; ( nt xt )
-                jsr xt_swap             ; ( xt nt )
+                jsr w_dup              ; ( nt nt )
+                jsr w_name_to_int      ; ( nt xt )
+                jsr w_swap             ; ( xt nt )
 
                 ldy #0                  ; Prepare flag
 
@@ -480,18 +480,18 @@ z_set_order:    rts
 
 xt_to_order:
                 ; Put the wid on the return stack for now.
-                jsr xt_to_r
+                jsr w_to_r
 
                 ; Get the current search order.
-                jsr xt_get_order
+                jsr w_get_order
 
                 ; Get back the wid and add it to the list.
-                jsr xt_r_from
-                jsr xt_swap
-                jsr xt_one_plus
+                jsr w_r_from
+                jsr w_swap
+                jsr w_one_plus
 
                 ; Set the search order with the new list.
-                jsr xt_set_order
+                jsr w_set_order
 
 z_to_order:     rts
 

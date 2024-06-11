@@ -41,13 +41,13 @@ z_disasm:       rts
 
 disassembler:
                 stz scratch+5   ; flag indicating whether we're arriving at sliteral (vs 2literal)
-                jsr xt_cr       ; ( addr u )
+                jsr w_cr       ; ( addr u )
 _byte_loop:
                 ; Print address at start of the line. Note we use whatever
                 ; number base the user has
-                jsr xt_over     ; ( addr u addr )
-                jsr xt_u_dot    ; ( addr u )
-                jsr xt_space
+                jsr w_over     ; ( addr u addr )
+                jsr w_u_dot    ; ( addr u )
+                jsr w_space
 
                 ; We use the opcode value as the offset in the oc_index_table.
                 ; We have 256 entries, each two bytes long, so we can't just
@@ -105,7 +105,7 @@ _byte_loop:
                 bpl _no_operand         ; bit 7 clear, single-byte instruction
 
                 ; We have an operand. Prepare the Data Stack
-                jsr xt_zero             ; ( addr u 0 ) ZERO does not use Y
+                jsr w_zero             ; ( addr u 0 ) ZERO does not use Y
 
                 ; Because of the glory of a little endian CPU, we can start
                 ; with the next byte regardless if this is a one or two byte
@@ -164,7 +164,7 @@ _print_operand:
                 sta 0,x
                 stz 1,x                 ; ( addr+n u-n opr 5 )
 
-                jsr xt_u_dot_r          ; U.R ( addr+n u-n )
+                jsr w_u_dot_r          ; U.R ( addr+n u-n )
 
                 bra _print_mnemonic
 
@@ -179,14 +179,14 @@ _no_operand:
                 sta 0,x
                 stz 1,x                 ; ( addr u 5 )
 
-                jsr xt_spaces           ; ( addr u )
+                jsr w_spaces           ; ( addr u )
 
                 ; fall through to _print_mnemonic
 
 _print_mnemonic:
                 ; We arrive here with the opcode table address on the stack and
                 ; ( addr u | addr+n u-n ). Time to print the mnemonic.
-                jsr xt_space
+                jsr w_space
 
                 dex
                 dex                     ; ( addr u ? )
@@ -195,7 +195,7 @@ _print_mnemonic:
                 pla                     ; LSB
                 sta 0,x                 ; ( addr u addr-o )
 
-                jsr xt_count            ; ( addr u addr-o u-o )
+                jsr w_count            ; ( addr u addr-o u-o )
 
                 ; The length of the mnemnonic string is in bits 2 to 0
                 stz 1,x                 ; paranoid
@@ -203,7 +203,7 @@ _print_mnemonic:
                 and #%00000111          ; ( addr u addr-o u-o )
                 sta 0,x
 
-                jsr xt_type             ; ( addr u )
+                jsr w_type             ; ( addr u )
 
                 ; Handle JSR by printing name of function, if available.
                 ; scratch has opcode ($20 for JSR)
@@ -218,7 +218,7 @@ _print_mnemonic:
                 lda #5
                 sta 0,x
                 stz 1,x
-                jsr xt_spaces
+                jsr w_spaces
 
                 jsr disasm_special
                 bcs _printing_done
@@ -311,7 +311,7 @@ _is_rel:
                 lda #9
                 sta 0,x
                 stz 1,x
-                jsr xt_u_dot_r      ; print the destination with 5 leading spaces
+                jsr w_u_dot_r      ; print the destination with 5 leading spaces
 
                 lda #AscSP          ; print space and branch direction indicator
                 jsr emit_a
@@ -319,14 +319,14 @@ _is_rel:
                 jsr emit_a
 
 _printing_done:
-                jsr xt_cr
+                jsr w_cr
 
                 ; Housekeeping: Next byte
                 inc 2,x
                 bne +
                 inc 3,x                 ; ( addr+1 u )
 +
-                jsr xt_one_minus        ; ( addr+1 u-1 )
+                jsr w_one_minus        ; ( addr+1 u-1 )
 
                 lda 0,x                 ; All done?
                 ora 1,x
@@ -358,19 +358,19 @@ disasm_sliteral_jump:
 
                 ; Determine the distance of the jump so we end on the byte
                 ; just before the JSR (sets us up for SLITERAL on next loop)
-                jsr xt_swap
+                jsr w_swap
                 dex
                 dex
                 lda scratch+1
                 sta 0,x
                 lda scratch+2
                 sta 1,x
-                jsr xt_swap
-                jsr xt_minus
-                jsr xt_one_minus
+                jsr w_swap
+                jsr w_minus
+                jsr w_one_minus
                 ; ( n jump_distance )
                 ; Subtract the jump distance from the bytes left.
-                jsr xt_minus
+                jsr w_minus
                 ; ( new_n )
                 ; Move to one byte before the target address
                 dex
@@ -379,8 +379,8 @@ disasm_sliteral_jump:
                 sta 0,x
                 lda scratch+2
                 sta 1,x
-                jsr xt_one_minus
-                jsr xt_swap ; ( new_addr new_n )
+                jsr w_one_minus
+                jsr w_swap ; ( new_addr new_n )
                 rts
 
 
@@ -398,20 +398,20 @@ disasm_jsr:
                 lda scratch+2
                 sta 1,x
                 ; ( xt )
-                jsr xt_int_to_name
+                jsr w_int_to_name
                 ; int>name returns zero if we just don't know.
                 lda 0,x
                 ora 1,x
                 beq _no_nt
                 ; We now have a name token ( nt ) on the stack.
                 ; Change it into the name and print it.
-                jsr xt_name_to_string
-                jsr xt_type
+                jsr w_name_to_string
+                jsr w_type
                 sec
                 rts
 
 _no_nt:
-                jsr xt_two_drop
+                jsr w_two_drop
                 clc
                 rts
 
@@ -470,24 +470,24 @@ _done:          sec
 _print_literal:
                 ; ( addr u ) address of last byte of JSR and bytes left on the stack.
                 ; We need to print the value just after the address and move along two bytes.
-                jsr xt_swap ; switch to (u addr)
-                jsr xt_one_plus
+                jsr w_swap ; switch to (u addr)
+                jsr w_one_plus
 
-                jsr xt_dup
-                jsr xt_question ; Print the value at the address
+                jsr w_dup
+                jsr w_question ; Print the value at the address
                 ; Advance one more byte to skip over the constant
-                jsr xt_one_plus
-                jsr xt_swap ; (addr+2 u)
-                jsr xt_one_minus
+                jsr w_one_plus
+                jsr w_swap ; (addr+2 u)
+                jsr w_one_minus
                 jmp xt_one_minus ; (addr+2 u-2)
 
 _print_2literal:
-                jsr xt_swap
-                jsr xt_one_plus
-                jsr xt_dup
-                jsr xt_two_fetch
-                jsr xt_swap             ; 2! / 2@ put MSW first; but 2literal writes LSW first
-                jsr xt_d_dot
+                jsr w_swap
+                jsr w_one_plus
+                jsr w_dup
+                jsr w_two_fetch
+                jsr w_swap             ; 2! / 2@ put MSW first; but 2literal writes LSW first
+                jsr w_d_dot
                 clc
                 lda 0,x
                 adc #3
@@ -495,7 +495,7 @@ _print_2literal:
                 bcc +
                 inc 1,x
 +
-                jsr xt_swap ; ( addr+4 u )
+                jsr w_swap ; ( addr+4 u )
                 sec
                 lda 0,x
                 sbc #4

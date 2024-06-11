@@ -195,7 +195,7 @@ dictionary_start:
 #def_nt d_minus,        UF, "d-"
 #def_nt d_plus,         UF, "d+"
 #def_nt erase                           ; underflow checked by FILL - TODO
-#def_nt blank                           ; underflow checked by FILL - TODO
+#def_nt blank,          UF
 #def_nt fill,           UF
 #def_nt find_name,      UF, "find-name"
 #def_nt tick,           , "'"

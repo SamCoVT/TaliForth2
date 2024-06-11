@@ -62,10 +62,10 @@ _not_in_buffer:
                 bne _buffer_available ; Unused or not dirty = available
 
                 ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
+                jsr w_blkbuffer
+                jsr w_buffblocknum
+                jsr w_fetch
+                jsr w_block_write
 
 _buffer_available:
                 ; Save the block number.
@@ -77,9 +77,9 @@ _buffer_available:
                 sta (up),y
 
                 ; Get the requested block.
-                jsr xt_blkbuffer
-                jsr xt_swap
-                jsr xt_block_read
+                jsr w_blkbuffer
+                jsr w_swap
+                jsr w_block_read
 
                 ; Mark the buffer as clean and in-use.
                 lda #1
@@ -135,16 +135,16 @@ io_blk_buffer = 0
                 sta 0,x
                 lda #>c65_blk_read
                 sta 1,x
-                jsr xt_block_read_vector
-                jsr xt_store
+                jsr w_block_read_vector
+                jsr w_store
                 dex
                 dex
                 lda #<c65_blk_write
                 sta 0,x
                 lda #>c65_blk_write
                 sta 1,x
-                jsr xt_block_write_vector
-                jsr xt_store
+                jsr w_block_write_vector
+                jsr w_store
 z_block_c65_init:
                 rts
 
@@ -189,7 +189,7 @@ xt_block_ramdrive_init:
 
                 ; The address and length of the ramdrive code is now on the
                 ; stack. Call EVALUATE to run it.
-                jsr xt_evaluate
+                jsr w_evaluate
 
 z_block_ramdrive_init:
                 rts
@@ -311,10 +311,10 @@ xt_buffer:
                 bne _buffer_available ; Unused or not dirty = available
 
                 ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
+                jsr w_blkbuffer
+                jsr w_buffblocknum
+                jsr w_fetch
+                jsr w_block_write
 
 _buffer_available:
                 ; Save the block number.
@@ -368,7 +368,7 @@ z_empty_buffers:
 ; ## "flush"  auto  ANS block
         ; """https://forth-standard.org/standard/block/FLUSH"""
 xt_flush:
-                jsr xt_save_buffers
+                jsr w_save_buffers
 
                 ; Set the buffer status to empty.
                 ldy #buffstatus_offset
@@ -388,11 +388,11 @@ xt_list:
                 jsr underflow_1
 
                 ; Save the screen number in SCR
-                jsr xt_scr
-                jsr xt_store
+                jsr w_scr
+                jsr w_store
 
                 ; Use L from the editor-wordlist to display the screen.
-                jsr xt_editor_l
+                jsr w_editor_l
 
 z_list:         rts
 .endif
@@ -428,7 +428,7 @@ xt_load:
                 sta (up),y
 
                 ; Load that block into a buffer
-                jsr xt_block
+                jsr w_block
 
                 ; Put 1024 on the stack for the screen length.
                 dex
@@ -464,7 +464,7 @@ xt_load:
                 iny
                 lda (up),y
                 sta 1,x
-                jsr xt_block
+                jsr w_block
 
                 ; Drop the buffer address.
                 inx
@@ -487,10 +487,10 @@ xt_save_buffers:
                 bne _done       ; Either not used or not dirty = done!
 
                 ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
+                jsr w_blkbuffer
+                jsr w_buffblocknum
+                jsr w_fetch
+                jsr w_block_write
 
                 ; Mark the buffer as clean now.
                 lda #1
@@ -540,7 +540,7 @@ _thru_loop:
                 pha
 
                 ; Load this screen.
-                jsr xt_load
+                jsr w_load
 
                 ; Get the number and limit back off the stack.  Rather than
                 ; waste time making room on the stack, just use tmp1 and tmp2.

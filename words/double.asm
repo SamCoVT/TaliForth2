@@ -152,15 +152,15 @@ z_dnegate:      rts
 xt_d_dot:
                 jsr underflow_2
 
-                jsr xt_tuck
-                jsr xt_dabs
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_rot
-                jsr xt_sign
-                jsr xt_number_sign_greater
-                jsr xt_type
-                jsr xt_space
+                jsr w_tuck
+                jsr w_dabs
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_rot
+                jsr w_sign
+                jsr w_number_sign_greater
+                jsr w_type
+                jsr w_space
 
 z_d_dot:        rts
 
@@ -175,19 +175,19 @@ z_d_dot:        rts
 xt_d_dot_r:
                 jsr underflow_3
                 ; From the forth code:
-                jsr xt_to_r
-                jsr xt_tuck
-                jsr xt_dabs
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_rot
-                jsr xt_sign
-                jsr xt_number_sign_greater
-                jsr xt_r_from
-                jsr xt_over
-                jsr xt_minus
-                jsr xt_spaces
-                jsr xt_type
+                jsr w_to_r
+                jsr w_tuck
+                jsr w_dabs
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_rot
+                jsr w_sign
+                jsr w_number_sign_greater
+                jsr w_r_from
+                jsr w_over
+                jsr w_minus
+                jsr w_spaces
+                jsr w_type
 
 z_d_dot_r:      rts
 
@@ -203,19 +203,19 @@ z_d_dot_r:      rts
 xt_two_constant:
                 jsr underflow_2
 
-                jsr xt_create
-                jsr xt_swap
-                jsr xt_comma
-                jsr xt_comma
+                jsr w_create
+                jsr w_swap
+                jsr w_comma
+                jsr w_comma
 
                 jsr does_runtime    ; does> turns into these two routines.
                 jsr dodoes
 
-                jsr xt_dup
-                jsr xt_fetch
-                jsr xt_swap
-                jsr xt_cell_plus
-                jsr xt_fetch
+                jsr w_dup
+                jsr w_fetch
+                jsr w_swap
+                jsr w_cell_plus
+                jsr w_fetch
 
 z_two_constant: rts
 
@@ -233,8 +233,8 @@ xt_two_literal:
                 jsr check_nc_limit
                 bcs _no_inline
 
-                jsr xt_swap
-                jsr xt_literal
+                jsr w_swap
+                jsr w_literal
                 jmp xt_literal
 
 _no_inline:
@@ -254,7 +254,7 @@ z_two_literal:  rts
         ; """
 xt_two_variable:
                 ; We just let CRATE and ALLOT do the heavy lifting
-                jsr xt_create
+                jsr w_create
 
                 dex
                 dex
@@ -262,7 +262,7 @@ xt_two_variable:
                 sta 0,x
                 stz 1,x
 
-                jsr xt_allot
+                jsr w_allot
 
 z_two_variable: rts
 
@@ -276,11 +276,11 @@ z_two_variable: rts
 xt_ud_dot:
                 jsr underflow_2 ; double number
 
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_number_sign_greater
-                jsr xt_type
-                jsr xt_space
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_number_sign_greater
+                jsr w_type
+                jsr w_space
 
 z_ud_dot:        rts
 
@@ -293,14 +293,14 @@ z_ud_dot:        rts
 xt_ud_dot_r:
                 jsr underflow_3
 
-                jsr xt_to_r
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_number_sign_greater
-                jsr xt_r_from
-                jsr xt_over
-                jsr xt_minus
-                jsr xt_spaces
-                jsr xt_type
+                jsr w_to_r
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_number_sign_greater
+                jsr w_r_from
+                jsr w_over
+                jsr w_minus
+                jsr w_spaces
+                jsr w_type
 
 z_ud_dot_r:      rts

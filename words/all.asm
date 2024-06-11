@@ -74,7 +74,7 @@ _load_user_vars_loop:
                 ; Copy the 0th element.
                 lda cold_user_table
                 sta (up)
-                jsr xt_cr
+                jsr w_cr
 
                 ; Define high-level words in forth_words.asc via EVALUATE,
                 ; followed by any user-defined words from user_words.asc.
@@ -97,7 +97,7 @@ _load_user_vars_loop:
                 lda #>(user_words_end-forth_words_start)
                 sta 1,x
 
-                jsr xt_evaluate
+                jsr w_evaluate
 
 .if TALI_OPTION_HISTORY
                 ; Initialize all of the history buffers by putting a zero in
@@ -178,7 +178,7 @@ _get_line:
 
                 ; Accept a line from the current import source. This is how
                 ; modern Forths do it.
-                jsr xt_refill           ; ( -- f )
+                jsr w_refill           ; ( -- f )
 
                 ; Test flag: LSB of TOS
                 lda 0,x

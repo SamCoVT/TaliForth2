@@ -60,12 +60,12 @@
         ; """
 xt_compile_comma:
                 jsr underflow_1
-
+w_compile_comma:
                 ; See if this is an Always Native (AN) word by checking the
                 ; AN flag. We need nt for this.
-                jsr xt_dup              ; keep an unadjusted copy of xt
-                jsr xt_dup              ; plus one to convert to nt
-                jsr xt_int_to_name
+                jsr w_dup              ; keep an unadjusted copy of xt
+                jsr w_dup              ; plus one to convert to nt
+                jsr w_int_to_name
                 ; ( xt xt nt )
 
                 ; Does this xt even have a valid (non-zero) nt?
@@ -74,8 +74,8 @@ xt_compile_comma:
                 beq cmpl_as_call        ; No nt so unknown size; must compile as a JSR
 
                 ; Otherwise investigate the nt
-                jsr xt_dup
-                jsr xt_one_plus         ; status is at nt+1
+                jsr w_dup
+                jsr w_one_plus         ; status is at nt+1
                 ; ( xt xt nt nt+1 )
                 lda (0,x)               ; get status byte
                 inx                     ; drop pointer
@@ -86,7 +86,7 @@ xt_compile_comma:
                 bne cmpl_as_call        ; never native
 
                 ; ( xt xt nt )          ; maybe native, let's check
-                jsr xt_wordsize
+                jsr w_wordsize
                 ; ( xt xt u )
 
                 ; --- SPECIAL CASE 1: PREVENT RETURN STACK THRASHING ---
@@ -179,26 +179,26 @@ cmpl_by_limit:
 cmpl_as_call:
         ; Compile xt as a subroutine call, return with C=0
         ; Stack is either ( xt xt nt ) or ( xt xt' u )
-                jsr xt_two_drop         ; either way 2drop leaves original xt
+                jsr w_two_drop         ; either way 2drop leaves original xt
                 ; ( xt -- )
                 lda #OpJSR
                 jsr cmpl_a
-                jsr xt_comma
+                jsr w_comma
                 sec
                 rts
 
 cmpl_inline:
         ; compile inline, returning C=1
                 ; ( xt xt' u -- )
-                jsr xt_here
-                jsr xt_swap
+                jsr w_here
+                jsr w_swap
                 ; ( xt xt' cp u -- )
-                jsr xt_dup
-                jsr xt_allot            ; allocate space for the word
+                jsr w_dup
+                jsr w_allot            ; allocate space for the word
                 ; Enough of this, let's move those bytes already!
                 ; ( xt xt' cp u ) on the stack at this point
-                jsr xt_move
-                jsr xt_drop             ; drop original xt
+                jsr w_move
+                jsr w_drop             ; drop original xt
                 clc
                 rts
 
@@ -209,7 +209,7 @@ z_compile_comma:
 ; =====================================================================
 ; COMPILE WORDS, JUMPS and SUBROUTINE JUMPS INTO CODE
 
-; These routines compile instructions such as "jsr xt_words" into a word
+; These routines compile instructions such as "jsr w_words" into a word
 ; at compile time so they are available at run time. Words that use this
 ; routine may not be natively compiled. We use "cmpl" as not to confuse these
 ; routines with the COMPILE, word.  Always call this with a subroutine jump.
@@ -268,7 +268,7 @@ cmpl_jump_later:
     ; MSB with Y, LSB indeterminate, leaving address of the JMP target TOS
                 lda #OpJMP
                 jsr cmpl_a
-                jsr xt_here
+                jsr w_here
                 bra cmpl_word
 
 
@@ -294,9 +294,9 @@ _done:
 cmpl_0branch_later:
         ; compile a 0BRANCH where we don't know the target yet
         ; leaves pointer to the target on TOS
-                jsr xt_zero             ; dummy placeholder, which forces long jmp in native version
+                jsr w_zero             ; dummy placeholder, which forces long jmp in native version
                 jsr cmpl_0branch_tos    ; generate native or subroutine branch code
-                jsr xt_here             ; either way the target address is two bytes before here
+                jsr w_here             ; either way the target address is two bytes before here
                 sec
                 lda 0,x
                 sbc #2
@@ -341,8 +341,8 @@ _inline:
                 beq _long               ; always use the long form if target is 0
 
                 ; ( addr )
-                jsr xt_dup
-                jsr xt_here
+                jsr w_dup
+                jsr w_here
                 clc
                 lda #2
                 adc 0,x
@@ -350,7 +350,7 @@ _inline:
                 bcc +
                 inc 1,x
 +
-                jsr xt_minus
+                jsr w_minus
                 ; ( addr offset )
                 ; offset is a signed byte if LSB bit 7 is 0 and MSB is 0 or bit 7 is 1 and MSB is #ff
                 inx             ; pre-drop offset and use wraparound indexing to preserve flags

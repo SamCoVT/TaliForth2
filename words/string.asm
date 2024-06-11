@@ -132,7 +132,7 @@ z_cmove_up:     rts
         ; """
 xt_compare:
                 jsr underflow_4
-
+w_compare:
                 ; Load the two string addresses into tmp1 and tmp2.
                 lda 2,x
                 sta tmp2
@@ -246,8 +246,8 @@ _loop:
                 bcc _done
 
                 ; It's whitespace, move one down
-                jsr xt_one              ; ( addr u 1 )
-                jsr xt_slash_string     ; ( addr+ u-1 )
+                jsr w_one              ; ( addr u 1 )
+                jsr w_slash_string     ; ( addr+ u-1 )
 
                 bra _loop
 _done:
@@ -355,7 +355,7 @@ xt_search:
 
 _start_search:
                 ; Put an offset (starting at zero) on the stack.
-                jsr xt_zero
+                jsr w_zero
 
 _search_loop:
                 ; We stop (not found) when u2 + offset > u1
@@ -425,7 +425,7 @@ _comparison_loop:
 
                 ; One of the letters didn't match.
                 ; Increment the offset and try again.
-                jsr xt_one_plus
+                jsr w_one_plus
                 bra _search_loop
 
 _letters_match:
@@ -542,22 +542,22 @@ xt_sliteral:
                 ;   < _str u >
 
                 jsr cmpl_jump_later
-                jsr xt_to_r
+                jsr w_to_r
                 ; ( addr u  R: jmp-target )
-                jsr xt_here
-                jsr xt_swap
+                jsr w_here
+                jsr w_swap
                 ; ( addr addr' u )
-                jsr xt_dup
-                jsr xt_allot            ; reserve u bytes for string
-                jsr xt_here
+                jsr w_dup
+                jsr w_allot            ; reserve u bytes for string
+                jsr w_here
                 ; ( addr addr' u addr'+u )
-                jsr xt_r_from
-                jsr xt_store            ; point jmp past string
-                jsr xt_two_dup
-                jsr xt_two_to_r
+                jsr w_r_from
+                jsr w_store            ; point jmp past string
+                jsr w_two_dup
+                jsr w_two_to_r
                 ; ( addr addr' u  R: addr' u )
-                jsr xt_move             ; copy u bytes from addr -> addr'
-                jsr xt_two_r_from
+                jsr w_move             ; copy u bytes from addr -> addr'
+                jsr w_two_r_from
                 ; Stack is now ( addr' u ) with the new string location
 
 cmpl_sliteral:
