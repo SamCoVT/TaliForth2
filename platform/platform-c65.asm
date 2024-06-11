@@ -1,4 +1,4 @@
-; Default configuration for [py65mon](https://github.com/mnaberez/py65)
+; Default configuration for c65 (see c65/README.md)
 
         ; 65C02 processor (Tali will not compile on older 6502)
         .cpu "65c02"
@@ -35,38 +35,27 @@ TALI_OPTION_TERSE := 0
 
 .include "simulator.asm"
 
-; py65mon doesn't have kbhit so we roll our own, using io_kbhit as a one character buffer
-io_bufc = io_kbhit
-
 kernel_getc:
         ; """Get a single character from the keyboard.
-        ; py65mon's io_getc is non-blocking, returning 0 when no key is pressed.
-        ; We'll convert to blocking by waiting for a non-zero result.
-        ; We also check the single character io_bufc buffer used by kbhit
+        ; The c65 io_getc is non-blocking, returning 0 if no key is pressed.
+        ; We convert to a blocking version by waiting for a
+        ; non-zero result.
         ;
         ; Note this routine must preserve X and Y but that's easy here.
         ; If your code is more complex, wrap it with PHX, PHY ... PLY, PHX
         ; """
-                lda io_bufc             ; first check the buffer
-                stz io_bufc
-                bne _done
-_loop:                                  ; otherwise wait for a character
+_loop:
                 lda io_getc
                 beq _loop
-_done:
                 rts
 
 kernel_kbhit:
-        ; """Check if a character is available.  py65mon doesn't have a native kbhit
-        ; so we buffer the result of the non-blocking io_getc instead
+        ; """Check if a character is available to be read.
+        ; This should return non-zero when a key is available and 0 otherwise.
+        ; It doesn't consume or return the character itself.
         ; This routine is only required if you use the KEY? word.
         ; """
-                lda io_bufc             ; do we already have a character?
-                bne _done
-
-                lda io_getc             ; otherwise check and buffer the result
-                sta io_bufc
-_done:
+                lda io_kbhit
                 rts
 
 
@@ -75,8 +64,7 @@ _done:
 ; displayed after a successful boot
 
 s_kernel_id:
-        .text "Tali Forth 2 default kernel for py65mon (04. Dec 2022)", AscLF, 0
-
+        .text "Tali Forth 2 default kernel for c65 (01. Jun 2024)", AscLF, 0
 
 ; Define the interrupt vectors.  For the simulator we redirect them all
 ; to the kernel_init routine and restart the system hard.  If you want to

@@ -98,8 +98,8 @@ int io_addr = 0xf000;
 long mark = 0;    // used for timer
 
 #define io_putc   (io_addr + 1)
+#define io_kbhit  (io_addr + 3)
 #define io_getc   (io_addr + 4)
-#define io_peekc  (io_addr + 5)
 #define io_timer  (io_addr + 6)
 #define io_blkio  (io_addr + 16)
 
@@ -133,13 +133,11 @@ void io_magic_read(uint16_t addr) {
   int ch;
   long delta;
 
-  if (addr == io_getc) {
-    while (!_kbhit() && !break_flag) {}
-    ch = break_flag ? 0x03: _getc();
+  if (addr == io_kbhit) {
+    memory[addr] = _kbhit() ? 0xff : 0;
+  } else if (addr == io_getc) {
+    ch = break_flag ? 0x03 : (_kbhit() ? _getc() : 0);
     if (ch == EOF) break_flag |= MONITOR_EXIT;
-    memory[addr] = (uint8_t)ch;
-  } else if (addr == io_peekc) {
-    ch = _kbhit() ? (_getc() | 0x80) : 0;
     memory[addr] = (uint8_t)ch;
   } else if (addr == io_timer /* start timer */) {
     mark = ticks;

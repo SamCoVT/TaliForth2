@@ -164,6 +164,11 @@ T{ ' four-b int>name wordsize ->  3 }T
 T{ latestnt wordsize          ->  3 }T
 T{ latestxt int>name wordsize ->  3 }T
 
+\ Test inline vs jsr+payload literals
+: five 6 [ 0 nc-limit ! ] 7 * ; 16 nc-limit !
+T{ ' five int>name wordsize -> 16 }t
+T{ five -> 42 }T
+
 \ Nothing is too trivial for testing!
 T{ 0 -> 0 }T
 T{ 1 -> 1 }T

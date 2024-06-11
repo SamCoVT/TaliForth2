@@ -715,4 +715,13 @@ print_u:
                 jsr w_number_sign_greater      ; #>
                 jmp xt_type                     ; JSR/RTS because never compiled
 
+.weak
+kernel_kbhit .proc
+                lda #1
+                rts
+.endproc
+.endweak
+
+code_end:
+
 ; END

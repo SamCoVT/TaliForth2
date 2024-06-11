@@ -2,33 +2,77 @@
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; Modified by Patrick Surry
 ; First version: 01. Apr 2016 (Liara Forth)
-; This version: 21. Apr 2024
+; This version: 1. Jun 2024
 
 ; This file is included by taliforth.asm. These are the general
 ; definitions; platform-specific definitions such as the
 ; memory map are kept in the platform folder.
 
-; TaliForth reserves the first part of zero page ($0 - zpage_end) which is
-; configured by zpage_end in platform/platform-*.asm and normally 128 bytes.
-; The rest of zero page is free for kernel/external use (zpage_end+1 - $FF)
-; TaliForth usage is as follows:
-;   zero page variables: 30 words = 60 bytes ($0000-$0038)
-;   Forth Data Stack: 128 - 60 - 8 = 60 bytes or 30 words
-;   Data Stack floodplain: 8 bytes after stack (to avoid catastrophic underflow)
+; HARD PHYSICAL ADDRESSES
+
+; Some of these are somewhat silly for the 65c02, where for example
+; the location of the Zero Page is fixed by hardware. However, we keep
+; these for easier comparisons with Liara Forth's structure and to
+; help people new to these things.
+
+ram_start = $0000          ; start of installed RAM, must include zpage
+zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
+stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
+
+; weak constants can be overridden by the including platform configuration
+.weak
+zpage_end = $7F            ; end of Zero Page used ($0000-$007f)
+ram_end   = $8000-1        ; end of installed RAM
+hist_buff = ram_end-$03ff  ; begin of history buffers
+.endweak
+
+; SOFT PHYSICAL ADDRESSES
+
+; Tali currently doesn't have separate user variables for multitasking. To
+; prepare for this, though, we've already named the location of the user's
+; Zero-Page System Variables user0. Note cp0 starts one byte further down so
+; that it currently has the address $300 and not $2FF. This avoids crossing
+; the page boundry when accessing the RAM System Variables table, which would
+; cost an extra cycle.
+
+rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
+bsize     = $ff              ; size of input/output buffers
+
+.weak
+user0     = zpage            ; TaliForth2 system variables
+buffer0   = stack0+$100      ; input buffer ($0200-$02ff)
+cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
+                             ; The RAM System Variables and BLOCK buffer are
+                             ; placed right at the beginning of the dictionary.
+.if TALI_OPTION_HISTORY
+cp_end    = hist_buff        ; Last RAM byte available for code
+.else
+cp_end    = ram_end
+.endif
+padoffset = $ff              ; offset from CP to PAD (holds number strings)
+
+dsp0      = zpage_end-7    ; initial Data Stack Pointer
+.endweak
+
 
 ; ZERO PAGE ADDRESSES/VARIABLES
 
-; These are kept at the top of Zero Page, with the most important variables at
-; the top because the Data Stack grows towards this area from dsp0: If there is
-; an overflow, the lower, less important variables will be clobbered first,
-; giving the system a chance to recover. In other words, they are part of the
-; overflow floodplain.
+; TaliForth reserves the first part of zero page ($0 - zpage_end) which is
+; configured by zpage_end and normally 128 bytes.
+; The rest of zero page is free for kernel/external use (zpage_end+1 to $FF)
+
+; TaliForth zeropage usage is as follows:
+;   zero page variables: 30 words = 60 bytes ($0000-$0038) - see cold_user_table
+;   Forth Data Stack: 128 - 60 - 8 = 60 bytes or 30 words
+;   Data Stack floodplain: 8 bytes after stack (to avoid catastrophic underflow)
 
 ; This table defines all of the zero page variables along with their initial
-; values except the uninitialized temporaries at the end.  This table
-; is relocated to zero page by COLD.
-
-dsp0      = zpage_end-7    ; initial Data Stack Pointer
+; values except the uninitialized temporaries at the end. The most important
+; variables are defined first since the Data Stack grows towards this area
+; from dsp0: If there is an overflow, the later, less important variables
+; will be clobbered first, giving the system a chance to recover.
+; In other words, they are part of the overflow floodplain.
+; This table is relocated to zero page by COLD.
 
 cold_zp_table:
         .logical user0              ; make labels refer to relocated address
@@ -51,7 +95,7 @@ toin:       .word 0                 ; pointer to CIB (>IN in Forth)
 
 output:     .word kernel_putc       ; vector for EMIT
 input:      .word kernel_getc       ; vector for KEY
-havekey:    .word 0                 ; vector for KEY?  (unused see https://github.com/SamCoVT/TaliForth2/issues/62)
+havekey:    .word kernel_kbhit      ; vector for KEY?
 
 base:       .word 10                ; number radix, default decimal
 state:      .word 0                 ; STATE: -1 compile, 0 interpret
@@ -85,12 +129,12 @@ tmpdsp:     .byte ?         ; temporary DSP (X) storage (single byte)
 
 ; Loop control data
 
-loopctrl:   .byte ?         ; Offset and flags for DO/LOOP/+LOOP control.
+loopctrl:   .byte ?         ; Offset from lcbstack0 to current loop control block for DO/LOOP/+LOOP
 loopidx0    .byte ?         ; cached LSB of current loop index for LOOP (not +LOOP)
 
-lcbstack = $100
-loopindex = lcbstack+0      ; loop control block index for adjusted loopindex
-loopfufa  = lcbstack+2      ; loop control block offset for limit fudge factor
+lcbstack0 = stack0
+loopindex = lcbstack0+0     ; loop control block index for adjusted loopindex
+loopfufa  = lcbstack0+2     ; loop control block offset for limit fudge factor
 
     ; Each loop needs two control words (loopindex and loopfufa)
     ; which are stored in a 4-byte (dword) loop control block (LCB).

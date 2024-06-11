@@ -142,7 +142,7 @@ z_dnegate:      rts
 
 
 ; ## D_DOT ( d -- ) "Print double"
-; ## "d."  tested  ANS double
+; ## "d."  auto  ANS double
         ; """http://forth-standard.org/standard/double/Dd"""
         ;
         ; From the Forth code:
@@ -166,7 +166,7 @@ z_d_dot:        rts
 
 
 ; ## D_DOT_R ( d u -- ) "Print double right-justified u wide"
-; ## "d.r"  tested  ANS double
+; ## "d.r"  auto  ANS double
         ; """http://forth-standard.org/standard/double/DDotR"""
         ; Based on the Forth code
         ;  : D.R >R TUCK DABS <# #S ROT SIGN #> R> OVER - SPACES TYPE ;
@@ -191,6 +191,60 @@ xt_d_dot_r:
 
 z_d_dot_r:      rts
 
+
+; ## M_STAR_SLASH ( d1 n1 n2 -- d2 ) "Multiply d1 by n1 and divide by n2.  Note n2 may be negative."
+; ## "m*/"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/MTimesDiv"""
+        ; From All About FORTH, MVP-Forth, public domain,
+        ; from this forth code which is modified slightly for Tali2:
+        ; DDUP XOR SWAP ABS >R SWAP ABS >R OVER XOR ROT ROT DABS
+        ; SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
+        ; SWAP DROP SWAP ROT 0< if dnegate then
+xt_m_star_slash:
+                jsr underflow_4
+
+                ; DDUP XOR SWAP ABS >R SWAP ABS >R OVER XOR ROT ROT DABS
+                jsr xt_two_dup
+                jsr xt_xor
+                jsr xt_swap
+                jsr xt_abs
+                jsr xt_to_r
+                jsr xt_swap
+                jsr xt_abs
+                jsr xt_to_r
+                jsr xt_over
+                jsr xt_xor
+                jsr xt_not_rote         ; rot rot
+                jsr xt_dabs
+
+                ; SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
+                jsr xt_swap
+                jsr xt_r_fetch
+                jsr xt_um_star
+                jsr xt_rot
+                jsr xt_r_from
+                jsr xt_um_star
+                jsr xt_rot
+                jsr xt_zero
+                jsr xt_d_plus
+                jsr xt_r_fetch
+                jsr xt_um_slash_mod
+                jsr xt_not_rote         ; rot rot
+                jsr xt_r_from
+                jsr xt_um_slash_mod
+
+                ; SWAP DROP SWAP ROT 0< if dnegate then ;
+                jsr xt_swap
+                jsr xt_drop
+                jsr xt_swap
+                jsr xt_rot
+                inx                     ; drop TOS
+                inx
+                lda $fe,x               ; but keep MSB
+                bpl z_m_star_slash      ; ... 0< if ...
+                jsr xt_dnegate
+
+z_m_star_slash: rts
 
 
 ; ## TWO_CONSTANT (C: d "name" -- ) ( -- d) "Create a constant for a double word"

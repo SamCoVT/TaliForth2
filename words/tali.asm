@@ -341,6 +341,19 @@ _done:
 z_find_name:    rts
 
 
+; ## HAVEKEY ( -- addr ) "Return address of key? vector"
+; ## "havekey" tested Tali Forth
+
+xt_havekey:
+                dex
+                dex
+                lda #<havekey
+                sta 0,x
+                lda #>havekey
+                sta 1,x
+
+z_havekey:      rts
+
 
 ; ## HEXSTORE ( addr1 u1 addr2 -- u2 ) "Store a list of numbers"
 ; ## "hexstore"  auto  Tali

@@ -34,8 +34,8 @@ This supports a number of IO functions:
     Addr    Name    Description
 
     $f001   putc    Write here to send the byte to stdout
-    $f004   getc    Read here to block fetching a byte from stdin
-    $f005   peekc   Non-blocking read, bit7=1 if ready with 7bit character
+    $f003   kbit    Return non-zero if key ready to fetch with getc
+    $f004   getc    Non-blocking read from stdin, returns 0 if no byte ready
 
     $f006   start   Reading here starts the cycle counter
     $f007   stop    Reading here stops the cycle counter

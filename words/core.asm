@@ -2917,6 +2917,27 @@ key_a:
                 jmp (input)             ; JSR/RTS
 
 
+; ## KEY? ( -- char ) "Return true if a character is available"
+; ## "key?"  tested  ANS core
+xt_keyq:
+        ; """https://forth-standard.org/standard/core/KEYq
+        ; Check if a key is available from the vectored havekey.
+        ; Use KEY to fetch it.
+        ; """
+                ldy #0
+                jsr keyq_a
+                beq +           ; A=0 => Y=0
+                dey             ; A<>0 => Y=#$ff
++
+                dex
+                dex
+                sty 0,x         ; store either $0000 or $ffff
+                sty 1,x
+
+z_keyq:         rts
+
+keyq_a:         jmp (havekey)
+
 
 ; ## LEAVE ( -- ) "Leave DO/LOOP construct"
 ; ## "leave"  auto  ANS core

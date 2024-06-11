@@ -114,6 +114,7 @@ dictionary_start:
 #def_nt dot_r,          UF, ".r"
 #def_nt d_dot,          UF, "d."
 #def_nt d_dot_r,        UF, "d.r"
+#def_nt m_star_slash,   UF, "m*/"
 #def_nt ud_dot,         UF, "ud."
 #def_nt ud_dot_r,       UF, "ud.r"
 #def_nt question,       , "?"
@@ -183,6 +184,7 @@ dictionary_start:
 #def_nt unused
 #def_nt depth
 #def_nt key
+#def_nt keyq,           , "key?"
 #def_nt allot,          UF
 #def_nt create
 #def_nt does,           CO+IM, "does>"
@@ -283,6 +285,7 @@ dictionary_start:
 #def_nt sign,           UF
 #def_nt output
 #def_nt input
+#def_nt havekey
 #def_nt cr
 #def_nt page
 #def_nt at_xy,          UF, "at-xy"

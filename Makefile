@@ -97,7 +97,7 @@ $(C65): $(C65_SOURCES)
 tests:	tests/results.txt
 
 # Run all of the tests.
-ctests: $(C65) taliforth-py65mon.bin $(TEST_SOURCES)
+ctests: $(C65) taliforth-c65.bin $(TEST_SOURCES)
 	cd tests && $(PYTHON) ./talitest_c65.py
 
 tests/results.txt:	taliforth-py65mon.bin $(TEST_SOURCES)
@@ -113,8 +113,8 @@ ptests:	taliforth-py65mon.bin $(TEST_SOURCES)
 sim: taliforth-py65mon.bin
 	py65mon -m 65c02 -r taliforth-py65mon.bin
 
-csim: $(C65) taliforth-py65mon.bin
-	$(C65) -r taliforth-py65mon.bin
+csim: $(C65) taliforth-c65.bin
+	$(C65) -r taliforth-c65.bin
 
 # Some convenience targets for the documentation.
 docs/manual.html: docs/*.adoc

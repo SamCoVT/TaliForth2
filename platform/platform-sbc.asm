@@ -2,119 +2,14 @@
         .cpu "65c02"
         ; No special text encoding (eg. ASCII)
         .enc "none"
-        * = $8000
-; I/O facilities are handled in the separate kernel files because of their
-; hardware dependencies. See docs/memorymap.txt for a discussion of Tali's
-; memory layout.
 
-
-; MEMORY MAP OF RAM
-
-; Drawing is not only very ugly, but also not to scale. See the manual for 
-; details on the memory map. Note that some of the values are hard-coded in
-; the testing routines, especially the size of the input history buffer, the
-; offset for PAD, and the total RAM size. If these are changed, the tests will
-; have to be changed as well
-
-
-;    $0000  +-------------------+  ram_start, zpage, user0
-;           |  User varliables  |
-;           +-------------------+  
-;           |                   |
-;           |                   |
-;           +~~~~~~~~~~~~~~~~~~~+  <-- dsp
-;           |                   |
-;           |  ^  Data Stack    |  
-;           |  |                |
-;    $0078  +-------------------+  dsp0, stack
-;           |                   |
-;           |   (Reserved for   |
-;           |      kernel)      |
-;           |                   |
-;    $0100  +-------------------+  
-;           |                   |
-;           |  ^  Return Stack  |  <-- rsp 
-;           |  |                |
-;    $0200  +-------------------+  rsp0, buffer, buffer0
-;           |  |                |
-;           |  v  Input Buffer  |
-;           |                   |
-;    $0300  +-------------------+  cp0
-;           |  |                |
-;           |  v  Dictionary    |
-;           |       (RAM)       |
-;           |                   |
-;   (...)   ~~~~~~~~~~~~~~~~~~~~~  <-- cp
-;           |                   |
-;           |                   |
-;           |                   |
-;           |                   |
-;           |                   |
-;           |                   |
-;    $7C00  +-------------------+  hist_buff, cp_end
-;           |   Input History   |
-;           |    for ACCEPT     |
-;           |  8x128B buffers   |
-;    $7fff  +-------------------+  ram_end
-
-
-; HARD PHYSICAL ADDRESSES
-
-; Some of these are somewhat silly for the 65c02, where for example
-; the location of the Zero Page is fixed by hardware. However, we keep
-; these for easier comparisons with Liara Forth's structure and to 
-; help people new to these things.
-
-ram_start = $0000          ; start of installed 32 KiB of RAM
-ram_end   = $7F00-1        ; end of installed RAM
-zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
-zpage_end = $7F            ; end of Zero Page used ($0000-$007f)	
-stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
-hist_buff = ram_end-$03ff  ; begin of history buffers
-acia_buff = hist_buff-$102 ; begin of ACIA buffer memory                
-
-
-; SOFT PHYSICAL ADDRESSES
-
-; Tali currently doesn't have separate user variables for multitasking. To
-; prepare for this, though, we've already named the location of the user
-; variables user0. 
-
-user0     = zpage          ; user and system variables
-rsp0      = $ff            ; initial Return Stack Pointer (65c02 stack)
-bsize     = $ff            ; size of input/output buffers
-buffer0   = stack0+$100    ; input buffer ($0200-$027f)
-cp0       = buffer0+bsize  ; Dictionary starts after last buffer
+ram_end = $7f00-1
+acia_buff = hist_buff-$102 ; begin of ACIA buffer memory
 cp_end    = acia_buff      ; Last RAM byte available for code
-padoffset = $ff            ; offset from CP to PAD (holds number strings)
 
+        * = $8000
 
 .include "../taliforth.asm" ; Top-level definitions, memory map
-
-; =====================================================================
-; FINALLY
-
-; Of the 32 KiB we use, 24 KiB are reserved for Tali (from $8000 to $DFFF)
-; and the last eight (from $E000 to $FFFF) are left for whatever the user
-; wants to use them for.
-
-; Default kernel file for Tali Forth 2 
-; Scot W. Stevenson <scot.stevenson@gmail.com>
-; First version: 19. Jan 2014
-; This version: 18. Feb 2018
-;
-; This section attempts to isolate the hardware-dependent parts of Tali
-; Forth 2 to make it easier for people to port it to their own machines.
-; Ideally, you shouldn't have to touch any other files. There are three
-; routines and one string that must be present for Tali to run:
-;
-;       kernel_init - Initialize the low-level hardware
-;       kernel_getc - Get single character in A from the keyboard (blocks)
-;       kernel_putc - Prints the character in A to the screen
-;       s_kernel_id - The zero-terminated string printed at boot
-;
-; This default version Tali ships with is written for the py65mon machine 
-; monitor (see docs/MANUAL.md for details). 
 
 ; Put the I/O routines in the last 1K of ROM
         * = $FC00
@@ -147,7 +42,7 @@ _done:
 
 ; My SBC runs Tali Forth 2 as the OS, to there is nowhere to go back to.
 ; Just restart TALI.
-kernel_bye:   
+kernel_bye:
         jmp kernel_init
 
 
@@ -164,7 +59,7 @@ ACIA_WR_PTR = acia_buff+1
 
     ;; Init ACIA to 19200 8,N,1
     ;; Uses: A (not restored)
-Init_ACIA:  
+Init_ACIA:
         lda #$1F
         sta ACIA_CTRL
         lda #$09    ; RX interrupt on.  RTS low (asserted).
@@ -255,18 +150,17 @@ no_char_available:
         clc                         ; Indicate no char available.
         rts
 
-    
 kernel_getc:
-        ; """Get a single character from the keyboard (waits for key). 
+        ; """Get a single character from the keyboard (waits for key).
         ; """
         ;; Get_Char_Wait - same as Get_Char only blocking.
         ;; Uses: A (return value)
-Get_Char_Wait:  
+Get_Char_Wait:
         jsr Get_Char
         bcc Get_Char_Wait
         rts
 
- 
+
 
 kernel_putc:
         ; """Print a single character to the console. """
@@ -275,9 +169,9 @@ kernel_putc:
 Send_Char:
         sei
         pha                         ;Save A (required for ehbasic)
-wait_tx:                        ; Wait for the TX buffer to be free.    
+wait_tx:                        ; Wait for the TX buffer to be free.
         lda ACIA_STATUS
-        
+
         ; A byte may come in while we are trying to transmit.
         ; Because we have disabled interrupts, and we've just read from
         ; the status register (which clears an interrupt),
@@ -299,7 +193,7 @@ wait_tx:                        ; Wait for the TX buffer to be free.
         ; There are only 15 chars left - de-assert RTS
         lda #$01
         sta ACIA_COMMAND
-tx_keep_rts_active:    
+tx_keep_rts_active:
         plx             ; Restore the ACIA_STATUS value to A.
 
 check_tx:
@@ -308,20 +202,20 @@ check_tx:
         and #$10
         beq wait_tx                 ; TRDE is not set - byte still being sent.
         ; Send the byte.
-        pla 
+        pla
         sta ACIA_DATA
         cli
-        rts                        
-        
-        
+        rts
+
+
 ; Leave the following string as the last entry in the kernel routine so it
 ; is easier to see where the kernel ends in hex dumps. This string is
 ; displayed after a successful boot
-s_kernel_id: 
+s_kernel_id:
         .text "Tali Forth 2 default kernel for SamCo's SBC (2018-09-26)", AscLF, 0
 
 
-; Add the interrupt vectors 
+; Add the interrupt vectors
         * = $fffa
 
 .word v_nmi
@@ -329,4 +223,4 @@ s_kernel_id:
 .word v_irq
 
 ; END
-	
+

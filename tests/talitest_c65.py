@@ -22,7 +22,7 @@ import subprocess
 TESTER = 'tester.fs'
 RESULTS = 'results.txt'
 C65_LOCATION = '../c65/c65'
-TALIFORTH_LOCATION = '../taliforth-py65mon.bin'
+TALIFORTH_LOCATION = '../taliforth-c65.bin'
 TALI_ERRORS = ['Undefined word',
                'Stack underflow',
                'ALLOT using all available memory',

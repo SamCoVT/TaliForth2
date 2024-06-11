@@ -19,7 +19,7 @@ MODE            = $2B           ;  $00=XAM, $7F=STOR, $AE=BLOCK XAM
 
 IN              = $0200         ;  Input buffer to $027F
 PUTC            = $F001         ;  Write A to screen
-PEEKC           = $F005         ;  Return 7bit chr, B7=1 if key ready
+GETC            = $F004         ;  Return char if ready, else 0
 
 * = $FF00
 
@@ -40,8 +40,9 @@ GETLINE:        LDA #$8D        ; CR.
                 LDY #$01        ; Initialize text index.
 BACKSPACE:      DEY             ; Back up text index.
                 BMI GETLINE     ; Beyond start of line, reinitialize.
-NEXTCHAR:       LDA PEEKC       ; Wait key ready
-                BPL NEXTCHAR
+NEXTCHAR:       LDA GETC        ; Wait key ready
+                BEQ NEXTCHAR
+                ORA #$80        ; Wozmon wants bit 7 set
                 STA IN,Y        ; Add to text buffer.
                 JSR ECHO        ; Display character.
                 CMP #$8D        ; CR?

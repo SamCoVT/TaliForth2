@@ -1,6 +1,6 @@
-c65: reading ../taliforth-py65mon.bin to $8000:$ffff
-c65: PC=f016 A=00 X=00 Y=00 S=fd FLAGS=<N0 V0 B0 D0 I1 Z0 C0> ticks=0
-Tali Forth 2 default kernel for py65mon (04. Dec 2022)
+c65: reading ../taliforth-c65.bin to $8000:$ffff
+c65: PC=f015 A=00 X=00 Y=00 S=fd FLAGS=<N0 V0 B0 D0 I1 Z0 C0> ticks=0
+Tali Forth 2 default kernel for c65 (01. Jun 2024)
 
 
 Tali Forth 2 for the 65c02
@@ -1818,21 +1818,21 @@ T{ 2v3 2@ -> 5 6 }T  ok
 0 invert 1 rshift  constant max-int  ok
 0 invert 1 rshift invert  constant min-int  ok
   ok
-T{  0.  5. d+ ->  5. }T                         \ small integers   ok
-T{ -5.  0. d+ -> -5. }T   ok
-T{  1.  2. d+ ->  3. }T   ok
-T{  1. -2. d+ -> -1. }T   ok
-T{ -1.  2. d+ ->  1. }T   ok
-T{ -1. -2. d+ -> -3. }T   ok
+T{  0.  5. d+ ->  5. }T                         \ small integers  ok
+T{ -5.  0. d+ -> -5. }T  ok
+T{  1.  2. d+ ->  3. }T  ok
+T{  1. -2. d+ -> -1. }T  ok
+T{ -1.  2. d+ ->  1. }T  ok
+T{ -1. -2. d+ -> -3. }T  ok
 T{ -1.  1. d+ ->  0. }T  ok
-T{  0  0  0  5 d+ ->  0  5 }T                  \ mid range integers   ok
-T{ -1  5  0  0 d+ -> -1  5 }T   ok
-T{  0  0  0 -5 d+ ->  0 -5 }T   ok
-T{  0 -5 -1  0 d+ -> -1 -5 }T   ok
-T{  0  1  0  2 d+ ->  0  3 }T   ok
-T{ -1  1  0 -2 d+ -> -1 -1 }T   ok
-T{  0 -1  0  2 d+ ->  0  1 }T   ok
-T{  0 -1 -1 -2 d+ -> -1 -3 }T   ok
+T{  0  0  0  5 d+ ->  0  5 }T                  \ mid range integers  ok
+T{ -1  5  0  0 d+ -> -1  5 }T  ok
+T{  0  0  0 -5 d+ ->  0 -5 }T  ok
+T{  0 -5 -1  0 d+ -> -1 -5 }T  ok
+T{  0  1  0  2 d+ ->  0  3 }T  ok
+T{ -1  1  0 -2 d+ -> -1 -1 }T  ok
+T{  0 -1  0  2 d+ ->  0  1 }T  ok
+T{  0 -1 -1 -2 d+ -> -1 -3 }T  ok
 T{ -1 -1  0  1 d+ -> -1  0 }T  ok
   ok
 T{ min-int 0 2dup d+ -> 0 1 }T  ok
@@ -1848,12 +1848,12 @@ T{ 2c2 -> -1 -2 }T  ok
 T{ 4 5 2constant 2c3 immediate 2c3 -> 4 5 }T  ok
 T{ : cd6 2c3 2literal ; cd6 -> 4 5 }T  ok
   ok
-max-int 2/ constant hi-int \ 001...1   ok
+max-int 2/ constant hi-int \ 001...1  ok
 min-int 2/ constant lo-int \ 110...1  ok
   ok
-1s max-int  2constant max-2int \ 01...1   ok
-0 min-int   2constant min-2int \ 10...0   ok
-max-2int 2/ 2constant hi-2int  \ 001...1   ok
+1s max-int  2constant max-2int \ 01...1  ok
+0 min-int   2constant min-2int \ 10...0  ok
+max-2int 2/ 2constant hi-2int  \ 001...1  ok
 min-2int 2/ 2constant lo-2int  \ 110...0  ok
   ok
 T{ : cd1 [ max-2int ] 2literal ; -> }T redefined cd1  ok
@@ -1862,65 +1862,74 @@ T{ 2variable 2v4 immediate 5 6 2v4 2! -> }T  ok
 T{ : cd7 2v4 [ 2@ ] 2literal ; cd7 -> 5 6 }T  ok
 T{ : cd8 [ 6 7 ] 2v4 [ 2! ] ; 2v4 2@ -> 6 7 }T  ok
   ok
-T{  hi-2int       1. d+ -> 0 hi-int 1+ }T     \ large double integers   ok
+T{  hi-2int       1. d+ -> 0 hi-int 1+ }T     \ large double integers  ok
 T{  hi-2int     2dup d+ -> 1s 1- max-int }T  ok
 T{ max-2int min-2int d+ -> -1. }T  ok
 T{ max-2int  lo-2int d+ -> hi-2int }T  ok
 T{  lo-2int     2dup d+ -> min-2int }T  ok
 T{  hi-2int min-2int d+ 1. d+ -> lo-2int }T  ok
   ok
-T{  0.  5. d- -> -5. }T              \ small integers   ok
-T{  5.  0. d- ->  5. }T   ok
-T{  0. -5. d- ->  5. }T   ok
-T{  1.  2. d- -> -1. }T   ok
-T{  1. -2. d- ->  3. }T   ok
-T{ -1.  2. d- -> -3. }T   ok
-T{ -1. -2. d- ->  1. }T   ok
-T{ -1. -1. d- ->  0. }T   ok
-T{  0  0  0  5 d- ->  0 -5 }T        \ mid-range integers   ok
-T{ -1  5  0  0 d- -> -1  5 }T   ok
-T{  0  0 -1 -5 d- ->  1  4 }T   ok
-T{  0 -5  0  0 d- ->  0 -5 }T   ok
-T{ -1  1  0  2 d- -> -1 -1 }T   ok
-T{  0  1 -1 -2 d- ->  1  2 }T   ok
-T{  0 -1  0  2 d- ->  0 -3 }T   ok
-T{  0 -1  0 -2 d- ->  0  1 }T   ok
+T{  0.  5. d- -> -5. }T              \ small integers  ok
+T{  5.  0. d- ->  5. }T  ok
+T{  0. -5. d- ->  5. }T  ok
+T{  1.  2. d- -> -1. }T  ok
+T{  1. -2. d- ->  3. }T  ok
+T{ -1.  2. d- -> -3. }T  ok
+T{ -1. -2. d- ->  1. }T  ok
+T{ -1. -1. d- ->  0. }T  ok
+T{  0  0  0  5 d- ->  0 -5 }T        \ mid-range integers  ok
+T{ -1  5  0  0 d- -> -1  5 }T  ok
+T{  0  0 -1 -5 d- ->  1  4 }T  ok
+T{  0 -5  0  0 d- ->  0 -5 }T  ok
+T{ -1  1  0  2 d- -> -1 -1 }T  ok
+T{  0  1 -1 -2 d- ->  1  2 }T  ok
+T{  0 -1  0  2 d- ->  0 -3 }T  ok
+T{  0 -1  0 -2 d- ->  0  1 }T  ok
 T{  0  0  0  1 d- ->  0 -1 }T  ok
-T{ min-int 0 2dup d- -> 0. }T   ok
-T{ min-int s>d max-int 0 d- -> 1 1s }T   ok
+T{ min-int 0 2dup d- -> 0. }T  ok
+T{ min-int s>d max-int 0 d- -> 1 1s }T  ok
   ok
-T{ max-2int max-2int d- -> 0. }T    \ large integers   ok
+T{ max-2int max-2int d- -> 0. }T    \ large integers  ok
 T{ min-2int min-2int d- -> 0. }T  ok
-T{ max-2int  hi-2int d- -> lo-2int dnegate }T   ok
+T{ max-2int  hi-2int d- -> lo-2int dnegate }T  ok
 T{  hi-2int  lo-2int d- -> max-2int }T  ok
 T{  lo-2int  hi-2int d- -> min-2int 1. d+ }T  ok
 T{ min-2int min-2int d- -> 0. }T  ok
 T{ min-2int  lo-2int d- -> lo-2int }T  ok
   ok
-( TODO m*/ not implemented )   ok
   ok
-\ max-2int 71 73 m*/ 2constant dbl1   ok
-\ min-2int 73 79 m*/ 2constant dbl2  ok
-\ : d>ascii ( d -- caddr u )   ok
-   \ dup >r <# dabs #s r> sign #>    ( -- caddr1 u )   ok
-   \ here swap 2dup 2>r chars dup allot move 2r>   ok
-\ ;  ok
+max-2int 71 73 m*/ 2constant dbl1  ok
+min-2int 73 79 m*/ 2constant dbl2  ok
+: d>ascii ( d -- caddr u )  compiled
+   dup >r <# dabs #s r> sign #>    ( -- caddr1 u )  compiled
+   here swap 2dup 2>r chars dup allot move 2r>  compiled
+;  ok
   ok
-\ dbl1 d>ascii 2constant "dbl1"   ok
-\ dbl2 d>ascii 2constant "dbl2"  ok
+dbl1 d>ascii 2constant "dbl1"  ok
+dbl2 d>ascii 2constant "dbl2"  ok
   ok
-\ : doubleoutput   ok
-   \ cr ." you should see lines duplicated:" cr   ok
-   \ 5 spaces "dbl1" type cr   ok
-   \ 5 spaces dbl1 d. cr   ok
-   \ 8 spaces "dbl1" dup >r type cr   ok
-   \ 5 spaces dbl1 r> 3 + d.r cr   ok
-   \ 5 spaces "dbl2" type cr   ok
-   \ 5 spaces dbl2 d. cr   ok
-   \ 10 spaces "dbl2" dup >r type cr   ok
-   \ 5 spaces dbl2 r> 5 + d.r cr   ok
-\ ;  ok
-  ok
+: doubleoutput  compiled
+   cr ." you should see lines duplicated:" cr  compiled
+   5 spaces "dbl1" type cr  compiled
+   5 spaces dbl1 d. cr  compiled
+   8 spaces "dbl1" dup >r type cr  compiled
+   5 spaces dbl1 r> 3 + d.r cr  compiled
+   5 spaces "dbl2" type cr  compiled
+   5 spaces dbl2 d. cr  compiled
+   10 spaces "dbl2" dup >r type cr  compiled
+   5 spaces dbl2 r> 5 + d.r cr  compiled
+;  ok
+doubleoutput 
+you should see lines duplicated:
+     -2088648478
+     -2088648478 
+        -2088648478
+        -2088648478
+     1984383624
+     1984383624 
+          1984383624
+          1984383624
+ ok
 \ T{ doubleoutput -> }T  ok
   ok
 ( TODO D0< not implemented yet )  ok
@@ -1930,14 +1939,14 @@ T{ min-2int  lo-2int d- -> lo-2int }T  ok
 ( TODO D< not implemented yet )  ok
 ( TODO D= not implemented yet )  ok
   ok
-T{    1234  0 d>s ->  1234   }T   ok
-T{   -1234 -1 d>s -> -1234   }T   ok
-T{ max-int  0 d>s -> max-int }T   ok
+T{    1234  0 d>s ->  1234   }T  ok
+T{   -1234 -1 d>s -> -1234   }T  ok
+T{ max-int  0 d>s -> max-int }T  ok
 T{ min-int -1 d>s -> min-int }T  ok
   ok
-T{       1. dabs -> 1.       }T   ok
-T{      -1. dabs -> 1.       }T   ok
-T{ max-2int dabs -> max-2int }T   ok
+T{       1. dabs -> 1.       }T  ok
+T{      -1. dabs -> 1.       }T  ok
+T{ max-2int dabs -> max-2int }T  ok
 T{ min-2int 1. d+ dabs -> max-2int }T  ok
   ok
 ( TODO DMAX not implemented yet )  ok
@@ -1949,7 +1958,10 @@ T{ -1. dnegate -> 1. }T  ok
 T{ max-2int dnegate -> min-2int swap 1+ swap }T  ok
 T{ min-2int swap 1+ swap dnegate -> max-2int }T  ok
   ok
-( TODO M*/ not implemented yet )  ok
+T{  5.  7  11 m*/ -> 3. }T  ok
+T{ -5. -7  11 m*/ -> 3. }T  ok
+T{ -5.  7 -11 m*/ -> 3. }T  ok
+  ok
 ( TODO M+ not implemented yet )  ok
 ( TODO 2ROT not implemented yet )  ok
 ( TODO 2VALUE not implemented yet )  ok
@@ -2720,6 +2732,11 @@ T{ ' four-b int>name wordsize ->  3 }T  ok
 T{ latestnt wordsize          ->  3 }T  ok
 T{ latestxt int>name wordsize ->  3 }T  ok
   ok
+\ Test inline vs jsr+payload literals  ok
+: five 6 [ 0 nc-limit ! ] 7 * ; 16 nc-limit !  ok
+T{ ' five int>name wordsize -> 16 }t  ok
+T{ five -> 42 }T  ok
+  ok
 \ Nothing is too trivial for testing!  ok
 T{ 0 -> 0 }T  ok
 T{ 1 -> 1 }T  ok
@@ -3336,12 +3353,12 @@ here 5       ' blank         cycle_test            CYCLES:    327 ok
 5            ' chars         cycle_test drop       CYCLES:     28 ok
 pad here 5   ' cmove         cycle_test            CYCLES:    188 ok
 pad here 5   ' cmove>        cycle_test            CYCLES:    183 ok
-             ' :             cycle_test wrd ;      CYCLES:  15291 ok
+             ' :             cycle_test wrd ;      CYCLES:  15436 ok
              ' :noname       cycle_test ; drop     CYCLES:     50 ok
 5            ' ,             cycle_test            CYCLES:    101 ok
-' aword      ' compile,      cycle_test            CYCLES:   1051 ok
+' aword      ' compile,      cycle_test            CYCLES:   1163 ok
 : bword ;    ' compile-only  cycle_test            CYCLES:     72 ok
-5            ' constant      cycle_test mycnst     CYCLES:  15794 ok
+5            ' constant      cycle_test mycnst     CYCLES:  15924 ok
 here         ' count         cycle_test 2drop      CYCLES:     59 ok
 \ skipping     cr  ok
 \ skipping     create  ok
@@ -3378,7 +3395,7 @@ nc-limit !  ok
 : dodowordbigi 10 0 do 1024 0 do i drop loop loop ;  ok
              ' dodowordbigi  cycle_test            CYCLES: 647442 ok
 : doword+loop 100 0 do 5 +loop ;  ok
-             ' doword+loop   cycle_test            CYCLES:   2278 ok
+             ' doword+loop   cycle_test            CYCLES:   2259 ok
 \ skipping     does  ok
 \ skipping     .  ok
 \ skipping     ."  ok
@@ -3390,7 +3407,7 @@ nc-limit !  ok
 5 5          ' =             cycle_test drop       CYCLES:     66 ok
 here 5       ' erase         cycle_test            CYCLES:    321 ok
 here 5 5     ' fill          cycle_test            CYCLES:    309 ok
-s" 5"        ' evaluate      cycle_test drop       CYCLES:  17043 ok
+s" 5"        ' evaluate      cycle_test drop       CYCLES:  17170 ok
 5 ' drop     ' execute       cycle_test            CYCLES:     84 ok
 \ skipping     exit  ok
              ' false         cycle_test drop       CYCLES:     24 ok
@@ -3410,7 +3427,7 @@ s" aword"    ' find-name     cycle_test drop       CYCLES:   1020 ok
              ' ifloop        cycle_test            CYCLES:  18134 ok
 : cword ;    ' immediate     cycle_test            CYCLES:     72 ok
              ' input         cycle_test drop       CYCLES:     28 ok
-' dup        ' int>name      cycle_test drop       CYCLES:   2439 ok
+' dup        ' int>name      cycle_test drop       CYCLES:   2512 ok
 5            ' invert        cycle_test drop       CYCLES:     48 ok
 \ skipping     j  ok
              ' key           cycle_test drop       CYCLES:     48 ok
@@ -3425,7 +3442,7 @@ s" aword"    ' find-name     cycle_test drop       CYCLES:   1020 ok
 \ skipping     +loop  ok
 5 5          ' lshift        cycle_test drop       CYCLES:    126 ok
 5 5          ' m*            cycle_test 2drop      CYCLES:    652 ok
-             ' marker        cycle_test marka      CYCLES:  17818 ok
+             ' marker        cycle_test marka      CYCLES:  17944 ok
              ' marka         cycle_test            CYCLES:    821 ok
 5 5          ' max           cycle_test drop       CYCLES:     69 ok
 5 5          ' min           cycle_test drop       CYCLES:     54 ok
@@ -3447,7 +3464,7 @@ decimal  ok
              ' nops          cycle_test            CYCLES:     29 ok
 5 5          ' <>            cycle_test drop       CYCLES:     70 ok
 5 5 5        ' -rot          cycle_test 2drop drop CYCLES:     76 ok
-s" 5"        ' number        cycle_test drop       CYCLES:   1649 ok
+s" 5"        ' number        cycle_test drop       CYCLES:   1650 ok
 \ skipping     #  ok
 \ skipping     #>  ok
 \ skipping     #s  ok
@@ -3465,7 +3482,7 @@ char "       ' parse         cycle_test " 2drop    CYCLES:    210 ok
 5 5          ' +             cycle_test drop       CYCLES:     58 ok
 5 here       ' +!            cycle_test            CYCLES:     86 ok
 \ skipping     postpone  ok
-myvar        ' ?             cycle_test          5 CYCLES:   3892 ok
+myvar        ' ?             cycle_test          5 CYCLES:   3746 ok
 5            ' ?dup          cycle_test 2drop      CYCLES:     58 ok
 \ skipping     r>  ok
 \ skipping     recurse  ok
@@ -3491,7 +3508,7 @@ s" abc" 1    ' /string       cycle_test 2drop      CYCLES:     84 ok
 5 5          ' swap          cycle_test 2drop      CYCLES:     60 ok
              ' '             cycle_test aword drop CYCLES:   1993 ok
 \ postponing   to ( see value )  ok
-' aword      ' >body         cycle_test drop       CYCLES:   1470 ok
+' aword      ' >body         cycle_test drop       CYCLES:   1508 ok
              ' >in           cycle_test drop       CYCLES:     28 ok
 0. s" 55"    ' >number       cycle_test 4drop      CYCLES:   2432 ok
 \ skipping     >r  ok
@@ -3509,10 +3526,10 @@ here         ' 2@            cycle_test 2drop      CYCLES:     88 ok
 5. here      ' 2!            cycle_test            CYCLES:     99 ok
 5 5 5 5      ' 2swap         cycle_test 4drop      CYCLES:     92 ok
 \ skipping     2>r  ok
-             ' 2variable     cycle_test eword      CYCLES:  16537 ok
+             ' 2variable     cycle_test eword      CYCLES:  16663 ok
              ' eword         cycle_test drop       CYCLES:     45 ok
 s" *"        ' type          cycle_test           *CYCLES:    123 ok
-5            ' u.            cycle_test          5 CYCLES:   3611 ok
+5            ' u.            cycle_test          5 CYCLES:   3465 ok
 5 5          ' u>            cycle_test drop       CYCLES:     60 ok
 5 5          ' u<            cycle_test drop       CYCLES:     60 ok
              ' strip-underflow   cycle_test drop   CYCLES:     40 ok
@@ -3520,10 +3537,10 @@ s" *"        ' type          cycle_test           *CYCLES:    123 ok
 5 5          ' um*           cycle_test 2drop      CYCLES:    476 ok
 \ skipping     unloop  ok
              ' unused        cycle_test drop       CYCLES:     36 ok
-5            ' value         cycle_test fword      CYCLES:  16788 ok
+5            ' value         cycle_test fword      CYCLES:  16914 ok
              ' fword         cycle_test drop       CYCLES:     58 ok
 5            ' to            cycle_test fword      CYCLES:   1173 ok
-             ' variable      cycle_test gword      CYCLES:  16542 ok
+             ' variable      cycle_test gword      CYCLES:  16669 ok
              ' gword         cycle_test drop       CYCLES:     45 ok
 char "       ' word          cycle_test "txt" drop CYCLES:    671 ok
 \ skipping     words  ok
@@ -3536,4 +3553,4 @@ char "       ' word          cycle_test "txt" drop CYCLES:    671 ok
 5            ' 0<            cycle_test drop       CYCLES:     47 ok
 5            ' 0<>           cycle_test drop       CYCLES:     48 ok
   ok
-bye c65: PC=f016 A=98 X=78 Y=01 S=f6 FLAGS=<N0 V0 B0 D0 I1 Z0 C0> ticks=144562014
+bye c65: PC=f015 A=98 X=78 Y=01 S=f6 FLAGS=<N0 V0 B0 D0 I1 Z0 C0> ticks=147318240
