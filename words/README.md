@@ -1,6 +1,6 @@
 This is where all of Tali's native forth words are defined.
 
-At the top level `taliform.asm` includes `all.asm` here which defines
+At the top level `taliforth.asm` includes `all.asm` here which defines
 the triad COLD, ABORT, QUIT and then includes the remaining word groups.
 Some words are conditionally included according to the platform
 configuration of TALIFORTH_OPTIONAL_WORDS (see platform/README.md).
