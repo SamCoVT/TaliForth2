@@ -2310,6 +2310,7 @@ w_erase:
                 stz 1,x
 
                 ; fall through to FILL
+                bra w_fill
 
 ; ## FILL ( addr u char -- ) "Fill a memory region with a character"
 ; ## "fill"  auto  ANS core
