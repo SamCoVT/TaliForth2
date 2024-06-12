@@ -27,7 +27,23 @@
 ;       use the 65c02 reset for that. Flows into ABORT.
 ;       """
 xt_cold:
+                clc
+                ; to warm start into a preloaded RAM image the platform init routine
+                ; should sec and jump to forth_warm
+forth_warm:
+                ; 65c02 resets with this clear, but just in case kernel messed with it...
                 cld
+
+                ; Initialize 65c02 stack (Return Stack)
+                ldx #rsp0
+                txs
+
+                ; Clear Data Stack. This is repeated in ABORT, but this way we
+                ; can load high-level words with EVALUATE
+                ldx #dsp0
+
+                ; on warm start from valid memory image, skip the rest of setup
+                bcs _turnkey
 
                 ; Set the OUTPUT vector to the default kernel_putc
                 ; We do this really early so we can print error messages
@@ -38,27 +54,15 @@ xt_cold:
                 sta output+1
 
                 ; Load all of the important zero page variables from ROM
-                ldx #cold_zp_table_end-cold_zp_table-1
+                ldy #cold_zp_table_end-cold_zp_table-1
 
 _load_zp_loop:
                 ; This loop loads them back to front. We can use X here
                 ; because Tali hasn't started using the stack yet.
-                lda cold_zp_table,x
-                sta zpage,x
-                dex
-                bne _load_zp_loop
-
-                ; Copy the 0th element.
-                lda cold_zp_table
-                sta zpage
-
-                ; Initialize 65c02 stack (Return Stack)
-                ldx #rsp0
-                txs
-
-                ; Clear Data Stack. This is repeated in ABORT, but this way we
-                ; can load high-level words with EVALUATE
-                ldx #dsp0
+                lda cold_zp_table,y
+                sta zpage,y
+                dey
+                bpl _load_zp_loop       ; <128 bytes so loop until y<0
 
                 ; Initialize the user variables.
                 ldy #cold_user_table_end-cold_user_table-1
@@ -98,6 +102,16 @@ _load_user_vars_loop:
                 sta 1,x
 
                 jsr xt_evaluate
+_turnkey:
+                lda turnkey+1
+                beq _no_turnkey
+                dex
+                dex
+                sta 1,x
+                lda turnkey
+                sta 0,x
+                jsr xt_execute
+_no_turnkey:
 
 .if TALI_OPTION_HISTORY
                 ; Initialize all of the history buffers by putting a zero in

@@ -1469,6 +1469,12 @@ nt_ed:                  ; ed6502
 +
 .endif
 
+TALI_USER_HEADERS :?= ""
+.if TALI_USER_HEADERS
+.include TALI_USER_HEADERS
++
+.endif
+
 nt_cold:
         .byte 4, 0
         .word nt_bye, xt_cold, z_cold

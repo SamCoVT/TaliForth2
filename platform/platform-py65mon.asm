@@ -82,8 +82,9 @@ s_kernel_id:
 ; to the kernel_init routine and restart the system hard.  If you want to
 ; use them on actual hardware, you'll likely have to redefine them.
 
-* = $fffa
+* = $fff8
 
+turnkey .word 0                 ; set this to an XT to run a startup word
 v_nmi   .word kernel_init
 v_reset .word kernel_init
 v_irq   .word kernel_init
