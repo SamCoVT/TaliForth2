@@ -3,7 +3,7 @@
         ; """https://forth-standard.org/standard/double/DMinus"""
 xt_d_minus:
                 jsr underflow_4 ; two double numbers
-
+w_d_minus:
                 sec
 
                 lda 6,x         ; LSB of lower word
@@ -35,7 +35,7 @@ z_d_minus:      rts
         ; """https://forth-standard.org/standard/double/DPlus"""
 xt_d_plus:
                 jsr underflow_4 ; two double numbers
-
+w_d_plus:
                 clc
                 lda 2,x         ; LSB of lower word
                 adc 6,x
@@ -70,7 +70,7 @@ z_d_plus:       rts
 
 xt_d_to_s:
                 jsr underflow_2
-
+w_d_to_s:
                 inx
                 inx
 
@@ -84,7 +84,7 @@ z_d_to_s:       rts
 
 xt_dabs:
                 jsr underflow_2 ; double number
-
+w_dabs:
                 lda 1,x         ; MSB of high cell
                 bpl _done       ; positive, we get off light
 
@@ -117,7 +117,7 @@ z_dabs:         rts
         ; """https://forth-standard.org/standard/double/DNEGATE"""
 xt_dnegate:
                 jsr underflow_2 ; double number
-
+w_dnegate:
      		ldy #0
                 sec
 
@@ -151,7 +151,7 @@ z_dnegate:      rts
 
 xt_d_dot:
                 jsr underflow_2
-
+w_d_dot:
                 jsr w_tuck
                 jsr w_dabs
                 jsr w_less_number_sign
@@ -174,6 +174,7 @@ z_d_dot:        rts
 
 xt_d_dot_r:
                 jsr underflow_3
+w_d_dot_r:
                 ; From the forth code:
                 jsr w_to_r
                 jsr w_tuck
@@ -202,47 +203,47 @@ z_d_dot_r:      rts
         ; SWAP DROP SWAP ROT 0< if dnegate then
 xt_m_star_slash:
                 jsr underflow_4
-
+w_m_star_slash:
                 ; DDUP XOR SWAP ABS >R SWAP ABS >R OVER XOR ROT ROT DABS
-                jsr xt_two_dup
-                jsr xt_xor
-                jsr xt_swap
-                jsr xt_abs
-                jsr xt_to_r
-                jsr xt_swap
-                jsr xt_abs
-                jsr xt_to_r
-                jsr xt_over
-                jsr xt_xor
-                jsr xt_not_rote         ; rot rot
-                jsr xt_dabs
+                jsr w_two_dup
+                jsr w_xor
+                jsr w_swap
+                jsr w_abs
+                jsr w_to_r
+                jsr w_swap
+                jsr w_abs
+                jsr w_to_r
+                jsr w_over
+                jsr w_xor
+                jsr w_not_rot         ; rot rot
+                jsr w_dabs
 
                 ; SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
-                jsr xt_swap
-                jsr xt_r_fetch
-                jsr xt_um_star
-                jsr xt_rot
-                jsr xt_r_from
-                jsr xt_um_star
-                jsr xt_rot
-                jsr xt_zero
-                jsr xt_d_plus
-                jsr xt_r_fetch
-                jsr xt_um_slash_mod
-                jsr xt_not_rote         ; rot rot
-                jsr xt_r_from
-                jsr xt_um_slash_mod
+                jsr w_swap
+                jsr w_r_fetch
+                jsr w_um_star
+                jsr w_rot
+                jsr w_r_from
+                jsr w_um_star
+                jsr w_rot
+                jsr w_zero
+                jsr w_d_plus
+                jsr w_r_fetch
+                jsr w_um_slash_mod
+                jsr w_not_rot         ; rot rot
+                jsr w_r_from
+                jsr w_um_slash_mod
 
                 ; SWAP DROP SWAP ROT 0< if dnegate then ;
-                jsr xt_swap
-                jsr xt_drop
-                jsr xt_swap
-                jsr xt_rot
+                jsr w_swap
+                jsr w_drop
+                jsr w_swap
+                jsr w_rot
                 inx                     ; drop TOS
                 inx
                 lda $fe,x               ; but keep MSB
                 bpl z_m_star_slash      ; ... 0< if ...
-                jsr xt_dnegate
+                jsr w_dnegate
 
 z_m_star_slash: rts
 
@@ -256,7 +257,7 @@ z_m_star_slash: rts
         ; """
 xt_two_constant:
                 jsr underflow_2
-
+w_two_constant:
                 jsr w_create
                 jsr w_swap
                 jsr w_comma
@@ -281,7 +282,7 @@ z_two_constant: rts
         ; """
 xt_two_literal:
                 jsr underflow_2 ; double number
-
+w_two_literal:
                 lda #template_push_tos_size
                 asl
                 jsr check_nc_limit
@@ -289,7 +290,7 @@ xt_two_literal:
 
                 jsr w_swap
                 jsr w_literal
-                jmp xt_literal
+                jmp w_literal
 
 _no_inline:
                 jsr cmpl_two_literal
@@ -307,6 +308,7 @@ z_two_literal:  rts
         ; CREATE 2 CELLS ALLOT  or just  CREATE 0 , 0 ,
         ; """
 xt_two_variable:
+w_two_variable:
                 ; We just let CRATE and ALLOT do the heavy lifting
                 jsr w_create
 
@@ -329,7 +331,7 @@ z_two_variable: rts
         ; """
 xt_ud_dot:
                 jsr underflow_2 ; double number
-
+w_ud_dot:
                 jsr w_less_number_sign
                 jsr w_number_sign_s
                 jsr w_number_sign_greater
@@ -346,7 +348,7 @@ z_ud_dot:        rts
         ; """
 xt_ud_dot_r:
                 jsr underflow_3
-
+w_ud_dot_r:
                 jsr w_to_r
                 jsr w_less_number_sign
                 jsr w_number_sign_s

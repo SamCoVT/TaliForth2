@@ -14,6 +14,7 @@
         ; """
 
 xt_abort_quote:
+w_abort_quote:
                 ; save the string
                 jsr w_s_quote          ; S"
 
@@ -36,7 +37,7 @@ abort_quote_runtime:
                 ; in going to a new line after the string
                 jsr w_type
                 jsr w_cr
-                jmp xt_abort    ; not JSR, so never come back
+                jmp w_abort     ; not JSR, so never come back
 _done:
                 ; Drop three entries from the Data Stack
                 txa
@@ -389,6 +390,7 @@ accept_total_recall:
 ; ## "action-of"  auto  ANS core ext
         ; """http://forth-standard.org/standard/core/ACTION-OF"""
 xt_action_of:
+w_action_of:
                 ; This is a state aware word with differet behavior
                 ; when used while compiling vs interpreting.
                 ; Check STATE
@@ -401,8 +403,8 @@ xt_action_of:
                 jsr w_bracket_tick
 
                 ; Postpone DEFER@ by compiling a JSR to it.
-                ldy #>xt_defer_fetch
-                lda #<xt_defer_fetch
+                ldy #>w_defer_fetch
+                lda #<w_defer_fetch
                 jsr cmpl_subroutine
                 bra _done
 
@@ -441,6 +443,8 @@ z_again:        rts
         ; """https://forth-standard.org/standard/core/ALIGNED"""
 xt_align:
 xt_aligned:
+w_align:
+w_aligned:
 z_align:
 z_aligned:
                 rts             ; stripped out during native compile
@@ -574,7 +578,7 @@ z_allot:
         ; """https://forth-standard.org/standard/core/AND"""
 xt_and:
                 jsr underflow_2
-
+w_and:
                 lda 0,x
                 and 2,x
                 sta 2,x
@@ -634,6 +638,7 @@ z_at_xy:        rts
 ; ## "\"  auto  ANS block ext
         ; """https://forth-standard.org/standard/block/bs"""
 xt_backslash:
+w_backslash:
                 ; Check BLK to see if we are interpreting a block
                 ldy #blk_offset
                 lda (up),y
@@ -710,6 +715,7 @@ z_base:         rts
 ; ## "bl"  auto  ANS core
         ; """https://forth-standard.org/standard/core/BL"""
 xt_bl:
+w_bl:
                 dex
                 dex
                 lda #AscSP
@@ -731,6 +737,7 @@ z_bl:           rts
         ; : [CHAR]  CHAR POSTPONE LITERAL ; IMMEDIATE
         ; """
 xt_bracket_char:
+w_bracket_char:
                 jsr w_char
                 jsr w_literal
 z_bracket_char: rts
@@ -755,6 +762,8 @@ z_bracket_tick: rts
                 ; when its name is used.
                 ; """
 xt_buffer_colon:
+                jsr underflow_1
+w_buffer_colon:
                 jsr w_create
                 jsr w_allot
 z_buffer_colon: rts
@@ -766,7 +775,7 @@ z_buffer_colon: rts
         ; """https://forth-standard.org/standard/core/CComma"""
 xt_c_comma:
                 jsr underflow_1
-
+w_c_comma:
                 lda 0,x
                 jsr cmpl_a
 
@@ -782,7 +791,7 @@ z_c_comma:      rts
         ; """https://forth-standard.org/standard/core/CFetch"""
 xt_c_fetch:
                 jsr underflow_1
-
+w_c_fetch:
                 lda (0,x)
                 sta 0,x
                 stz 1,x         ; Ignore LSB
@@ -898,7 +907,7 @@ xt_chars:
                 ; should be warned that there is something wrong with the
                 ; code if this occurs.
                 jsr underflow_1
-
+w_chars:
 z_chars:        rts
 
 
@@ -910,6 +919,7 @@ z_chars:        rts
         ; Use the CREATE routine and fill in the rest by hand.
         ; """
 xt_colon:
+w_colon:
                 ; If we're already in the compile state, complain
                 ; and quit
                 lda state
@@ -980,6 +990,7 @@ z_colon:        rts
         ; Compile a word with no nt.  ";" will put its xt on the stack.
         ; """
 xt_colon_noname:
+w_colon_noname:
                 ; If we're already in the compile state, complain
                 ; and quit
                 lda state
@@ -1039,6 +1050,7 @@ z_comma:        rts
         ; ?COMPILE that makes sure  we're in compile mode
         ; """
 xt_compile_only:
+w_compile_only:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -1061,7 +1073,8 @@ z_compile_only: rts
 xt_value:
 xt_constant:
                 jsr underflow_1
-
+w_value:
+w_constant:
                 jsr w_create
 
             	; CREATE by default installs a subroutine jump to DOVAR,
@@ -1126,7 +1139,7 @@ z_constant:     rts
         ; """
 xt_count:
                 jsr underflow_1
-
+w_count:
                 lda (0,x)       ; Get number of characters (255 max)
                 tay
 
@@ -1150,6 +1163,7 @@ z_count:        rts
 ; ## "cr"  auto  ANS core
         ; """https://forth-standard.org/standard/core/CR"""
 xt_cr:
+w_cr:
 
 .if "cr" in TALI_OPTION_CR_EOL
                 lda #AscCR
@@ -1169,6 +1183,7 @@ z_cr:           rts
         ; See the drawing in headers.asm for details on the header
         ; """
 xt_create:
+w_create:
                 ; get string
                 jsr w_parse_name       ; ( addr u )
 
@@ -1387,6 +1402,7 @@ z_create:       rts
 ; ## "decimal"  auto  ANS core
         ; """https://forth-standard.org/standard/core/DECIMAL"""
 xt_decimal:
+w_decimal:
                 lda #10
                 sta base
                 stz base+1              ; paranoid
@@ -1404,6 +1420,7 @@ z_decimal:      rts
         ; But we use this routine as a low-level word so things go faster
 
 xt_defer:
+w_defer:
                 jsr w_create
 
                 ; CREATE by default installs a subroutine jump to DOVAR,
@@ -1453,7 +1470,8 @@ z_defer:        rts
         ; """http://forth-standard.org/standard/core/DEFERFetch"""
 
 xt_defer_fetch:
-                ; No underflow checking as >BODY does it.
+                jsr underflow_1
+w_defer_fetch:
                 jsr w_to_body
                 jsr w_fetch
 z_defer_fetch:  rts
@@ -1465,7 +1483,8 @@ z_defer_fetch:  rts
         ; """http://forth-standard.org/standard/core/DEFERStore"""
 
 xt_defer_store:
-                ; No underflow checking as >BODY and ! do it.
+                jsr underflow_2
+w_defer_store:
                 jsr w_to_body
                 jsr w_store
 z_defer_store:  rts
@@ -1476,6 +1495,7 @@ z_defer_store:  rts
 ; ## "depth"  auto  ANS core
         ; """https://forth-standard.org/standard/core/DEPTH"""
 xt_depth:
+w_depth:
                 lda #dsp0
                 stx tmpdsp
                 sec
@@ -1493,10 +1513,11 @@ z_depth:        rts
 
 
 
-; ## QUESTION_DO ( limit start -- ) "Conditional loop start"
+; ## QUESTION_DO (C: -- ) ( limit start -- ) "Conditional loop start"
 ; ## "?do"  auto  ANS core ext
         ; """https://forth-standard.org/standard/core/qDO"""
 xt_question_do:
+w_question_do:
                 ; ?DO shares most of its code with DO.
                 ; But first compile its runtime.
                 dex
@@ -1526,7 +1547,7 @@ _native:
                 bra do_common
 
 
-; ## DO ( limit start -- )  "Start a loop"
+; ## DO (C: -- ) ( limit start -- )  "Start a loop"
 ; ## "do"  auto  ANS core
         ; """https://forth-standard.org/standard/core/DO
         ;
@@ -1539,6 +1560,7 @@ _native:
         ; """
 
 xt_do:
+w_do:
                 jsr w_zero             ; push 0 TOS
 
 do_common:
@@ -1577,7 +1599,7 @@ do_common:
                 ; to the Data Stack so LOOP/+LOOP knows where to repeat back
                 ; ( qdo-skip old-loopleave repeat-addr )
 
-                jmp xt_here
+                jmp w_here
 z_question_do:
 z_do:
 
@@ -1681,6 +1703,7 @@ do_runtime:
         ; """
 
 xt_does:
+w_does:
                 ; compile a subroutine jump to runtime of DOES>
                 ldy #>does_runtime
                 lda #<does_runtime
@@ -1779,6 +1802,7 @@ z_dot:          rts
         ; """http://forth-standard.org/standard/core/Dotp"""
 
 xt_dot_paren:
+w_dot_paren:
                 ; Put a right paren on the stack.
                 dex
                 dex
@@ -1803,14 +1827,15 @@ z_dot_paren:    rts
         ; """
 
 xt_dot_quote:
+w_dot_quote:
                 ; we let S" do the heavy lifting. Since we're in
                 ; compile mode, it will save the string and reproduce it
                 ; during runtime
                 jsr w_s_quote
 
                 ; We then let TYPE do the actual printing
-                ldy #>xt_type
-                lda #<xt_type
+                ldy #>w_type
+                lda #<w_type
                 jsr cmpl_subroutine
 
 z_dot_quote:    rts
@@ -1827,7 +1852,7 @@ z_dot_quote:    rts
 
 xt_dot_r:
                 jsr underflow_2
-
+w_dot_r:
                 jsr w_to_r
                 jsr w_dup
                 jsr w_abs
@@ -1852,7 +1877,7 @@ z_dot_r:        rts
         ; """https://forth-standard.org/standard/core/DROP"""
 xt_drop:
                 jsr underflow_1
-
+w_drop:
                 inx
                 inx
 
@@ -1887,16 +1912,25 @@ z_dup:          rts
 
 xt_else:
 xt_endof:
+                jsr underflow_1
+w_else:
+w_endof:
                 ; Add an unconditional branch with target filled in later
                 jsr cmpl_jump_later
 
                 ; stash the branch target for later
                 ; and then calculate the forward branch from orig
-                jsr w_swap         ; ( target orig )
+                jsr w_swap              ; ( target orig )
+                bra w_then              ; fall through to then
 
-                ; fall through to xt_then
+; ## THEN (C: orig -- ) ( -- ) "Conditional flow control"
+; ## "then"  auto  ANS core
+        ; """http://forth-standard.org/standard/core/THEN
+        ; """
 
 xt_then:
+                jsr underflow_1
+w_then:
                 ; (C: orig -- ) ( -- )
 
                 ; This is a compile-time word that writes the target address
@@ -1931,7 +1965,7 @@ z_then:         rts
 
 xt_emit:
                 jsr underflow_1
-
+w_emit:
                 lda 0,x
                 inx
                 inx
@@ -1952,10 +1986,12 @@ z_emit:         ; never reached
         ; """http://forth-standard.org/standard/core/ENDCASE"""
 
 xt_endcase:
+                jsr underflow_1
+w_endcase:
                 ; Postpone DROP to remove the item
                 ; being checked.
-                ldy #>xt_drop
-                lda #<xt_drop
+                ldy #>w_drop
+                lda #<w_drop
                 jsr cmpl_subroutine
 
                 ; There are a number of address (of branches that need their
@@ -1978,7 +2014,7 @@ z_endcase:      rts
 
 
 
-; ## ENDOF (C: case-sys1 of-sys1-- case-sys2) ( -- ) "Conditional flow control"
+; ## ENDOF (C: case-sys1 of-sys1 -- case-sys2) ( -- ) "Conditional flow control"
 ; ## "endof"  auto  ANS core ext
         ; """http://forth-standard.org/standard/core/ENDOF
         ; This is a dummy entry, the code is shared with ELSE
@@ -2023,7 +2059,7 @@ z_endcase:      rts
         ; """
 xt_environment_q:
                 jsr underflow_1
-
+w_environment_q:
                 ; This code is table-driven: We walk through the list of
                 ; strings until we find one that matches, and then we take
                 ; the equivalent data from the results table. This is made
@@ -2219,7 +2255,7 @@ env_results_double:
 
 xt_equal:
                 jsr underflow_2
-
+w_equal:
                 lda 0,x                 ; LSB
                 cmp 2,x
                 bne _false
@@ -2255,7 +2291,7 @@ w_blank:
                 sta 0,x
                 stz 1,x
 
-                bra xt_fill     ; skip over code for ERASE
+                bra w_fill     ; skip over code for ERASE
 
 
 ; ## ERASE ( addr u -- ) "Fill memory region with zeros"
@@ -2266,8 +2302,8 @@ w_blank:
         ; """
 
 xt_erase:
-                ; We don't check for underflow here because
-                ; we deal with that in FILL
+                jsr underflow_2
+w_erase:
                 dex
                 dex
                 stz 0,x
@@ -2285,7 +2321,7 @@ xt_erase:
         ; """
 xt_fill:
                 jsr underflow_3
-
+w_fill:
                 ; We use tmp1 to hold the address
                 lda 4,x         ; LSB
                 sta tmp1
@@ -2356,10 +2392,11 @@ z_fill:         rts
         ; """https://forth-standard.org/standard/core/EXECUTE"""
 xt_execute:
                 jsr underflow_1
-
+w_execute:
                 jsr doexecute   ; do not combine to JMP (native coding)
 
 z_execute:      rts
+
 
 doexecute:
                 lda 0,x
@@ -2386,6 +2423,7 @@ doexecute:
         ; """
 
 xt_exit:
+w_exit:
                 rts             ; keep before z_exit
 z_exit:                         ; never reached
 
@@ -2432,7 +2470,7 @@ z_fetch:        rts
 
 xt_find:
                 jsr underflow_1
-
+w_find:
                 ; Save address in case conversion fails. We use the
                 ; Return Stack instead of temporary variables like TMP1
                 ; because this is shorter and anybody still using FIND
@@ -2514,7 +2552,7 @@ z_find:         rts
 
 xt_fm_slash_mod:
                 jsr underflow_3
-
+w_fm_slash_mod:
                 ; if sign of n1 is negative, negate both n1 and d
                 stz tmp2        ; default: n is positive
                 lda 1,x         ; MSB of n1
@@ -2579,7 +2617,7 @@ load_evaluate:
 
 xt_evaluate:
                 jsr underflow_2
-
+w_evaluate:
                 ; Clear the flag to zero BLK.  Only LOAD will set the flag,
                 ; and will set the block number.
                 stz tmp1
@@ -2671,7 +2709,7 @@ z_evaluate:     rts
 
 xt_greater_than:
                 jsr underflow_2
-
+w_greater_than:
                 ldy #0          ; default false
                 jsr compare_16bit
 
@@ -2702,6 +2740,10 @@ z_greater_than: rts
 xt_here:
 xt_begin:
 xt_asm_arrow:
+
+w_here:
+w_begin:
+w_asm_arrow:
                 dex
                 dex
                 lda cp
@@ -2720,6 +2762,7 @@ z_asm_arrow:
 ; ## "hex"  auto  ANS core ext
         ; """https://forth-standard.org/standard/core/HEX"""
 xt_hex:
+w_hex:
                 lda #16
                 sta base
                 stz base+1              ; paranoid
@@ -2766,6 +2809,7 @@ z_hold:         rts
         ; """
 
 xt_i:
+w_i:
                 dex
                 dex
 
@@ -2790,6 +2834,7 @@ z_i:            rts
         ; """http://forth-standard.org/standard/core/IF"""
 
 xt_if:
+w_if:
                 jsr cmpl_0branch_later
 z_if:           rts
 
@@ -2804,6 +2849,7 @@ z_if:           rts
         ; error message.
         ; """
 xt_immediate:
+w_immediate:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -2819,7 +2865,7 @@ z_immediate:    rts
         ; """https://forth-standard.org/standard/core/INVERT"""
 xt_invert:
                 jsr underflow_1
-
+w_invert:
                 lda #$FF
                 eor 0,x         ; LSB
                 sta 0,x
@@ -2832,12 +2878,13 @@ z_invert:       rts
 
 
 
-; ## IS ( xt "name" -- ) "Set named word to execute xt"
+; ## IS ( xt "name" -- ) or (C: "name" ) "Set named word to execute xt"
 ; ## "is"  auto  ANS core ext
         ; """http://forth-standard.org/standard/core/IS"""
 
 xt_is:
-                ; This is a state aware word with differet behavior
+w_is:
+                ; This is a state aware word with different behavior
                 ; when used while compiling vs interpreting.
                 ; Check STATE
                 lda state
@@ -2848,8 +2895,8 @@ xt_is:
                 jsr w_bracket_tick
 
                 ; Postpone DEFER! by compiling a JSR to it.
-                ldy #>xt_defer_store
-                lda #<xt_defer_store
+                ldy #>w_defer_store
+                lda #<w_defer_store
                 jsr cmpl_subroutine
 
                 bra _done
@@ -2873,6 +2920,7 @@ z_is:           rts
         ; """
 
 xt_j:
+w_j:
                 dex                 ; make space on the stack
                 dex
 
@@ -2895,6 +2943,7 @@ z_j:            rts
 ; ## KEY ( -- char ) "Get one character from the input"
 ; ## "key"  tested  ANS core
 xt_key:
+w_key:
         ; """https://forth-standard.org/standard/core/KEY
         ; Get a single character of input from the vectored
         ; input without echoing.
@@ -2920,6 +2969,7 @@ key_a:
 ; ## KEY? ( -- char ) "Return true if a character is available"
 ; ## "key?"  tested  ANS core
 xt_keyq:
+w_keyq:
         ; """https://forth-standard.org/standard/core/KEYq
         ; Check if a key is available from the vectored havekey.
         ; Use KEY to fetch it.
@@ -2953,6 +3003,7 @@ keyq_a:         jmp (havekey)
         ; """
 
 xt_leave:
+w_leave:
                 ; LEAVE will eventually jump forward to the unloop.
                 ; We don't know where that is at compile time
                 ; so we'll write a JMP to be patched later.
@@ -2985,6 +3036,7 @@ z_leave:
         ; This is an immediate and compile-only word
         ; """
 xt_left_bracket:
+w_left_bracket:
                 stz state
                 stz state+1
 
@@ -3032,7 +3084,7 @@ z_less_number_sign:
 
 xt_less_than:
                 jsr underflow_2
-
+w_less_than:
                 ldy #0          ; default false
                 jsr compare_16bit
 
@@ -3065,7 +3117,7 @@ z_less_than:    rts
         ; """
 xt_literal:
                 jsr underflow_1
-
+w_literal:
                 lda #template_push_tos_size
                 jsr check_nc_limit
                 bcc _inline
@@ -3171,6 +3223,7 @@ literal_runtime:
         ;       IMMEDIATE ; COMPILE-ONLY
         ; """
 xt_loop:
+w_loop:
                 ; Compile LOOP-specific runtime
                 dex
                 dex
@@ -3185,8 +3238,7 @@ xt_loop:
                 stz 1,x
 
                 ; Now compile the runtime shared with +LOOP
-                bra xt_loop_common
-
+                bra w_loop_common
 
 
 ; ## PLUS_LOOP ( -- ) "Finish loop construct"
@@ -3203,6 +3255,7 @@ xt_loop:
         ; """
 
 xt_plus_loop:
+w_plus_loop:
                 ; Compile +LOOP-specific runtime
                 dex
                 dex
@@ -3218,7 +3271,7 @@ xt_plus_loop:
 
                 ; fall through to shared runtime
 
-xt_loop_common:
+w_loop_common:
                 jsr w_over
                 jsr w_swap             ; xt and xt' are the same
                 ; ( xt xt u )
@@ -3272,9 +3325,9 @@ _noleave:
                 ; reuse TOS
 
                 ; Clean up the loop params by appending unloop
-                lda #<xt_unloop
+                lda #<w_unloop
                 sta 0,x
-                lda #>xt_unloop
+                lda #>w_unloop
                 sta 1,x
                 jsr w_compile_comma
 
@@ -3286,7 +3339,7 @@ _noleave:
                 beq +
                 jsr w_here
                 jsr w_swap
-                jmp xt_store            ; write here as ?DO jmp target and return
+                jmp w_store            ; write here as ?DO jmp target and return
 
 +               inx                     ; drop the ignored word for DO
                 inx
@@ -3374,7 +3427,7 @@ _done:          lda #1
 
 xt_lshift:
                 jsr underflow_2
-
+w_lshift:
                 ; max shift 16 times
                 lda 0,x
                 and #%00001111
@@ -3408,7 +3461,7 @@ z_lshift:       rts
 
 xt_m_star:
                 jsr underflow_2
-
+w_m_star:
                 ; figure out the sign
                 lda 1,x         ; MSB of n1
                 eor 3,x         ; MSB of n2
@@ -3463,6 +3516,7 @@ z_m_star:       rts
         ; """
 
 xt_marker:
+w_marker:
                 ; Before we do anything, we need to save CP, which
                 ; after all is the whole point of this operation. CREATE
                 ; uses tmp1 and tmp2, so we take the speed hit and push stuff
@@ -3593,7 +3647,7 @@ marker_runtime:
 
 xt_max:
                 jsr underflow_2
-
+w_max:
                 ; Compare LSB. We do this first to set the carry flag
                 lda 0,x         ; LSB of TOS
                 cmp 2,x         ; LSB of NOS, this sets the carry
@@ -3633,7 +3687,7 @@ z_max:          rts
 
 xt_min:
                 jsr underflow_2
-
+w_min:
                 ; compare LSB. We do this first to set the carry flag
                 lda 0,x         ; LSB of TOS
                 cmp 2,x         ; LSB of NOS, this sets carry
@@ -3668,7 +3722,7 @@ z_min:          rts
         ; """https://forth-standard.org/standard/core/Minus"""
 xt_minus:
                 jsr underflow_2
-
+w_minus:
                 sec
                 lda 2,x         ; LSB
                 sbc 0,x
@@ -3694,7 +3748,7 @@ z_minus:        rts
         ; """
 xt_mod:
                 jsr underflow_2
-
+w_mod:
                 jsr w_slash_mod
 
                 inx             ; DROP
@@ -3716,16 +3770,15 @@ z_mod:
         ; """
 
 xt_move:
-                ; We let CMOVE and CMOVE> check if there is underflow or
-                ; we've been told to copy zero bytes
-
+                jsr underflow_3
+w_move:
                 ; compare MSB first
                 lda 3,x                 ; MSB of addr2
                 cmp 5,x                 ; MSB of addr1
                 beq _lsb                ; wasn't helpful, move to LSB
                 bcs _to_move_up         ; we want CMOVE>
 
-                jmp xt_cmove            ; JSR/RTS
+                jmp w_cmove            ; JSR/RTS
 
 _lsb:
                 ; MSB were equal, so do the whole thing over with LSB
@@ -3734,10 +3787,10 @@ _lsb:
                 beq _equal              ; LSB is equal as well
                 bcs _to_move_up         ; we want CMOVE>
 
-                jmp xt_cmove            ; JSR/RTS
+                jmp w_cmove            ; JSR/RTS
 
 _to_move_up:
-                jmp xt_cmove_up         ; JSR/RTS
+                jmp w_cmove_up         ; JSR/RTS
 _equal:
                 ; drop three entries from Data Stack
                 txa
@@ -3754,7 +3807,7 @@ z_move:         rts
         ; """https://forth-standard.org/standard/core/NEGATE"""
 xt_negate:
                 jsr underflow_1
-
+w_negate:
         	lda #0
                 sec
                 sbc 0,x         ; LSB
@@ -3773,7 +3826,7 @@ z_negate:       rts
         ; """https://forth-standard.org/standard/core/NIP"""
 xt_nip:
                 jsr underflow_2
-
+w_nip:
                 lda 0,x         ; LSB
                 sta 2,x
                 lda 1,x         ; MSB
@@ -3796,7 +3849,7 @@ z_nip:          rts
 
 xt_not_equals:
                 jsr underflow_2
-
+w_not_equals:
                 ldy #0                  ; default is true
 
                 lda 0,x                 ; LSB
@@ -3837,7 +3890,6 @@ z_not_equals:   rts
 xt_number_sign:
                 jsr underflow_2         ; double number
 w_number_sign:
-
                 ; The following is based on the ancient Forth word UD/MOD, which in
                 ; various Forths (including Gforth) lives on under the hood,
                 ; even though it's not an ANS standard word, it doesn't appear
@@ -3880,7 +3932,7 @@ _loop:
                 sta 0,x
                 stz 1,x
                 jsr w_um_slash_mod      ; ( v u 0 base -- v ru qu )
-_skip:          jsr w_not_rote          ; ( qu v ru )
+_skip:          jsr w_not_rot          ; ( qu v ru )
                 lsr base+1              ; 1 => 0 + C=1 => 0 + C=0
                 bcs _loop               ; run two passes
 
@@ -3915,7 +3967,6 @@ z_number_sign:
         ; https://github.com/philburk/pforth/blob/master/fth/numberio.fth
         ; """
 xt_number_sign_greater:
-
                 jsr underflow_2         ; double number
 w_number_sign_greater:
                 ; The start address lives in tohold
@@ -3959,7 +4010,6 @@ z_number_sign_greater:
 xt_number_sign_s:
                 jsr underflow_2
 w_number_sign_s:
-_loop:
                 ; convert a single number ("#")
                 jsr w_number_sign
 
@@ -3968,7 +4018,7 @@ _loop:
                 ora 1,x
                 ora 2,x
                 ora 3,x
-                bne _loop
+                bne w_number_sign_s
 
 z_number_sign_s:
                 rts
@@ -3980,23 +4030,24 @@ z_number_sign_s:
         ; """http://forth-standard.org/standard/core/OF"""
 
 xt_of:
+w_of:
                 ; Check if value is equal to this case.
                 ; Postpone over (eg. compile a jsr to it)
-                ldy #>xt_over
-                lda #<xt_over
+                ldy #>w_over
+                lda #<w_over
                 jsr cmpl_subroutine
 
                 ; Postpone = (EQUAL), that is, compile a jsr to it
-                ldy #>xt_equal
-                lda #<xt_equal
+                ldy #>w_equal
+                lda #<w_equal
                 jsr cmpl_subroutine
 
                 jsr w_if
 
                 ; If it's true, consume the original value.
                 ; Postpone DROP (eg. compile a jsr to it)
-                ldy #>xt_drop
-                lda #<xt_drop
+                ldy #>w_drop
+                lda #<w_drop
                 jsr cmpl_subroutine
 
 z_of:           rts
@@ -4009,7 +4060,7 @@ z_of:           rts
 
 xt_one_minus:
                 jsr underflow_1
-
+w_one_minus:
                 lda 0,x
                 bne +
                 dec 1,x
@@ -4030,7 +4081,8 @@ z_one_minus:    rts
 xt_char_plus:
 xt_one_plus:
                 jsr underflow_1
-
+w_char_plus:
+w_one_plus:
                 inc 0,x
                 bne _done
                 inc 1,x
@@ -4046,7 +4098,7 @@ z_one_plus:     rts
         ; """https://forth-standard.org/standard/core/OR"
 xt_or:
                 jsr underflow_2
-
+w_or:
                 lda 0,x
                 ora 2,x
                 sta 2,x
@@ -4067,7 +4119,7 @@ z_or:           rts
         ; """https://forth-standard.org/standard/core/OVER"""
 xt_over:
                 jsr underflow_2
-
+w_over:
                 dex
                 dex
 
@@ -4114,6 +4166,7 @@ z_pad:          rts
         ; left of the screen
         ; """
 xt_page:
+w_page:
                 lda #AscESC
                 jsr emit_a
                 lda #'['
@@ -4137,6 +4190,7 @@ z_page:         rts
         ; """http://forth-standard.org/standard/core/p"""
 
 xt_paren:
+w_paren:
                 ; Put a right paren on the stack.
                 dex
                 dex
@@ -4174,6 +4228,7 @@ z_paren:        rts
         ; """
 
 xt_parse_name:
+w_parse_name:
                 ; To enable the compilation of the high-level Forth words
                 ; in forth-words.asm and user-words.asm at boot time,
                 ; PARSE-NAME and PARSE must be able to deal with 16-bit string
@@ -4263,7 +4318,6 @@ _char_found:
                 stz 1,x                 ; paranoid, now ( "name" c )
 
 
-
 ; ## PARSE ( "name" c -- addr u ) "Parse input with delimiter character"
 ; ## "parse"  tested  ANS core ext
         ; """https://forth-standard.org/standard/core/PARSE
@@ -4291,7 +4345,7 @@ _char_found:
 
 xt_parse:
                 jsr underflow_1
-
+w_parse:
                 ; If the input buffer is empty, we just return
                 lda ciblen
                 ora ciblen+1
@@ -4457,6 +4511,7 @@ xt_pick:
                 ; something out, but it wouldn't work with underflow stripping
                 ; Since using PICK is considered poor form anyway, we just
                 ; leave it as it is
+w_pick:
                 asl 0,x         ; we assume u < 128 (stack is small)
                 txa
                 adc 0,x
@@ -4476,7 +4531,7 @@ z_pick:         rts
         ; """https://forth-standard.org/standard/core/Plus"""
 xt_plus:
                 jsr underflow_2
-
+w_plus:
                 clc
                 lda 0,x         ; LSB
                 adc 2,x
@@ -4498,7 +4553,7 @@ z_plus:         rts
         ; """https://forth-standard.org/standard/core/PlusStore"""
 xt_plus_store:
                 jsr underflow_2
-
+w_plus_store:
                 ; move address to tmp1 so we can work with it
                 lda 0,x
                 sta tmp1
@@ -4539,6 +4594,7 @@ z_plus_store:   rts
         ; """
 
 xt_postpone:
+w_postpone:
                 jsr w_parse_name               ; ( -- addr n )
 
                 ; if there was no word provided, complain and quit
@@ -4591,8 +4647,8 @@ _not_immediate:
                 jsr w_literal
 
                 ; Last, compile COMPILE,
-                ldy #>xt_compile_comma
-                lda #<xt_compile_comma
+                ldy #>w_compile_comma
+                lda #<w_compile_comma
                 jsr cmpl_subroutine
 _done:
 z_postpone:     rts
@@ -4605,7 +4661,7 @@ z_postpone:     rts
 
 xt_question_dup:
                 jsr underflow_1
-
+w_question_dup:
                 ; Check if TOS is zero
                 lda 0,x
                 ora 1,x
@@ -4717,6 +4773,7 @@ z_r_from:       jmp (tmp1)
         ; """
 
 xt_recurse:
+w_recurse:
                 ; The whole routine amounts to compiling a reference to
                 ; the word that is being compiled. First, we save the JSR
                 ; instruction
@@ -4796,6 +4853,7 @@ z_recurse:      rts
         ; """"
 
 xt_refill:
+w_refill:
                 ; Get input source from SOURCE-ID. This is an
                 ; optimized version of a subroutine jump to SOURCE-ID
                 lda insrc               ; cheat: We only check LSB
@@ -4871,12 +4929,14 @@ z_refill:       rts
         ; """http://forth-standard.org/standard/core/REPEAT"""
 
 xt_repeat:
+                jsr underflow_2
+w_repeat:
                 ; Code the jump back to begin
                 jsr w_again
 
                 ; Stuff HERE in for the branch address left by WHILE
                 ; to get out of the loop
-                jmp xt_then
+                jmp w_then
 z_repeat:
 
 
@@ -4887,6 +4947,7 @@ z_repeat:
         ; This is an immediate word.
         ; """
 xt_right_bracket:
+w_right_bracket:
                 lda #$FF
                 sta state
                 sta state+1
@@ -4928,7 +4989,7 @@ z_rot:          rts
         ; """https://forth-standard.org/standard/core/RSHIFT"""
 xt_rshift:
                 jsr underflow_2
-
+w_rshift:
                 ; We shift maximal by 16 bits, mask everything else
                 lda 0,x
                 and #%00001111
@@ -4958,6 +5019,7 @@ z_rshift:       rts
         ; """
 
 xt_s_backslash_quote:
+w_s_backslash_quote:
                 ; tmp2 will be used to determine if we are handling
                 ; escaped characters or not. In this case, we are,
                 ; so set it to $FF (the upper byte will be used to
@@ -5011,6 +5073,7 @@ _done:
         ; """
 
 xt_s_quote:
+w_s_quote:
                 ; tmp2 will be used to determine if we are handling
                 ; escaped characters or not.  In this case, we are
                 ; not, so set it to zero.  (cf S_BACKSLASH_QUOTE)
@@ -5140,37 +5203,6 @@ _esc_x_second_digit:
 
                 jmp _save_character
 
-_esc_tr_table:
-    ; 26 character translation for simple escapes
-    ; 0 indicates no translation, hi bit indicates special
-    .byte   7               ; a -> BEL (ASCII value 7)
-    .byte   8               ; b -> Backspace (ASCII value 8)
-    .byte   0,0             ; c, d no escape
-    .byte   27              ; e -> ESC (ASCII value 27)
-    .byte   12              ; f -> FF (ASCII value 12)
-    .byte   0,0,0,0,0       ; g,h,i,j,k
-    .byte   10              ; l -> LF (ASCII value 10)
-    .byte   13+128          ; m -> CR/LF pair (ASCII values 13, 10)
-    ; n has configurable behavior which we hard-code in the table
-.if "cr" in TALI_OPTION_CR_EOL
-.if "lf" in TALI_OPTION_CR_EOL
-    .byte   13+128          ; n behaves like m --> cr/lf
-.else
-    .byte   13              ; n behaves like r --> cr
-.endif
-.else
-    .byte   10              ; n behaves like l --> lf
-.endif
-    .byte   0,0             ; o,p
-    .byte   34              ; q -> Double quote (ASCII value 34)
-    .byte   13              ; r ->  CR (ASCII value 13)
-    .byte   0               ; s
-    .byte   9               ; t -> Horizontal TAB (ASCII value 9)
-    .byte   0               ; u
-    .byte   11              ; v -> Vertical TAB (ASCII value 11)
-    .byte   0,0,0           ; w,x,y   (x is a special case later)
-    .byte   0+128           ; z -> NULL (ASCII value 0)
-
 _check_esc_chars:
                 ; Clear the escaped character flag (because we are
                 ; handling it right here)
@@ -5183,7 +5215,7 @@ _check_esc_chars:
                 bpl _check_esc_quote
                 ; check translation table
                 tay
-                lda _esc_tr_table - 'a',y   ; fake base address to index with a-z directly
+                lda escape_tr_table - 'a',y   ; fake base address to index with a-z directly
                 bne _esc_replace
                 tya                     ; revert if no translation
                 bra _check_esc_quote
@@ -5286,6 +5318,37 @@ _found_string_end:
 _done:
 z_s_quote:      rts
 
+escape_tr_table:
+    ; 26 character translation for simple escapes
+    ; 0 indicates no translation, hi bit indicates special
+    .byte   7               ; a -> BEL (ASCII value 7)
+    .byte   8               ; b -> Backspace (ASCII value 8)
+    .byte   0,0             ; c, d no escape
+    .byte   27              ; e -> ESC (ASCII value 27)
+    .byte   12              ; f -> FF (ASCII value 12)
+    .byte   0,0,0,0,0       ; g,h,i,j,k
+    .byte   10              ; l -> LF (ASCII value 10)
+    .byte   13+128          ; m -> CR/LF pair (ASCII values 13, 10)
+    ; n has configurable behavior which we hard-code in the table
+.if "cr" in TALI_OPTION_CR_EOL
+.if "lf" in TALI_OPTION_CR_EOL
+    .byte   13+128          ; n behaves like m --> cr/lf
+.else
+    .byte   13              ; n behaves like r --> cr
+.endif
+.else
+    .byte   10              ; n behaves like l --> lf
+.endif
+    .byte   0,0             ; o,p
+    .byte   34              ; q -> Double quote (ASCII value 34)
+    .byte   13              ; r ->  CR (ASCII value 13)
+    .byte   0               ; s
+    .byte   9               ; t -> Horizontal TAB (ASCII value 9)
+    .byte   0               ; u
+    .byte   11              ; v -> Vertical TAB (ASCII value 11)
+    .byte   0,0,0           ; w,x,y   (x is a special case later)
+    .byte   0+128           ; z -> NULL (ASCII value 0)
+
 
 
 ; ## S_TO_D ( u -- d ) "Convert single cell number to double cell"
@@ -5294,7 +5357,7 @@ z_s_quote:      rts
 
 xt_s_to_d:
                 jsr underflow_1
-
+w_s_to_d:
                 dex
                 dex
                 stz 0,x
@@ -5325,6 +5388,7 @@ z_s_to_d:       rts
         ; """
 
 xt_semicolon:
+w_semicolon:
                 ; Check if this is a : word or a :NONAME word.
                 bit status
                 bvs _colonword
@@ -5466,20 +5530,24 @@ z_sign:         rts
         ; """
 
 xt_slash:
+                jsr underflow_2
+w_slash:
                 ; With all the multiplication going on, it would be hard to
                 ; make sure that one of our temporary variables is not
                 ; overwritten. We make sure that doesn't happen by taking the
                 ; hit of pushing the flag to the 65c02's stack
                 lda #0
-                pha
                 bra slashmod_common
 
 xt_slash_mod:
+                jsr_underflow_2
+w_slash_mod:
                 ; Note that /MOD accesses this code
                 lda #$FF
-                pha             ; falls through to _common
+                ; falls through to _common
 
 slashmod_common:
+                pha
                 jsr w_to_r             ; >R
                 jsr w_s_to_d           ; S>D
                 jsr w_r_from           ; R>
@@ -5521,7 +5589,7 @@ z_slash:        rts
 
 xt_sm_slash_rem:
                 jsr underflow_3 ; contains double number
-
+w_sm_slash_rem:
                 ; push MSB of high cell of d to Data Stack so we can check
                 ; its sign later
                 lda 3,x
@@ -5569,6 +5637,7 @@ z_sm_slash_rem: rts
 ; ## "source"  auto  ANS core
         ; """https://forth-standard.org/standard/core/SOURCE"""
 xt_source:
+w_source:
                 ; add address
                 dex
                 dex
@@ -5597,6 +5666,7 @@ z_source:       rts
         ; string, and a text file gives the fileid.
         ; """
 xt_source_id:
+w_source_id:
                 dex
                 dex
 
@@ -5627,7 +5697,7 @@ z_space:        rts
 
 xt_spaces:
                 jsr underflow_1
-
+w_spaces:
                 lda 1,x         ; ANS says this word takes a signed value
                 bmi _done       ; but prints no spaces for negative values.
 
@@ -5657,7 +5727,7 @@ z_spaces:       rts
 
 xt_star:
                 jsr underflow_2
-
+w_star:
                 jsr w_um_star
                 inx
                 inx
@@ -5677,6 +5747,8 @@ z_star:         rts
         ; pretty much what we do here
         ; """
 xt_star_slash:
+                jsr underflow_3
+w_star_slash:
                 ; We let */MOD check for underflow
                 jsr w_star_slash_mod
                 jsr w_swap
@@ -5698,7 +5770,7 @@ z_star_slash:
         ; """
 xt_star_slash_mod:
                 jsr underflow_3
-
+w_star_slash_mod:
                 jsr w_to_r
                 jsr w_m_star
                 jsr w_r_from
@@ -5718,6 +5790,7 @@ z_star_slash_mod:
         ; http://forth.sourceforge.net/standard/dpans/dpans6.htm#6.1.2250
         ; """
 xt_state:
+w_state:
                 dex
                 dex
                 lda #<state
@@ -5734,7 +5807,7 @@ z_state:        rts
         ; """https://forth-standard.org/standard/core/Store"""
 xt_store:
                 jsr underflow_2
-
+w_store:
                 lda 2,x         ; LSB
                 sta (0,x)
 
@@ -5774,19 +5847,12 @@ z_swap:         rts
 
 
 
-; ## THEN (C: orig -- ) ( -- ) "Conditional flow control"
-; ## "then"  auto  ANS core
-        ; """http://forth-standard.org/standard/core/THEN
-        ; This is a dummy entry, the code is shared with xt_else
-        ; """
-
-
-
 ; ## TICK ( "name" -- xt ) "Return a word's execution token (xt)"
 ; ## "'"  auto  ANS core
         ; """https://forth-standard.org/standard/core/Tick"""
 
 xt_tick:
+w_tick:
                 jsr w_parse_name       ; ( -- addr u )
 
                 ; if we got a zero, there was a problem getting the
@@ -5814,7 +5880,7 @@ z_tick:         rts
 
 
 
-; ## TO ( n "name" -- ) or ( "name") "Change a value"
+; ## TO ( n "name" -- ) or ( "name" ) "Change a value"
 ; ## "to"  auto  ANS core ext
         ; """https://forth-standard.org/standard/core/TO
         ; Gives a new value to a, uh, VALUE.
@@ -5834,6 +5900,7 @@ z_tick:         rts
         ; """
 
 xt_to:
+w_to:
                 ; One way or the other, we need the xt of the word after this
                 ; one. At this point, we don't know if we are interpreted or
                 ; compile, so we don't know if there is a value n on the stack,
@@ -5867,8 +5934,8 @@ xt_to:
 
                 jsr w_literal      ; generate the runtime for LITERAL tmp1
 
-                ldy #>xt_store      ; write the runtime for !
-                lda #<xt_store
+                ldy #>w_store      ; write the runtime for !
+                lda #<w_store
                 jsr cmpl_subroutine
 
                 bra _done
@@ -5916,7 +5983,7 @@ z_to:           rts
 
 xt_to_body:
                 jsr underflow_1
-
+w_to_body:
                 ; Ideally, xt already points to the CFA. We just need to check
                 ; the HC flag for special cases
                 jsr w_dup              ; ( xt xt )
@@ -5949,6 +6016,7 @@ z_to_body:      rts
 ; ## TO_IN ( -- addr ) "Return address of the input pointer"
 ; ## ">in"  auto  ANS core
 xt_to_in:
+w_to_in:
                 dex
                 dex
 
@@ -5999,7 +6067,7 @@ z_to_in:        rts
 
 xt_to_number:
                 jsr underflow_4
-
+w_to_number:
                 ; Fill the scratchpad. We arrive with ( ud-lo ud-hi addr u ).
                 ; After this step, the original ud-lo and ud-hi will still be on
                 ; the Data Stack, but will be ignored and later overwritten
@@ -6154,6 +6222,7 @@ z_to_number:    rts
         ; word.
         ; """
 xt_to_r:
+                ; we can't strip underflow here due to the stack prologue
 w_to_r:
                 ; --- START FOR JSR (save return address + 1) ---
 
@@ -6190,6 +6259,7 @@ z_to_r:         jmp (tmp1)
 ; ## "true"  auto  ANS core ext
         ; """https://forth-standard.org/standard/core/TRUE"""
 xt_true:
+w_true:
                 dex
                 dex
                 lda #$FF
@@ -6204,7 +6274,7 @@ z_true:         rts
         ; """https://forth-standard.org/standard/core/TUCK"""
 xt_tuck:
                 jsr underflow_2
-
+w_tuck:
                 dex
                 dex
 
@@ -6229,7 +6299,7 @@ z_tuck:         rts
         ; """https://forth-standard.org/standard/core/TwoDROP"""
 xt_two_drop:
                 jsr underflow_2
-
+w_two_drop:
                 inx
                 inx
                 inx
@@ -6244,7 +6314,7 @@ z_two_drop:     rts
         ; """https://forth-standard.org/standard/core/TwoDUP"""
 xt_two_dup:
                 jsr underflow_2
-
+w_two_dup:
                 dex
                 dex
                 dex
@@ -6272,7 +6342,7 @@ z_two_dup:      rts
         ; """
 xt_two_fetch:
                 jsr underflow_1
-
+w_two_fetch:
                 lda 0,x
                 sta tmp1
                 ldy 1,x
@@ -6302,7 +6372,7 @@ z_two_fetch:    rts
         ; """https://forth-standard.org/standard/core/TwoOVER"""
 xt_two_over:
                 jsr underflow_4
-
+w_two_over:
                 dex
                 dex
                 dex
@@ -6336,6 +6406,8 @@ z_two_over:     rts
         ; see if an Always Native version would be better
         ; """
 xt_two_r_fetch:
+                ; we can't strip underflow here due to the stack prologue
+w_two_r_fetch:
                 ; --- START FOR JSR (save return address + 1) ---
 
                 pla                     ; LSB
@@ -6384,6 +6456,8 @@ z_two_r_fetch:  jmp (tmp1)
         ; Native compile needs to be handled as a special case.
         ; """
 xt_two_r_from:
+                ; we can't strip underflow here due to the stack prologue
+w_two_r_from:
                 ; --- START FOR JSR (save return address + 1) ---
 
                 pla                     ; LSB
@@ -6425,7 +6499,7 @@ z_two_r_from:   jmp (tmp1)
         ; """https://forth-standard.org/standard/core/TwoDiv"""
 xt_two_slash:
                 jsr underflow_1
-
+w_two_slash:
                 ; We can't just LSR the LSB and ROR the MSB because that
                 ; would do bad things to the sign
                 lda 1,x
@@ -6446,7 +6520,8 @@ z_two_slash:    rts
 xt_two_star:
 xt_cells:
                 jsr underflow_1
-
+w_two_star:
+w_cells:
                 asl 0,x
                 rol 1,x
 z_cells:
@@ -6462,7 +6537,7 @@ z_two_star:     rts
         ; """
 xt_two_store:
                 jsr underflow_3
-
+w_two_store:
                 lda 0,x
                 sta tmp1
                 ldy 1,x
@@ -6497,7 +6572,7 @@ z_two_store:    rts
         ; """https://forth-standard.org/standard/core/TwoSWAP"""
 xt_two_swap:
                 jsr underflow_4
-
+w_two_swap:
                 ; 0 <-> 4
                 lda 0,x
                 ldy 4,x
@@ -6537,6 +6612,8 @@ z_two_swap:     rts
         ; special routines.
         ; """
 xt_two_to_r:
+                ; we can't strip underflow here due to the stack prologue
+w_two_to_r:
                 ; --- START FOR JSR (save return address + 1) ---
 
                 pla                     ; LSB
@@ -6630,7 +6707,7 @@ z_type:         rts
         ; """
 xt_u_dot:
                 jsr underflow_1
-
+w_u_dot:
                 jsr print_u
                 lda #AscSP
                 jsr emit_a
@@ -6643,7 +6720,7 @@ z_u_dot:        rts
         ; """https://forth-standard.org/standard/core/UDotR"""
 xt_u_dot_r:
                 jsr underflow_2
-
+w_u_dot_r:
                 jsr w_to_r
                 jsr w_zero
                 jsr w_less_number_sign
@@ -6663,7 +6740,7 @@ z_u_dot_r:      rts
         ; """https://forth-standard.org/standard/core/Umore"""
 xt_u_greater_than:
                 jsr underflow_2
-
+w_u_greater_than:
                 lda 0,x
                 cmp 2,x
                 lda 1,x
@@ -6684,7 +6761,7 @@ z_u_greater_than:    rts
         ; """https://forth-standard.org/standard/core/Uless"""
 xt_u_less_than:
                 jsr underflow_2
-
+w_u_less_than:
                 lda 2,x
                 cmp 0,x
                 lda 3,x
@@ -6796,7 +6873,7 @@ z_um_slash_mod: rts
 
 xt_um_star:
                 jsr underflow_2
-
+w_um_star:
                 ; to eliminate clc inside the loop, the value at
                 ; tmp1 is reduced by 1 in advance
                 clc
@@ -6858,6 +6935,7 @@ z_um_star:      rts
 ; ## "unloop"  auto  ANS core
         ; """https://forth-standard.org/standard/core/UNLOOP"""
 xt_unloop:
+w_unloop:
                 ; This is used as an epliogue to each LOOP/+LOOP
                 ; as well as prior to EXIT'ng a loop
                 ; We need to drop the current loop control block
@@ -6881,6 +6959,8 @@ z_unloop:       rts
 ; ## "until"  auto  ANS core
         ; """http://forth-standard.org/standard/core/UNTIL"""
 xt_until:
+                jsr underflow_1
+w_until:
                 ; The address to loop back to is on the stack.
                 jsr cmpl_0branch_tos
 
@@ -6895,6 +6975,7 @@ z_until:        rts
         ; defaults to $400
         ; """
 xt_unused:
+w_unused:
                 dex
                 dex
 
@@ -6928,6 +7009,7 @@ z_unused:       rts
         ; second one so the variable is initialized to zero
         ; """
 xt_variable:
+w_variable:
                 ; we let CREATE do the heavy lifting
                 jsr w_create
 
@@ -6955,6 +7037,8 @@ z_variable:     rts
 ; ## "while"  auto  ANS core
         ; """http://forth-standard.org/standard/core/WHILE"""
 xt_while:
+                jsr underflow_1
+w_while:
                 jsr cmpl_0branch_later          ; branch to location we'll determine later
                 ; tuck the address of the branch placeholder under the repeat address left by begin
                 jsr w_swap
@@ -6974,7 +7058,7 @@ z_while:        rts
         ; """"
 xt_within:
                 jsr underflow_3
-
+w_within:
                 jsr w_over
                 jsr w_minus
                 jsr w_to_r
@@ -7004,7 +7088,7 @@ z_within:       rts
 
 xt_word:
                 jsr underflow_1
-
+w_word:
                 ; Skip over leading delimiters - this is like PARSE-NAME,
                 ; but unlike PARSE
                 ldy toin                ; >IN
@@ -7065,7 +7149,7 @@ z_word:         rts
         ; """https://forth-standard.org/standard/core/XOR"""
 xt_xor:
                 jsr underflow_2
-
+w_xor:
                 lda 0,x
                 eor 2,x
                 sta 2,x
@@ -7087,7 +7171,7 @@ z_xor:          rts
 
 xt_zero_equal:
                 jsr underflow_1
-
+w_zero_equal:
                 lda 0,x
                 ora 1,x
                 beq _zero       ; if 0, A is inverse of the TRUE (-1) we want
@@ -7107,7 +7191,7 @@ z_zero_equal:   rts
 
 xt_zero_greater:
                 jsr underflow_1
-
+w_zero_greater:
                 ldy #0          ; Default is FALSE (TOS is negative)
 
                 lda 1,x         ; MSB
@@ -7131,7 +7215,7 @@ z_zero_greater: rts
 
 xt_zero_less:
                 jsr underflow_1
-
+w_zero_less:
                 ldy #0          ; Default is FALSE (TOS positive)
 
                 lda 1,x         ; MSB
@@ -7153,7 +7237,7 @@ z_zero_less:    rts
 
 xt_zero_unequal:
                 jsr underflow_1
-
+w_zero_unequal:
                 lda 0,x
                 ora 1,x
                 beq _zero

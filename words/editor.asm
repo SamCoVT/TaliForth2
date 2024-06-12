@@ -5,16 +5,18 @@
 ; to get a buffer for the given screen number and set SCR to
 ; the given screen number.  This word is not in the dictionary.
 xt_editor_screen_helper:
+w_editor_screen_helper:
                 jsr w_dup
                 jsr w_scr
                 jsr w_store
-                jmp xt_buffer
+                jmp w_buffer
 
 
 ; ## EDITOR_ENTER_SCREEN ( scr# -- ) "Enter all lines for given screen"
 ; ## "enter-screen"  auto  Tali Editor
 
 xt_editor_enter_screen:
+w_editor_enter_screen:
                 ; Set the variable SCR and get a buffer for the
                 ; given screen number.
                 jsr w_editor_screen_helper
@@ -49,6 +51,7 @@ z_editor_enter_screen:
 ; ## EDITOR_ERASE_SCREEN ( scr# -- ) "Erase all lines for given screen"
 ; ## "erase-screen"  tested  Tali Editor
 xt_editor_erase_screen:
+w_editor_erase_screen:
                 ; Set the variable SCR and get a buffer for the
                 ; given screen number.
                 jsr w_editor_screen_helper
@@ -74,6 +77,7 @@ z_editor_erase_screen:
 ; ## EDITOR_EL ( line# -- ) "Erase the given line number"
 ; ## "el"  tested  Tali Editor
 xt_editor_el:
+w_editor_el:
                 ; Turn the line number into buffer offset.
                 ; This also loads the block into the buffer if it's
                 ; not there for some reason.
@@ -101,6 +105,7 @@ z_editor_el:    rts
 ; note "l" is used by LIST in the block words
 
 xt_editor_l:
+w_editor_l:
                 ; Load the current screen
                 dex             ; Put SCR on the stack.
                 dex
@@ -199,7 +204,7 @@ z_editor_l:            rts
 
 xt_editor_line:
                 jsr underflow_1
-
+w_editor_line:
                 ; Multiply the TOS by 64 (chars/line) to compute offset.
                 ldy #6          ; *64 is same as left shift 6 times.
 _shift_tos_left:
@@ -223,6 +228,8 @@ z_editor_line:  rts
 ; ## EDITOR_O ( line# -- ) "Overwrite the given line"
 ; ## "o"  tested  Tali Editor
 xt_editor_o:
+                jsr underflow_1
+w_editor_o:
                 ; Print prompt
                 jsr w_cr
                 jsr w_dup
@@ -246,7 +253,7 @@ xt_editor_o:
                 ; Fill the rest with spaces.
                 ; Stack is currently ( line_address numchars_from_accept )
                 jsr w_dup
-                jsr w_not_rote ; -rot
+                jsr w_not_rot ; -rot
                 jsr w_plus
                 dex
                 dex

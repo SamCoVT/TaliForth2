@@ -260,7 +260,7 @@ cmpl_jump_tos:
     ; compile a jump to the address at TOS, consuming it
                 lda #OpJMP
                 jsr cmpl_a
-                jmp xt_comma
+                jmp w_comma
 
 
 cmpl_jump_later:
@@ -320,7 +320,7 @@ cmpl_0branch_tos:
                 lda #<zero_branch_runtime
                 jsr cmpl_subroutine             ; call the 0branch runtime
 
-                jmp xt_comma                    ; add the payload and return
+                jmp w_comma                    ; add the payload and return
 
 _inline:
                 ; inline the test code

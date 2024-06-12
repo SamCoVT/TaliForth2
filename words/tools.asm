@@ -2,6 +2,7 @@
 ; ## "bye"  tested  ANS tools ext
         ; """https://forth-standard.org/standard/tools/BYE"""
 xt_bye:
+w_bye:
                 ; Use the kernel_bye routine provided in the platform
                 ; file.  For simulators, this is traditionally just a
                 ; brk instruction, but platforms with another OS can
@@ -23,6 +24,7 @@ z_bye:
         ; """
 
 xt_dot_s:
+w_dot_s:
                 jsr w_depth    ; ( -- u )
 
                 ; Print stack depth in brackets
@@ -102,7 +104,7 @@ z_dot_s:        rts
 
 xt_dump:
                 jsr underflow_2
-_row:
+w_dump:
                 ; start counter for 16 numbers per row
                 ldy #16
 
@@ -170,7 +172,7 @@ _counter:
                 jsr w_space
                 jsr dump_print_ascii
 
-                bra _row                ; new row
+                bra w_dump                ; new row
 
 _all_printed:
                 ; See if there are any ASCII characters in the buffer
@@ -222,7 +224,8 @@ _ascii_loop:
         ; save size and just go for the subroutine jumps
         ; """
 xt_question:
-                ; FETCH takes care of underflow check
+                jsr underflow_1
+w_question:
                 jsr w_fetch
                 jsr w_dot
 
@@ -239,6 +242,7 @@ z_question:     rts
         ; """
 
 xt_see:
+w_see:
                 jsr w_parse_name       ; ( addr u )
                 jsr w_find_name        ; ( nt | 0 )
 
@@ -344,6 +348,7 @@ z_see:          rts
         ; """
 
 xt_words:
+w_words:
                 ; we follow Gforth by starting on the next
                 ; line
                 jsr w_cr

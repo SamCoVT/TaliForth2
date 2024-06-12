@@ -32,7 +32,7 @@
         ; """
 xt_disasm:
                 jsr underflow_2
-
+w_disasm:
                 jsr disassembler
 
 z_disasm:       rts
@@ -338,7 +338,7 @@ _printing_done:
                 jmp _byte_loop          ; out of range for BRA
 _done:
                 ; Clean up and leave
-                jmp xt_two_drop         ; JSR/RTS
+                jmp w_two_drop         ; JSR/RTS
 
 
 ; Handlers for various special disassembled instructions:
@@ -479,7 +479,7 @@ _print_literal:
                 jsr w_one_plus
                 jsr w_swap ; (addr+2 u)
                 jsr w_one_minus
-                jmp xt_one_minus ; (addr+2 u-2)
+                jmp w_one_minus ; (addr+2 u-2)
 
 _print_2literal:
                 jsr w_swap

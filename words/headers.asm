@@ -96,7 +96,7 @@ dictionary_start:
 #def_nt r_fetch,        CO+ST, "r@"
 #def_nt nip,            UF
 #def_nt rot,            UF
-#def_nt not_rote,       UF, "-rot"
+#def_nt not_rot,        UF, "-rot"
 #def_nt tuck,           UF
 #def_nt comma,          UF, ","
 #def_nt c_fetch,        UF, "c@"
@@ -117,7 +117,7 @@ dictionary_start:
 #def_nt m_star_slash,   UF, "m*/"
 #def_nt ud_dot,         UF, "ud."
 #def_nt ud_dot_r,       UF, "ud.r"
-#def_nt question,       , "?"
+#def_nt question,       UF, "?"
 #def_nt false,          , "false"
 #def_nt true,           , "true"
 #def_nt space
@@ -196,7 +196,7 @@ dictionary_start:
 #def_nt d_to_s,         UF, "d>s"
 #def_nt d_minus,        UF, "d-"
 #def_nt d_plus,         UF, "d+"
-#def_nt erase                           ; underflow checked by FILL - TODO
+#def_nt erase,          UF
 #def_nt blank,          UF
 #def_nt fill,           UF
 #def_nt find_name,      UF, "find-name"
@@ -314,21 +314,21 @@ dictionary_start:
 #def_nt paren,          IM, "("
 #def_nt dot_paren,      IM, ".("
 #def_nt if,             IM+CO+NN
-#def_nt then,           IM+CO+NN
-#def_nt else,           IM+CO+NN
-#def_nt repeat,         IM+CO+NN
-#def_nt until,          IM+CO+NN
-#def_nt while,          IM+CO+NN
+#def_nt then,           UF+IM+CO+NN
+#def_nt else,           UF+IM+CO+NN
+#def_nt repeat,         UF+IM+CO+NN
+#def_nt until,          UF+IM+CO+NN
+#def_nt while,          UF+IM+CO+NN
 #def_nt case,           IM+CO+NN        ; shares code with ZERO
 #def_nt of,             IM+CO+NN
-#def_nt endof,          IM+CO+NN
-#def_nt endcase,        IM+CO+NN
-#def_nt defer_fetch,    , "defer@"
-#def_nt defer_store,    , "defer!"
-#def_nt is,             IM, "is"
+#def_nt endof,          UF+IM+CO+NN
+#def_nt endcase,        UF+IM+CO+NN
+#def_nt defer_fetch,    UF, "defer@"
+#def_nt defer_store,    UF, "defer!"
+#def_nt is,             IM
 #def_nt action_of,      IM, "action-of"
 #def_nt useraddr,       , "useraddr"
-#def_nt buffer_colon,   , "buffer:"
+#def_nt buffer_colon,   UF, "buffer:"
 
 .if "block" in TALI_OPTIONAL_WORDS
 #def_nt buffstatus
@@ -337,14 +337,14 @@ dictionary_start:
 #def_nt scr,            NN
 #def_nt blk,            NN
 ;TODO these mention HC but don't have the flag?
-#def_nt block_write,    NN, "block-write"       ; Deferred words need the HC (Code Field) flag.
+#def_nt block_write,    UF+NN, "block-write"    ; Deferred words need the HC (Code Field) flag.
 #def_nt block_write_vector, NN, "block-write-vector" ; Deferred words need the HC (Code Field) flag.
-#def_nt block_read,     HC+NN, "block-read"     ; Deferred words need the HC (Code Field) flag.
+#def_nt block_read,     UF+HC+NN, "block-read"  ; Deferred words need the HC (Code Field) flag.
 #def_nt block_read_vector, HC+NN, "block-read-vector" ; Deferred words need the HC (Code Field) flag.
 #def_nt save_buffers,   , "save-buffers"
-#def_nt block
+#def_nt block,          UF
 #def_nt update
-#def_nt buffer
+#def_nt buffer,         UF
 #def_nt empty_buffers,  , "empty-buffers"
 #def_nt flush
 #def_nt load,           UF
@@ -385,7 +385,7 @@ dictionary_start:
 #def_nt only
 #def_nt also
 #def_nt previous
-#def_nt to_order,       , ">order"
+#def_nt to_order,       UF, ">order"
 #def_nt order
 #def_nt forth
 .endif
@@ -421,7 +421,7 @@ root_dictionary_start:
 
 editor_dictionary_start:
 .if "editor" in TALI_OPTIONAL_WORDS && "block" in TALI_OPTIONAL_WORDS
-#def_nt editor_o,       , "o"
+#def_nt editor_o,       UF, "o"
 #def_nt editor_line,    UF, "line"
 #def_nt editor_l,       , "l"
 #def_nt editor_el,      , "el"

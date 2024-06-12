@@ -10,7 +10,7 @@
         ; """
 xt_cmove:
                 jsr underflow_3
-
+w_cmove:
                 ; move destination address to where we can work with it
                 lda 2,x
                 sta tmp2        ; use tmp2 because easier to remember
@@ -69,7 +69,7 @@ z_cmove:        rts
         ; """
 xt_cmove_up:
                 jsr underflow_3
-
+w_cmove_up:
                 ; Move destination address to where we can work with it
                 lda 2,x
                 sta tmp2        ; use tmp2 because easier to remember
@@ -233,24 +233,22 @@ z_compare:      rts
 
 xt_minus_leading:
                 jsr underflow_2
-
-_loop:
+w_minus_leading:
                 ; Quit if we were given an empty string. This also terminates
                 ; the main loop
                 lda 0,x
                 ora 1,x
-                beq _done
+                beq z_minus_leading
 
                 lda (2,x)               ; get first character
                 jsr is_whitespace
-                bcc _done
+                bcc z_minus_leading
 
                 ; It's whitespace, move one down
                 jsr w_one              ; ( addr u 1 )
                 jsr w_slash_string     ; ( addr+ u-1 )
 
-                bra _loop
-_done:
+                bra w_minus_leading
 z_minus_leading:
                 rts
 
@@ -264,7 +262,7 @@ z_minus_leading:
 
 xt_minus_trailing:
                 jsr underflow_2
-
+w_minus_trailing:
                 ; if length entry is zero, return a zero and leave the
                 ; address part untouched
                 lda 0,x         ; LSB of n
@@ -337,7 +335,7 @@ z_minus_trailing:
 
 xt_search:
                 jsr underflow_4
-
+w_search:
                 ; ANS says if the second string is a zero-length string it
                 ; automatically matches.
                 lda 0,x
@@ -496,7 +494,7 @@ z_search:       rts
 
 xt_slash_string:
                 jsr underflow_3
-
+w_slash_string:
                 clc             ; 3OS+TOS
                 lda 0,x
                 adc 4,x
@@ -530,7 +528,7 @@ z_slash_string: rts
 
 xt_sliteral:
                 jsr underflow_2
-
+w_sliteral:
                 ; We can't assume that ( addr u ) of the current string is in
                 ; a stable area (eg. already in the dictionary.)
                 ; We'll compile the string data into the dictionary using move

@@ -27,6 +27,7 @@
 ;       use the 65c02 reset for that. Flows into ABORT.
 ;       """
 xt_cold:
+w_cold:
                 cld
 
                 ; Set the OUTPUT vector to the default kernel_putc
@@ -123,6 +124,7 @@ _load_user_vars_loop:
         ; actually delete the stuff on the Data Stack.
         ; """
 xt_abort:
+w_abort:
                 ldx #dsp0
 
                 ; fall through to QUIT
@@ -134,6 +136,7 @@ xt_abort:
         ; Rest the input and start command loop
         ; """
 xt_quit:
+w_quit:
                 ; Clear the Return Stack. This is a little screwed up
                 ; because the 65c02 can only set the Return Stack via X,
                 ; which is our Data Stack pointer. The ANS specification

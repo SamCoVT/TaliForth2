@@ -1,6 +1,7 @@
 ; ## ALLOW_NATIVE ( -- ) "Flag last word to allow native compiling"
 ; ## "allow-native"  auto  Tali Forth
 xt_allow_native:
+w_allow_native:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -14,6 +15,7 @@ z_allow_native:
 ; ## ALWAYS_NATIVE ( -- ) "Flag last word as always natively compiled"
 ; ## "always-native"  auto  Tali Forth
 xt_always_native:
+w_always_native:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -28,6 +30,7 @@ z_always_native:
 ; ## BELL ( -- ) "Emit ASCII BELL"
 ; ## "bell"  tested  Tali Forth
 xt_bell:
+w_bell:
                 lda #7          ; ASCII value for BELl
                 jsr emit_a
 
@@ -44,7 +47,7 @@ z_bell:         rts
         ; """
 xt_bounds:
                 jsr underflow_2
-
+w_bounds:
                 clc
                 lda 0,x                 ; LSB u
                 ldy 2,x                 ; LSB addr
@@ -161,7 +164,7 @@ z_cleave:       rts
 
 xt_digit_question:
                 jsr underflow_1
-
+w_digit_question:
                 ; one way or another, we're going to need room for the
                 ; flag on the stack
                 dex
@@ -233,9 +236,9 @@ z_digit_question:
         ; """
 xt_execute_parsing:
                 jsr underflow_3
-
+w_execute_parsing:
                 jsr w_input_to_r       ; save normal input for later
-                jsr w_not_rote         ; -ROT ( xt addr u )
+                jsr w_not_rot         ; -ROT ( xt addr u )
 
                 lda 0,x                 ; TOS is new ciblen
                 sta ciblen
@@ -262,8 +265,6 @@ z_execute_parsing:
 
 ; ## FIND_NAME ( addr u -- nt|0 ) "Get the name token of input word"
 ; ## "find-name"  auto  Gforth
-
-xt_find_name:
         ; """www.complang.tuwien.ac.at/forth/gforth/Docs-html/Name-token.html
         ; Given a string, find the Name Token (nt) of a word or return
         ; zero if the word is not in the dictionary. We use this instead of
@@ -273,8 +274,9 @@ xt_find_name:
         ; https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Name-token.html
         ; FIND calls this word
         ; """
+xt_find_name:
                 jsr underflow_2
-
+w_find_name:
                 ; check for special case of an empty string (length zero)
                 lda 0,x
                 ora 1,x
@@ -345,6 +347,7 @@ z_find_name:    rts
 ; ## "havekey" tested Tali Forth
 
 xt_havekey:
+w_havekey:
                 dex
                 dex
                 lda #<havekey
@@ -365,7 +368,7 @@ z_havekey:      rts
 
 xt_hexstore:
                 jsr underflow_3
-
+w_hexstore:
                 jsr w_dup              ; Save copy of original address
                 jsr w_two_to_r         ; ( addr1 u1 ) ( R: addr2 addr2 )
 
@@ -433,6 +436,7 @@ z_hexstore:     rts
 ; ## "input" tested Tali Forth
 
 xt_input:
+w_input:
                 dex
                 dex
                 lda #<input
@@ -466,6 +470,7 @@ z_input:        rts
         ; """
 
 xt_input_to_r:
+w_input_to_r:
                 ; We arrive here with the return address on the top of the
                 ; 65c02's stack. We need to move it out of the way first
                 pla
@@ -502,7 +507,7 @@ z_input_to_r: 	rts
 
 xt_int_to_name:
                 jsr underflow_1
-
+w_int_to_name:
                 ; Unfortunately, to find the header, we have to walk through
                 ; all of the wordlists. We are running out of tmp variables.
                 ; (I'm assuming there is a reason this is avoiding tmp1) so
@@ -618,6 +623,7 @@ z_int_to_name:  rts
         ; The Gforth version of this word is called LATEST
         ; """
 xt_latestnt:
+w_latestnt:
                 dex
                 dex
 
@@ -635,6 +641,7 @@ z_latestnt:     rts
 ; ## "latestxt"  auto  Gforth
         ; """http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Anonymous-Definitions.html"""
 xt_latestxt:
+w_latestxt:
                 jsr w_latestnt         ; ( nt )
                 jsr w_name_to_int      ; ( xt )
 
@@ -650,7 +657,7 @@ z_latestxt:     rts
 
 xt_name_to_int:
                 jsr underflow_1
-
+w_name_to_int:
                 ; The xt starts four bytes down from the nt
                 lda 0,x
                 clc
@@ -680,7 +687,7 @@ z_name_to_int:  rts
 
 xt_name_to_string:
                 jsr underflow_1
-
+w_name_to_string:
                 dex
                 dex
 
@@ -706,6 +713,7 @@ z_name_to_string:
 ; ## "nc-limit"  tested  Tali Forth
 
 xt_nc_limit:
+w_nc_limit:
                 lda #nc_limit_offset
                 jmp push_upvar_tos
 z_nc_limit:
@@ -715,6 +723,7 @@ z_nc_limit:
 ; ## NEVER_NATIVE ( -- ) "Flag last word as never natively compiled"
 ; ## "never-native"  auto  Tali Forth
 xt_never_native:
+w_never_native:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -726,13 +735,13 @@ z_never_native:
 
 
 
-; ## NOT_ROTE ( a b c -- c a b ) "Rotate upwards"
+; ## not_rot ( a b c -- c a b ) "Rotate upwards"
 ; ## "-rot"  auto  Gforth
         ; """http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Data-stack.html"""
 
-xt_not_rote:
+xt_not_rot:
                 jsr underflow_3
-w_not_rote:
+w_not_rot:
                 ldy 1,x         ; MSB first
                 lda 3,x
                 sta 1,x
@@ -749,7 +758,7 @@ w_not_rote:
                 sta 2,x
                 sty 4,x
 
-z_not_rote:     rts
+z_not_rot     rts
 
 
 
@@ -773,7 +782,7 @@ z_not_rote:     rts
 
 xt_number:
                 jsr underflow_2
-
+w_number:
                 ; we keep the flags for sign and double in tmpdsp because
                 ; we've run out of temporary variables
                 ; sign will be the sign bit, and double will be bit 1
@@ -1009,6 +1018,9 @@ z_number:       rts
         ; """This is also the code for EDITOR-WORDLIST"""
 xt_editor_wordlist:
 xt_one:
+
+w_editor_wordlist:
+w_one:
                 dex
                 dex
                 lda #1
@@ -1024,6 +1036,7 @@ z_one:
 ; ## OUTPUT ( -- addr ) "Return the address of the EMIT vector address"
 ; ## "output"  tested  Tali Forth
 xt_output:
+w_output:
         ; """Return the address where the jump target for EMIT is stored (but
         ; not the vector itself). By default, this will hold the value of
         ; kernel_putc routine, but this can be changed by the user, hence this
@@ -1049,7 +1062,7 @@ z_output:       rts
         ; """
 
 xt_r_to_input:
-
+w_r_to_input:
                 ; We arrive here with the return address on the top of the
                 ; 65c02's stack. We need to move it out of the way first
                 pla
@@ -1086,6 +1099,7 @@ z_r_to_input: 	rts
         ; Default is false.
         ; """
 xt_strip_underflow:
+w_strip_underflow:
                 lda #uf_strip_offset
                 jmp push_upvar_tos
 z_strip_underflow:
@@ -1098,6 +1112,8 @@ z_strip_underflow:
         ; This code is shared with ASSEMBLER-WORDLIST
 xt_assembler_wordlist:
 xt_two:
+w_assembler_wordlist:
+w_two:
                 dex
                 dex
                 lda #2
@@ -1112,6 +1128,7 @@ z_two:          rts
 ; ## USERADDR ( -- addr ) "Push address of base address of user variables"
 ; ## "useraddr"  tested  Tali Forth
 xt_useraddr:
+w_useraddr:
                 dex
                 dex
                 lda #<up
@@ -1131,7 +1148,7 @@ z_useraddr:     rts
         ; """
 xt_wordsize:
                 jsr underflow_1
-
+w_wordsize:
                 ; We get the start address of the word from its header entry
                 ; for the start of the actual code (execution token, xt)
                 ; which is four bytes down, and the pointer to the end of the
@@ -1171,6 +1188,10 @@ xt_case:
 xt_false:
 xt_forth_wordlist:
 xt_zero:
+
+w_case:
+w_false:
+w_forth_wordlist:
 w_zero:
                 dex             ; push
                 dex
