@@ -336,7 +336,7 @@ dictionary_start:
 #def_nt blkbuffer
 #def_nt scr,            NN
 #def_nt blk,            NN
-;TODO these mention HC but don't have the flag?
+;TODO these mention HC but don't have the flag?  or is the HC wrong in block_read* ?
 #def_nt block_write,    UF+NN, "block-write"    ; Deferred words need the HC (Code Field) flag.
 #def_nt block_write_vector, NN, "block-write-vector" ; Deferred words need the HC (Code Field) flag.
 #def_nt block_read,     UF+HC+NN, "block-read"  ; Deferred words need the HC (Code Field) flag.
