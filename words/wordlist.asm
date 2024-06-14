@@ -427,7 +427,7 @@ z_set_current:  rts
         ; """https://forth-standard.org/standard/search/SET-ORDER"""
 
 xt_set_order:
-                ;TODO underflow is complicated here
+                ;TODO underflow is complicated here so we skip it for now
 w_set_order:
                 ; Test for -1 TOS
                 lda #$FF
