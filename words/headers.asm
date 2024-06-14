@@ -71,7 +71,6 @@
 def_nt .macro label, flags=0, name="", last=false
     _s := \name ? \name : str(.\label)
 
-;TODO    .cwarn z_\label - xt_\label > 255, format("%s len %d", str(.\label), z_\label - xt_\label)
     .byte len(_s), \flags
     .word \last ? 0 : +, xt_\label, z_\label
     .text _s
