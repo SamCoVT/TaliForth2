@@ -5541,7 +5541,7 @@ w_slash:
                 bra slashmod_common
 
 xt_slash_mod:
-                jsr_underflow_2
+                jsr underflow_2
 w_slash_mod:
                 ; Note that /MOD accesses this code
                 lda #$FF
