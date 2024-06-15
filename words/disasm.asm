@@ -9,7 +9,7 @@
 ;
 ;       disasm ( addr x -- )
 
-; The underflow checking is handled by the word's stub in native_words.asm, see
+; The underflow checking is handled by the word's stub in words/*.asm, see
 ; there for more information.
 
 ; The code is disassembled in Simpler Assembler Notation (SAN), because that

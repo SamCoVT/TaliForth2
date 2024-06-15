@@ -156,7 +156,7 @@ to find that word.
 ==== Structure of the Header List
 
 Tali Forth distinguishes between three different word sources: The **native
-words** that are hard-coded in the file `native_words.asm`, the **Forth words**
+words** that are hard-coded in the `words/*.asm` files, the **Forth words**
 from `forth_words.asm` which are defined as high-level words and then generated
 at run-time when Tali Forth starts up, and **user words** in the file
 `user_words.asm`.

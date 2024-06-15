@@ -87,8 +87,8 @@ During development, Tali Forth tends to follow a sequence of steps for new words
   the test does.
 
 * In a further step, if appropriate, convert the word to
-  assembler. This requires adding an entry to `headers.asm` and the
-  code itself to `native_words.asm`.  In this first step, it will
+  assembler. This requires adding an entry to `words/headers.asm` and the
+  code itself to one of the files in `words/*.asm`.  In this first step, it will
   usually be a simple 1:1 sequence of `jsr` subroutine jumps to the
   existing native Forth words.  Some special consideration is needed
   for immediate words, postponed words and the word `does>` (see the
@@ -192,15 +192,17 @@ with examples.  Take each word in the definition, determine which type of word
 it is, and then follow the steps outlined below for that word type.
 
 Once the word has been converted, a dictionary header needs to be added for it
-in headers.asm.  This process is covered in detail at the end of this section.
+in words/headers.asm.  This process is covered in detail at the end of this section.
 
 ==== Processing Regular (Non-Immediate) Words
 
 If the definition word you are processing is not immediate (you can check this
 with `see`, eg. `see dup` and make sure the IM flag is 0) then it just
-translates into a JSR to the xt (execution token) of that word.  The xt is just
-a label that begins with `xt_` followed by the name (spelled out, in the case of
-numbers and symbols) of the word.
+translates into a JSR to the native code implementing the xt (execution token) of that word.
+Most words have an external entrypoint which begins with `xt_` followed by the name
+(spelled out, in the case of numbers and symbols) of the word.   Once your
+word is properly tested you can opt to use the internal entrypoint which replaces `xt_`
+with `w_` (for "word") and skips underflow checks.
 
 As an example, let's turn the following definition into assembly:
 
@@ -212,26 +214,28 @@ Translates into:
 ; ## GETSTATE ( -- n ) "Get the current state"
 ; ## "getstate" coded Custom
 xt_getstate:
-                jsr xt_state
-                jsr xt_fetch ; @ is pronounced "fetch" in Forth.
+w_getstate:     ; no underflow check so w_ entrypoint is the same as xt_
+                jsr w_state
+                jsr w_fetch ; @ is pronounced "fetch" in Forth.
 z_getstate:
                 rts
 ----
 
-The above code would be added to native_words.asm, probably right after
-get-order.  native_words.asm is roughly in alphabetical order with a few odd
+The above code could be added to words/wordlist.asm, probably right after
+get-order.  Each file in words/*.asm groups related words,
+and each is roughly in alphabetical order by word name with a few exceptions for
 words that need to be close to each other.
 
 The header above the code is in a special format used to track where words come
 from and their current status.  It is parsed by a tool that helps to track
 information about the words, so the format (including the ##s) is important.
 The first line has the name (which is uppercase, but needs to match whatever
-comes after the xt_ and z_ in the labels below it), the input and output stack
+comes after the xt_, w_ and z_ in the labels below it), the input and output stack
 parameters in standard Forth format, and a string that has a short description
 of what the word does.  The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.)  See the top of native_words.asm for more information on the
+Gforth, etc.)  See the top of words/headers.asm for more information on the
 status field, but "coded" is likely to be the right choice until you've
 thoroughly tested your new word.
 
@@ -249,12 +253,13 @@ Forth word, the dash "-" symbol is not allowed in the label (the assembler will
 try to do subtraction), so it is replaced with an underscore anywhere it is
 used.  The one and only RTS should be right after the z_xxxx label.  If you need
 to return early in your word, put a `_done:` label just before the z_xxxx label
-and branch to that.
+and branch to that.  The w_xxxx label should be immediately after the `jsr underflow_n`
+check if your word has one, otherwise it should coincide with the xt_xxxx label.
 
 You can see that the body is just a sequence of JSRs calling each existing word
-in turn.  If you aren't sure of the xt_xxxx name of a forth word, you can search
-native_words.asm for the Forth word (in lowercase) in double quotes and you will
-find it in the header for that word.  `xt_fetch`, above, could be found by
+in turn.  If you aren't sure of the w_xxxx name of a forth word, you can search
+words/*.asm for the Forth word (in lowercase) in double quotes and you will
+find it in the header for that word.  `w_fetch`, above, could be found by
 searching for "@" (including the quotes) if you didn't know its name.
 
 ==== Processing Immediate Words
@@ -280,21 +285,22 @@ will need to be replaced with the final result, which is code to put a * on the
 stack.  Checking emit shows that it's a normal (non-immediate) word and will be
 translated into assembly as a JSR.
 
-When we go to add our word to native_words.asm, we discover that the name
-xt_star is already in use (for the multiplication word `*`), so this will show how
-to deal with that complication as well.
+When we go to add our word, we discover that the name
+xt_star is already in use (for the multiplication word `*` in words/core.asm),
+so this will show how to deal with that complication as well.
 
 ----
 ; ## STAR_WORD ( -- ) "Print a * on the screen"
 ; ## "star" coded Custom
 xt_star_word:
+w_star_word
                 ; Put a * character on the stack.
                 dex             ; Make room on the data stack.
                 dex
                 lda #42         ; * is ASCII character 42.
                 sta 0,x         ; Store in low byte of stack cell.
                 stz 1,x         ; high byte is zeroed for characters.
-                jsr xt_emit     ; Print the character to the screen.
+                jsr w_emit      ; Print the character to the screen.
 z_star_word:
                 rts
 ----
@@ -341,7 +347,7 @@ and xt_fetch, it will be much faster to look in the state variable directly in
 assembly.  You can find all of the names of internal Tali variables in
 definitions.asm.
 
-The assembly version of this (which you can find in native_words.asm as this is
+The assembly version of this (which you can find in words/core.asm as this is
 the actual assembly definition of this word) is:
 
 ----
@@ -349,6 +355,7 @@ the actual assembly definition of this word) is:
 ; ## "is"  auto  ANS core ext
         ; """http://forth-standard.org/standard/core/IS"""
 xt_is:
+w_is:
                 ; This is a state aware word with different behavior
                 ; when used while compiling vs interpreting.
                 ; Check STATE
@@ -358,16 +365,16 @@ xt_is:
 _compiling:
                 ; Run ['] to compile the xt of the next word
                 ; as a literal.
-                jsr xt_bracket_tick
+                jsr w_bracket_tick
 
                 ; Postpone DEFER! by compiling a JSR to it.
-                ldy #>xt_defer_store
-                lda #<xt_defer_store
+                ldy #>w_defer_store
+                lda #<w_defer_store
                 jsr cmpl_subroutine
                 bra _done
 _interpreting:
-                jsr xt_tick
-                jsr xt_defer_store
+                jsr w_tick
+                jsr w_defer_store
 _done:
 z_is:           rts
 ----
@@ -424,7 +431,7 @@ bignum d.
 
 The . at the end of the number makes it a double-cell (32-bit on Tali) number.
 
-The assembly code for `2CONSTANT` (taken from native_words.asm) looks like:
+The assembly code for `2CONSTANT` (taken from words/double.asm) looks like:
 ----
 ; ## TWO_CONSTANT (C: d "name" -- ) ( -- d) "Create a constant for a double word"
 ; ## "2constant"  auto  ANS double
@@ -434,20 +441,20 @@ The assembly code for `2CONSTANT` (taken from native_words.asm) looks like:
         ; """
 xt_two_constant:
                 jsr underflow_2
-
-                jsr xt_create
-                jsr xt_swap
-                jsr xt_comma
-                jsr xt_comma
+w_two_constant:
+                jsr w_create
+                jsr w_swap
+                jsr w_comma
+                jsr w_comma
 
                 jsr does_runtime    ; does> turns into these two routines.
                 jsr dodoes
 
-                jsr xt_dup
-                jsr xt_fetch
-                jsr xt_swap
-                jsr xt_cell_plus
-                jsr xt_fetch
+                jsr w_dup
+                jsr w_fetch
+                jsr w_swap
+                jsr w_cell_plus
+                jsr w_fetch
 
 z_two_constant: rts
 ----
@@ -462,6 +469,8 @@ run, an error message will be printed and the rest of the word will not be run.
 
 This word takes a double-cell value on the stack, so underflow_2 was used.  The
 underflow check must be the first line in your word.
+Note the internal w_two_constant entrypoint is placed after the underflow check.
+This speeds up other native words that use 2constant.
 
 All of the other words other than `does>` in this definition are regular words,
 so they just turn into JSRs.  The word `does>` turns into a `jsr does_runtime`
@@ -469,8 +478,8 @@ followed by a `jsr dodoes`.
 
 ==== Adding the Header in headers.asm
 
-Once your word has been entered into native_words.asm with the appropriate
-comment block over it and the xt_xxxx and z_xxxx labels for the entry and exit
+Once your word has been entered into one of the words/*.asm files with the appropriate
+comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren't sure where to put your word, then

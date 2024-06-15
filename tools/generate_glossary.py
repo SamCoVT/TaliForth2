@@ -3,10 +3,10 @@
 # FILE        : generate_glossary.py
 # DATE        : 2019-01-01
 # DESCRIPTION : Generate the glossary for the manual for Tali Forth 2
-# from native_words.asm.
+# from words/*.asm.
 # Based on Scot W. Stevenson's generate_wordlist.py.
 """Creates an asciidoc formated glossary of words based on the header
-comments in native_words.asm.
+comments in words/*.asm.
 """
 
 from glob import glob

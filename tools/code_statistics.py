@@ -4,15 +4,15 @@
 # First version: 04. Nov 2018
 # This version: 04. Nov 2018
 """Takes a list of assembler files from the Tali Forth 2 project and
-calculates the frequence of opcodes used and other information. This
+calculates the frequency of opcodes used and other information. This
 is crude one-shot program and is not maintained.
 """
 import operator
-import sys
+from glob import glob
 
 # Sources are Ophis assembler files with lots of code, but not things that
 # definitions.asm with more data
-SOURCES = ['disassembler.asm', 'ed.asm', 'native_words.asm', 'taliforth.asm']
+SOURCES = set(glob('../words/*.asm')) - {'../words/headers.asm'}
 
 comments_count = 0
 directives_count = 0
@@ -25,21 +25,21 @@ found_opcodes = set()
 mnemonics = {}
 
 for src in SOURCES:
-    
+
     # We assume this file lives in the tools folder
-    with open('../'+src, 'r') as asm_file:
+    with open(src, 'r') as asm_file:
         lines = asm_file.readlines()
 
     for line in lines:
         lines_count += 1
 
         l = line.strip()
-        
+
         if l == '':
             continue
 
-        if l[0] == ';': 
-            comments_count +=1 
+        if l[0] == ';':
+            comments_count +=1
             continue
 
         if l[0] == '*':
