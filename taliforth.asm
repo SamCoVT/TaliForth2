@@ -50,7 +50,7 @@ user_words_start:
 .binary "user_words.asc"
 user_words_end:
 
-.include "headers.asm"          ; Headers of native words
+.include "words/headers.asm"          ; Headers of native words
 .include "strings.asm"          ; Strings, including error messages
 
 

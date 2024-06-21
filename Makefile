@@ -48,7 +48,7 @@ else
 	PYTHON = python3
 endif
 
-COMMON_SOURCES=taliforth.asm definitions.asm $(wildcard words/*.asm) headers.asm strings.asm forth_words.asc user_words.asc opcodes.asm
+COMMON_SOURCES=taliforth.asm definitions.asm $(wildcard words/*.asm) strings.asm forth_words.asc user_words.asc opcodes.asm
 TEST_SUITE=tests/core_a.fs tests/core_b.fs tests/core_c.fs tests/string.fs tests/double.fs \
     tests/facility.fs tests/ed.fs tests/asm.fs tests/tali.fs \
     tests/tools.fs tests/block.fs tests/search.fs tests/user.fs tests/cycles.fs
