@@ -422,10 +422,20 @@ void show_error(int error) {
 }
 
 
-/* set parsing a new line, settin the global cursor */
-void parse_start(char *src) {
+/* start parsing a new line, setting the global cursor and returning non-zero for non-empty string */
+int parse_start(char *src) {
+    char *p;
+
+    /* strip comments starting with ; along with any preceding spaces */
+    p = strpbrk(src, ";");
+    if (p) {
+        while (p > src && *(p-1) == ' ') p--;
+        *p = 0;
+    }
+
     cursor = src;
     parse_last = NULL;
+    return *src;
 }
 
 /* assert that we've finished the line (only whitespace remains) */

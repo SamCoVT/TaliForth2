@@ -411,7 +411,7 @@ _prefix_number:
                 inx                     ; 2DROP ( addr-t u-t 0 0 ud )
 
                 jsr w_d_to_s           ; D>S ( addr-t u-t 0 0 u )
-                jsr w_not_rote         ; -ROT ( addr-t u-t u 0 0 )
+                jsr w_not_rot          ; -ROT ( addr-t u-t u 0 0 )
 
                 inx
                 inx                     ; ( addr-t u-t u 0 ) drop through
@@ -489,7 +489,7 @@ _no_command_yet:
                 inx                     ; ( ... 0 0 ud addr2 u2 )
 
                 jsr w_to_r             ; >R ( ... 0 0 ud addr2 ) (R: u2)
-                jsr w_not_rote         ; -ROT ( ... 0 0 addr2 ud ) (R: u2)
+                jsr w_not_rot          ; -ROT ( ... 0 0 addr2 ud ) (R: u2)
                 jsr w_d_to_s           ; D>S  ( ... 0 0 addr2 para1 ) (R: u2)
 
                 lda 0,x                 ; LSB
@@ -1105,7 +1105,7 @@ ed_cmd_f:
                 jsr w_rot              ; ROT  ( u-t 0 addr-t ) ( R: 0 )
                 jsr w_dup              ; DUP  ( u-t 0 addr-t addr-t ) ( R: 0 )
                 jsr w_u_dot            ; U.   ( u-t 0 addr-t ) ( R: 0 )
-                jsr w_not_rote         ; -ROT ( addr-t u-t 0 ) ( R: 0 )
+                jsr w_not_rot          ; -ROT ( addr-t u-t 0 ) ( R: 0 )
                 jsr w_r_from           ; R>   ( addr-t u-t 0 0 )
 
                 bra _cmd_f_done
@@ -1399,7 +1399,7 @@ _cmd_w_loop:
                 jsr w_one_plus         ; 1+ ( addr-t addr-s addr1+1 ) (R: ... )
                 jsr w_one_plus         ; 1+ ( addr-t addr-s addr1+2 ) (R: ... )
                 jsr w_fetch            ; @ ( addr-t addr-s u-s ) ( R: ... )
-                jsr w_not_rote         ; -ROT ( u-s addr-t addr-s ) ( R: ... )
+                jsr w_not_rot          ; -ROT ( u-s addr-t addr-s ) ( R: ... )
                 jsr w_swap             ; SWAP ( u-s addr-s addr-t ) ( R: ... )
                 jsr w_rot              ; ROT (addr-s addr-t u-s ) ( R: ... )
 
@@ -1416,7 +1416,7 @@ _cmd_w_loop:
                 ; get the length of the string
                 jsr w_r_from           ; R> ( u-s )  ( R: addr-t addr-h addr-t )
                 jsr w_two_r_from       ; 2R> ( u-s addr-t addr-h ) ( R: addr-t )
-                jsr w_not_rote         ; -ROT ( addr-h u-s addr-t ) ( R: addr-t )
+                jsr w_not_rot          ; -ROT ( addr-h u-s addr-t ) ( R: addr-t )
                 jsr w_plus             ; + ( addr-h addr-t1 ) ( R: addr-t )
 
                 ; But wait, our strings are terminated by Line Feeds in

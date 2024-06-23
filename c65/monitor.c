@@ -756,15 +756,11 @@ Command _cmds[] = {
 
 Command *_repeat_cmd = NULL;
 
-void do_cmd(char *line) {
+void do_cmd() {
     char* p;
     Command *cmd;
     int i;
 
-    /* strip comments starting with ; */
-    p = strpbrk(line, ";");
-    if (p) *p = 0;
-    parse_start(line);
     p = parse_delim();
     if (!p) return;
 
@@ -845,13 +841,15 @@ void monitor_command() {
     }
 
     line = linenoise(prompt());
-    if(strlen(line)) {
+    if (!line) return;
+
+    if (parse_start(line)) {
         linenoiseHistoryAdd(line);
-        do_cmd(line);
-        free(line);
+        do_cmd();
     } else if (_repeat_cmd) {
         /* empty line can repeat some commands */
         _repeat_cmd->handler();
     }
+    free(line);
 }
 

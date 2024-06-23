@@ -252,7 +252,7 @@ w_editor_o:
                 ; Fill the rest with spaces.
                 ; Stack is currently ( line_address numchars_from_accept )
                 jsr w_dup
-                jsr w_not_rote ; -rot
+                jsr w_not_rot  ; -rot
                 jsr w_plus
                 dex
                 dex

@@ -3882,30 +3882,63 @@ z_not_equals:   rts
 xt_number_sign:
                 jsr underflow_2         ; double number
 w_number_sign:
-                jsr w_base
-                jsr w_fetch            ; ( ud1 base )
-
-                ; The following code is the ancient Forth word UD/MOD, which in
+                ; The following is based on the ancient Forth word UD/MOD, which in
                 ; various Forths (including Gforth) lives on under the hood,
                 ; even though it's not an ANS standard word, it doesn't appear
                 ; in the docs, it's only used here, and there are no tests for
                 ; it. This is why we got rid of it. We'll be converting this
                 ; mess to something more sane in the long run.
-                jsr w_to_r             ; >r
-                jsr w_zero             ; 0
-                jsr w_r_fetch          ; r@
-                jsr w_um_slash_mod     ; um/mod
-                jsr w_not_rote         ; rot rot
-                jsr w_r_from           ; r>
-                jsr w_um_slash_mod     ; um/mod
-                jsr w_not_rote         ; rot ( rem ud ) rot ( ud rem )
 
-                ; Convert the number that is left over to an ASCII character. We
-                ; use a string lookup for speed. Use either abc_str_lower for
-                ; lower case or abc_str_upper for upper case (prefered)
+                ; Imagine we have the double word ud = 2^16 u + v which we want to
+                ; write as qd m + r for some base m.  Let u = qu m + ru, with qu, ru
+                ; caculated in forth via `u 0 m um/mod`, meaning that
+                ; ud = 2^16 qu m + (2^16 ru + v).  Now write the "remainder" term
+                ; 2^16 ru + v as qv m + rv, again calculating qv, rv
+                ; in forth via `v ru m um/mod`.  (We know the quotient won't overflow
+                ; a single word because the high word ru < m.)  This leaves
+                ; ud = 2^16 qu m + qv m + rv = (2^16 qu + qv) m + rv
+                ; so that qd is the double word (qv, qu) and r is rv.
+
+                ; If, as is often the case, the most signficant word u is zero
+                ; then qu = ru = 0 and we can skip the first pass and
+                ; simply calculate v 0 m um/mod immediately.
+
+                dex                     ; inline w_zero
+                dex
+                stz 0,x
+                stz 1,x
+
+                ; use msb of base as a flag to loop twice
+                ; (we assume below base <= 36 so this is safe)
+                inc base+1
+
+                lda 2,x                 ; if msw is 0 we can skip the first pass
+                ora 3,x
+                beq _skip               ; enter with ( v 0 0 -rot -- 0 v 0 )
+
+_loop:
+                ; ( v u 0 ) on first pass, then ( qu v ru ) on second pass
+                dex                     ; inline `base @`
+                dex
+                lda base                ; base <= 36
+                sta 0,x
+                stz 1,x
+                jsr w_um_slash_mod      ; ( v u 0 base -- v ru qu )
+_skip:          jsr w_not_rot           ; ( qu v ru )
+                lsr base+1              ; 1 => 0 + C=1 => 0 + C=0
+                bcs _loop               ; run two passes
+
+                ; the second pass calculates:
+                ; base @ ( qu v ru base )
+                ; um/mod ( qu rv qv )
+                ; -rot   ( qv qu rv ) aka ( ud rem )
+
+                ; Convert the number that is left over to an ASCII character.
+                ; We use a string lookup for speed (assumes base <= 36).
+
                 lda 0,x
                 tay
-                lda s_abc_upper,y
+                lda s_abc_upper,y       ; upper case 0-9A-Z
                 sta 0,x
                 stz 1,x                 ; paranoid; now ( ud char )
 
@@ -4653,35 +4686,36 @@ z_question_dup: rts
         ; """
 xt_r_fetch:
 w_r_fetch:
-                ; get the return address
-                ply             ; LSB
-                sty tmp1
-                ply             ; MSB
+                ; --- START FOR JSR (save return address + 1) ---
 
-                ; --- CUT FOR NATIVE COMPILE (see strip_table: 4) ---
+                pla                     ; LSB
+                ply                     ; MSB
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+
+                ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
                 ; get the actual top of Return Stack
                 dex
                 dex
 
-                pla             ; LSB
-                sta 0,x
+                ply             ; LSB
+                sty 0,x
                 pla             ; MSB
                 sta 1,x
 
                 ; now we have to put that value back
                 pha
-                lda 0,x
-                pha
+                phy
 
                 ; --- CUT FOR NATIVE COMPILE ---
 
-                ; restore return value
-                phy             ; MSB
-                ldy tmp1
-                phy             ; LSB
+z_r_fetch:      jmp (tmp1)
 
-z_r_fetch:      rts
 
 
 
@@ -4695,17 +4729,20 @@ z_r_fetch:      rts
         ; differently for native and and subroutine compilation, see COMPILE,
         ; This is a compile-only word
         ; """
-
 xt_r_from:
 w_r_from:
-                ; Rescue the address of the return jump that is currently
-                ; on top of the Return Stack. If this word is natively
-                ; compiled, this is a total waste of time
-                pla             ; LSB
-                sta tmptos
-                ply             ; MSB
+                ; --- START FOR JSR (save return address + 1) ---
 
-                ; --- CUT FOR NATIVE CODING (see strip_table: 4) ---
+                pla                     ; LSB
+                ply                     ; MSB
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+
+                ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
                 dex
                 dex
@@ -4717,14 +4754,10 @@ w_r_from:
                 pla             ; MSB
                 sta 1,x
 
-                ; --- CUT FOR NATIVE CODING ---
+                ; --- CUT FOR NATIVE COMPILE ---
 
-                ; restore the return address
-                phy             ; MSB
-                lda tmptos
-                pha             ; LSB
+z_r_from:       jmp (tmp1)
 
-z_r_from:       rts
 
 
 
@@ -6193,18 +6226,24 @@ z_to_number:    rts
         ; word.
         ; """
 xt_to_r:
+                ; we can't avoid underflow check here due to the stack prologue
 w_to_r:
-                ; Save the return address. If this word is natively
-                ; coded, this is a complete waste of cycles, but
-                ; required for subroutine coding
-                pla             ; LSB
-                sta tmptos
-                ply             ; MSB
+                ; --- START FOR JSR (save return address + 1) ---
 
-                ; --- CUT HERE FOR NATIVE CODING (see strip_table: 4) ---
+                pla                     ; LSB
+                ply                     ; MSB
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+
+                ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
                 ; We check for underflow in the second step, so we can
                 ; strip off the stack thrashing for native compiling first
+
                 jsr underflow_1
 
                 ; now we can do the actual work
@@ -6216,14 +6255,9 @@ w_to_r:
                 inx
                 inx
 
-                ; --- CUT HERE FOR NATIVE CODING ---
+                ; --- CUT FOR NATIVE COMPILE ---
 
-                ; restore return address
-                phy             ; MSB
-                lda tmptos
-                pha             ; LSB
-
-z_to_r:         rts
+z_to_r:         jmp (tmp1)
 
 
 
@@ -6379,34 +6413,41 @@ z_two_over:     rts
         ; """
 xt_two_r_fetch:
 w_two_r_fetch:
-		; make room on the Data Stack
-                dex
-                dex
-                dex
-                dex
+                ; --- START FOR JSR (save return address + 1) ---
 
-                ; Get four bytes off of Return Stack. This assumes that
-                ; we took a subroutine jump here so the first two entries
-                ; are the return address
-                txa
+                pla                     ; LSB
+                ply                     ; MSB
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+
+                ; --- START FOR NATIVE COMPILE (via ST flag) ---
+
+                ; copy four bytes from return stack to the data stack
+
+                txa             ; arrange for Y = SP; X -= 4
                 tsx
                 phx             ; 65c02 has no TXY, so do it the hard way
                 ply
+                sec
+                sbc #4
                 tax
 
-                ; The Return Stack addreses $0101 and $0102 are occupied by
-                ; the return address for this word. This is a whole lot
-                ; easier on the 65816
-                lda $0103,y     ; LSB of top entry
+                lda $101,y
                 sta 0,x
-                lda $0104,y     ; MSB of top entry
+                lda $102,y
                 sta 1,x
-                lda $0105,y     ; LSB of bottom entry
+                lda $103,y
                 sta 2,x
-                lda $0106,y     ; MSB of top entry
+                lda $104,y
                 sta 3,x
 
-z_two_r_fetch:  rts
+                ; --- CUT FOR NATIVE COMPILE ---
+
+z_two_r_fetch:  jmp (tmp1)
 
 
 
@@ -6423,13 +6464,22 @@ z_two_r_fetch:  rts
         ; """
 xt_two_r_from:
 w_two_r_from:
-                ; save the return address
-                pla                     ; LSB
-                sta tmp1
-                pla                     ; MSB
-                sta tmp1+1
+                ; --- START FOR JSR (save return address + 1) ---
 
-                ; --- CUT HERE FOR NATIVE CODING (see strip_table: 6) ---
+                pla
+                ply                     ; MSB
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+
+                ; --- START FOR NATIVE COMPILE (via ST flag) ---
+
+                ; In theory, we should test for underflow on the Return
+                ; Stack. However, given the traffic there with an STC
+                ; Forth, that's probably not really useful
 
 		; make room on stack
                 dex
@@ -6437,11 +6487,6 @@ w_two_r_from:
                 dex
                 dex
 
-                ; In theory, we should test for underflow on the Return
-                ; Stack. However, given the traffic there with an STC
-                ; Forth, that's probably not really useful
-
-                ; now we can access the data
                 pla                     ; LSB
                 sta 0,x
                 pla                     ; MSB
@@ -6452,15 +6497,10 @@ w_two_r_from:
                 pla                     ; MSB
                 sta 3,x
 
-                ; --- CUT HERE FOR NATIVE CODING ---
+                ; --- CUT FOR NATIVE COMPILE ---
 
-                ; restore return address
-                lda tmp1+1              ; MSB
-                pha
-                lda tmp1                ; LSB
-                pha
+z_two_r_from:   jmp (tmp1)
 
-z_two_r_from:   rts
 
 
 ; ## TWO_SLASH ( n -- n ) "Divide TOS by two"
@@ -6581,14 +6621,20 @@ z_two_swap:     rts
         ; special routines.
         ; """
 xt_two_to_r:
+                ; we can't avoid the underflow check here due to the stack prologue
 w_two_to_r:
-                ; save the return address
-                pla             ; LSB
-                sta tmp1
-                pla             ; MSB
-                sta tmp1+1
+                ; --- START FOR JSR (save return address + 1) ---
 
-                ; --- CUT HERE FOR NATIVE CODING (see strip_table: 6) ---
+                pla                     ; LSB
+                ply                     ; MSB
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+
+                ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
                 jsr underflow_2
 
@@ -6609,15 +6655,10 @@ w_two_to_r:
                 inx
                 inx
 
-                ; --- CUT HERE FOR NATIVE CODING ---
+                ; --- CUT FOR NATIVE COMPILE ---
 
-                ; restore return address
-                lda tmp1+1      ; MSB
-                pha
-                lda tmp1        ; LSB
-                pha
+z_two_to_r:     jmp (tmp1)
 
-z_two_to_r:     rts
 
 
 

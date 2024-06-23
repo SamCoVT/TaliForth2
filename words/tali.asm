@@ -238,7 +238,7 @@ xt_execute_parsing:
                 jsr underflow_3
 w_execute_parsing:
                 jsr w_input_to_r       ; save normal input for later
-                jsr w_not_rote         ; -ROT ( xt addr u )
+                jsr w_not_rot          ; -ROT ( xt addr u )
 
                 lda 0,x                 ; TOS is new ciblen
                 sta ciblen
@@ -736,13 +736,13 @@ z_never_native:
 
 
 
-; ## NOT_ROTE ( a b c -- c a b ) "Rotate upwards"
+; ## NOT_ROT ( a b c -- c a b ) "Rotate upwards"
 ; ## "-rot"  auto  Gforth
         ; """http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Data-stack.html"""
 
-xt_not_rote:
+xt_not_rot:
                 jsr underflow_3
-w_not_rote:
+w_not_rot:
                 ldy 1,x         ; MSB first
                 lda 3,x
                 sta 1,x
@@ -759,7 +759,7 @@ w_not_rote:
                 sta 2,x
                 sty 4,x
 
-z_not_rote:     rts
+z_not_rot:      rts
 
 
 

@@ -36,13 +36,13 @@ mem 400..20
 mem 400 . 420
 mem . 440
 mem .. 20
+                    ; repeat empty command
 mem fffa..3
 mem fffa..20
 mem
 dis fffa            ; check disassembly stops at end of memory
 dis fffa..5
 d fffa .. 10
-; test dereference of name and value
 f 20 34 12          ; $20 contains byte 34, word 1234
 f 34 00 ff          ; $34 contains word $ff00
 f 1234 1 2 3 4

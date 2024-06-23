@@ -7,7 +7,7 @@ RESET:
 PC ff00  nv-bdIzc  A 00 X 00 Y 00 SP fd > ; a few simple tests based on wozmon rom
 PC ff00  nv-bdIzc  A 00 X 00 Y 00 SP fd > quit extraneous     ; trailing text warning
 unexpected
-    quit extraneous     
+    quit extraneous
 ---------^
 PC ff00  nv-bdIzc  A 00 X 00 Y 00 SP fd > disassemble
 RESET:
@@ -85,7 +85,7 @@ GETLINE:
    ff15  a9 8d       lda  #$8d
 PC ff00  nv-bdIzc  A 00 X 00 Y 00 SP fd > d escape .. 6       ; error: labels are case sensitive (and not $e .. 6)
 unexpected
-    escape .. 6       
+    escape .. 6
 -----^
 PC ff00  nv-bdIzc  A 00 X 00 Y 00 SP fd > label alpha a000
 PC ff00  nv-bdIzc  A 00 X 00 Y 00 SP fd > unl alpha
@@ -96,7 +96,7 @@ PC ff00  nv-bdIzc  A 42 X 00 Y 00 SP fd > set x 10
 PC ff00  nv-bdIzc  A 42 X 10 Y 00 SP fd > set v 1
 PC ff00  nV-bdIzc  A 42 X 10 Y 00 SP fd > set c false         ; error, not C=$fa
 unexpected
-    false         
+    false
 ------^
 PC ff00  nV-bdIzc  A 42 X 10 Y 00 SP fd > set c 1
 PC ff00  nV-bdIzC  A 42 X 10 Y 00 SP fd > break PRBYTE + 1
@@ -225,6 +225,24 @@ PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > mem .. 20
        0  1  2  3  4  5  6  7   8  9  a  b  c  d  e  f   0123456789abcdef
 0440  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
 0450  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb >                     ; repeat empty command
+       0  1  2  3  4  5  6  7   8  9  a  b  c  d  e  f   0123456789abcdef
+0460  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0470  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0480  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0490  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+04a0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+04b0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+04c0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+04d0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+04e0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+04f0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0500  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0510  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0520  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0530  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0540  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+0550  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
 PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > mem fffa..3
        0  1  2  3  4  5  6  7   8  9  a  b  c  d  e  f   0123456789abcdef
 fff0                                 00 00 00           |          ...   |
@@ -265,7 +283,6 @@ PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > d fffa .. 10
    fffb  00          brk  
    fffc  00          brk  
    fffd  ff 00 00    bbs7 $00,$0000  ; +0
-PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > ; test dereference of name and value
 PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > f 20 34 12          ; $20 contains byte 34, word 1234
 PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > f 34 00 ff          ; $34 contains word $ff00
 PC ffdc  nV-bdIzC  A 42 X 10 Y 00 SP fb > f 1234 1 2 3 4

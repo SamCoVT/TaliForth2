@@ -1,3 +1,6 @@
+Error determining name on line:
+; ## KEY? ( -- char ) "Return true if a character is available"
+
 [horizontal]
 `!`:: _ANS core_ ( n addr -- ) "Store TOS in memory"
 https://forth-standard.org/standard/core/Store
@@ -226,7 +229,7 @@ word.
 `?`:: _ANS tools_ ( addr -- ) "Print content of a variable"
 https://forth-standard.org/standard/tools/q
 
-`?do`:: _ANS core ext_ ( limit start -- ) "Conditional loop start"
+`?do`:: _ANS core ext_ (C: -- ) ( limit start -- ) "Conditional loop start"
 https://forth-standard.org/standard/core/qDO
 
 `?dup`:: _ANS core_ ( n -- 0 | n n ) "Duplicate TOS non-zero"
@@ -535,7 +538,7 @@ the file disassembler.asm for more details.
 `dnegate`:: _ANS double_ ( d -- d ) "Negate double cell number"
 https://forth-standard.org/standard/double/DNEGATE
 
-`do`:: _ANS core_ ( limit start -- )  "Start a loop"
+`do`:: _ANS core_ (C: -- ) ( limit start -- )  "Start a loop"
 https://forth-standard.org/standard/core/DO
 
 `does>`:: _ANS core_ ( -- ) "Add payload when defining new words"
@@ -661,6 +664,7 @@ https://forth-standard.org/standard/search/GET-CURRENT
 `get-order`:: _ANS search_ ( -- wid_n .. wid_1 n) "Get the current search order"
 https://forth-standard.org/standard/search/GET-ORDER
 
+`havekey`:: _Tali Forth_ ( -- addr ) "Return address of key? vector"
 `here`:: _ANS core_ ( -- addr ) "Put Compiler Pointer on Data Stack"
 https://forth-standard.org/standard/core/HERE
 This code is also used by the assembler directive ARROW
@@ -709,7 +713,7 @@ INT>NAME to match NAME>INT
 `invert`:: _ANS core_ ( n -- n ) "Complement of TOS"
 https://forth-standard.org/standard/core/INVERT
 
-`is`:: _ANS core ext_ ( xt "name" -- ) "Set named word to execute xt"
+`is`:: _ANS core ext_ ( xt "name" -- ) or (C: "name" ) "Set named word to execute xt"
 http://forth-standard.org/standard/core/IS
 
 `j`:: _ANS core_ ( -- n ) "Copy second loop counter to stack"
@@ -760,6 +764,14 @@ https://forth-standard.org/standard/core/LSHIFT
 https://forth-standard.org/standard/core/MTimes
 Multiply two 16 bit numbers, producing a 32 bit result. All
 values are signed. Adapted from FIG Forth for Tali Forth.
+
+`m*/`:: _ANS double_ ( d1 n1 n2 -- d2 ) "Multiply d1 by n1 and divide by n2.  Note n2 may be negative."
+https://forth-standard.org/standard/double/MTimesDiv
+From All About FORTH, MVP-Forth, public domain,
+from this forth code which is modified slightly for Tali2:
+DDUP XOR SWAP ABS >R SWAP ABS >R OVER XOR ROT ROT DABS
+SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
+SWAP DROP SWAP ROT 0< if dnegate then
 
 `marker`:: _ANS core ext_ ( "name" -- ) "Create a deletion boundary"
 https://forth-standard.org/standard/core/MARKER
@@ -1035,7 +1047,7 @@ This is a dummy entry, the code is shared with xt_else
 `thru`:: _ANS block ext_ ( scr# scr# -- ) "Load screens in the given range"
 https://forth-standard.org/standard/block/THRU
 
-`to`:: _ANS core ext_ ( n "name" -- ) or ( "name") "Change a value"
+`to`:: _ANS core ext_ ( n "name" -- ) or ( "name" ) "Change a value"
 https://forth-standard.org/standard/core/TO
 Gives a new value to a, uh, VALUE.
 

@@ -263,6 +263,7 @@ IM = 4  ; Immediate Word
 NN = 8  ; Never Native Compile
 UF = 16 ; Includes Underflow Check (RESERVED)
 HC = 32 ; Word has Code Field Area (CFA)
+ST = 64 ; Stack juggling to be stripped for native compile
 
 
 ; VARIOUS

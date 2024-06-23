@@ -28,7 +28,7 @@ int remove_symbols_by_value(uint16_t value);
 int strexpr(char *src, int *result);
 int symlen(const char *s);
 
-void parse_start(char *src);
+int parse_start(char *src);
 int parse_end();
 char* parse_delim();
 int parse_enum(const char *names[], const int vals[], uint8_t *v, int dflt);

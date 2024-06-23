@@ -16,8 +16,8 @@
 ; cmpl_inline and cmpl_as_call.  Inline compilation copies the
 ; source code for a word between xt_<word> and <z_word>,
 ; optionally removing the initial stack depth check.
-; For some words we can also discard leading and trailing stack
-; manipulation: see check_strip_table.
+; For some words we also discard leading and trailing stack
+; juggling based on the ST flag.
 ;
 ; A great way to understand what's going on is to write simple
 ; Forth words and use SEE to disassemble them.  Try different
@@ -85,16 +85,38 @@ w_compile_comma:
                 and #NN
                 bne cmpl_as_call        ; never native
 
-                ; ( xt xt nt )             ; maybe native, let's check
+                ; ( xt xt nt )          ; maybe native, let's check
                 jsr w_wordsize
                 ; ( xt xt u )
 
                 ; --- SPECIAL CASE 1: PREVENT RETURN STACK THRASHING ---
 
-                jsr check_strip_table
+                lda tmp3
+                and #ST                 ; Check the Stack Thrash flag in status
+                beq _check_uf
+
+_strip_sz = 10  ; skip the standard 10 byte header which saves return address + 1 to tmp1
+
+                ; Start later: xt += sz
+                clc
+                lda 2,x
+                adc #_strip_sz
+                sta 2,x
+                bcc +
+                inc 3,x                 ; we just care about the carry
++
+                ; Quit earlier: u -= sz
+                sec
+                lda 0,x
+                sbc #_strip_sz
+                sta 0,x
+                bcs +
+                dec 1,x                 ; we just care about the borrow
++
+                ; ( xt xt+sz u-sz )
 
                 ; --- SPECIAL CASE 2: REMOVE UNDERFLOW CHECKING ---
-
+_check_uf:
                 ; The user can choose to remove the unterflow testing in those
                 ; words that have the UF flag. This shortens the word by
                 ; 3 bytes if there is no underflow.
@@ -157,10 +179,17 @@ cmpl_by_limit:
 cmpl_as_call:
         ; Compile xt as a subroutine call, return with C=0
         ; Stack is either ( xt xt nt ) or ( xt xt' u )
-        ; Use the xt or xt' (in the middle) as the jsr address
-        ; so that strip-underflow is respected.
-                jsr w_drop
+        ; If the word has stack juggling, we need to use original xt
+        ; otherwise use the middle value to respect strip-underflow.
+                lda tmp3
+                and #ST
+                bne +
+                jsr w_drop     ; no stack juggling, use middle (xt or xt')
                 jsr w_nip
+                bra _cmpl
++
+                jsr w_two_drop ; stack juggling, must use first (xt)
+_cmpl:
                 ; ( jsr_address -- )
                 lda #OpJSR
                 jsr cmpl_a
@@ -181,92 +210,8 @@ cmpl_inline:
                 jsr w_move
                 jsr w_drop             ; drop original xt
                 clc
-                rts
-
-check_strip_table:
-                ; Native compiling allows us to strip the stack antics off
-                ; a number of words that use the Return Stack such as >R, R>,
-                ; 2>R and 2R> (but not 2R@ in this version). We compare the
-                ; xt with the contents of the table
-                ldy #0
-
-_strip_loop:
-                lda _strip_table,y       ; LSB of first word
-                cmp 2,x                 ; LSB of xt
-                bne _next_entry
-
-                ; LSB is the same, test MSB
-                lda _strip_table+1,y
-                cmp 3,x
-                beq _found_entry
-
-                ; MSB is not equal. Pretend though that we've come from LSB
-                ; so we can use the next step for both cases
-_next_entry:
-                ; Not a word that needs stripping, so check next entry in table
-
-                iny
-                iny
-                cpy #_strip_table_size
-                bne _strip_loop
-
-                rts
-
-
-_found_entry:
-                ; This word is one of the ones that needs to have its size
-                ; adjusted during native compile. We find the values in the
-                ; next table with the same index, which is Y. However, Y is
-                ; pointing to the MSB, so we need to go back to the LSB and
-                ; halve the index before we can use it.
-                tya
-                lsr
-                tay
-
-                ; Get the adjustment out of the size table. We were clever
-                ; enough to make sure the cut on both ends of the code is
-                ; is the same size.
-                lda _strip_size,y
-                pha                     ; save a copy
-
-                ; Start later: xt += sz
-                clc
-                adc 2,x
-                sta 2,x
-                bcc +
-                inc 3,x                 ; we just care about the carry
-+
-                ; Quit earlier: u -= 2 * sz
-                pla
-                asl a                   ; Double to cut off both top and bottom.
-                ; use negated subtraction trick:
-                ; LSB - A == - ( A - LSB ) == 255 - ( A - LSB - 1 )
-                ; carry is clear because 2*sz is less than 256
-                sbc 0,x
-                eor #$ff
-                sta 0,x
-                bcc +                   ; note inverted carry check
-                dec 1,x                 ; we just care about the borrow
-+
-                rts
-
-_strip_table:
-               ; List of words we strip the Return Stack antics from
-               ; during native compile. The index here
-               ; must be the same as for the sizes
-                .word xt_r_from, xt_r_fetch, xt_to_r    ; R>, R@, >R
-                .word xt_two_to_r, xt_two_r_from        ; 2>R, 2R>
-_strip_table_size = * - _strip_table
-
-_strip_size:
-                ; List of bytes to be stripped from both the start and end
-                ; of words that get their Return Stack antics removed.
-                ; Index must be the same as for the xts.
-                .byte 4, 4, 4                           ; R>, R@, >R
-                .byte 6, 6                              ; 2>R, 2R>
-
 z_compile_comma:
-                ; never native so no RTS
+                rts
 
 
 

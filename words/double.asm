@@ -215,7 +215,7 @@ w_m_star_slash:
                 jsr w_to_r
                 jsr w_over
                 jsr w_xor
-                jsr w_not_rote         ; rot rot
+                jsr w_not_rot          ; rot rot
                 jsr w_dabs
 
                 ; SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
@@ -230,7 +230,7 @@ w_m_star_slash:
                 jsr w_d_plus
                 jsr w_r_fetch
                 jsr w_um_slash_mod
-                jsr w_not_rote         ; rot rot
+                jsr w_not_rot          ; rot rot
                 jsr w_r_from
                 jsr w_um_slash_mod
 

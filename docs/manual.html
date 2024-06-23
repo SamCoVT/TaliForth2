@@ -3355,7 +3355,7 @@ to find that word.</p>
 <h4 id="_structure_of_the_header_list">Structure of the Header List</h4>
 <div class="paragraph">
 <p>Tali Forth distinguishes between three different word sources: The <strong>native
-words</strong> that are hard-coded in the file <code>native_words.asm</code>, the <strong>Forth words</strong>
+words</strong> that are hard-coded in the <code>words/*.asm</code> files, the <strong>Forth words</strong>
 from <code>forth_words.asm</code> which are defined as high-level words and then generated
 at run-time when Tali Forth starts up, and <strong>user words</strong> in the file
 <code>user_words.asm</code>.</p>
@@ -4466,8 +4466,8 @@ the test does.</p>
 </li>
 <li>
 <p>In a further step, if appropriate, convert the word to
-assembler. This requires adding an entry to <code>headers.asm</code> and the
-code itself to <code>native_words.asm</code>.  In this first step, it will
+assembler. This requires adding an entry to <code>words/headers.asm</code> and the
+code itself to one of the files in <code>words/*.asm</code>.  In this first step, it will
 usually be a simple 1:1 sequence of <code>jsr</code> subroutine jumps to the
 existing native Forth words.  Some special consideration is needed
 for immediate words, postponed words and the word <code>does&gt;</code> (see the
@@ -4608,16 +4608,18 @@ it is, and then follow the steps outlined below for that word type.</p>
 </div>
 <div class="paragraph">
 <p>Once the word has been converted, a dictionary header needs to be added for it
-in headers.asm.  This process is covered in detail at the end of this section.</p>
+in words/headers.asm.  This process is covered in detail at the end of this section.</p>
 </div>
 <div class="sect3">
 <h4 id="_processing_regular_non_immediate_words">Processing Regular (Non-Immediate) Words</h4>
 <div class="paragraph">
 <p>If the definition word you are processing is not immediate (you can check this
 with <code>see</code>, eg. <code>see dup</code> and make sure the IM flag is 0) then it just
-translates into a JSR to the xt (execution token) of that word.  The xt is just
-a label that begins with <code>xt_</code> followed by the name (spelled out, in the case of
-numbers and symbols) of the word.</p>
+translates into a JSR to the native code implementing the xt (execution token) of that word.
+Most words have an external entrypoint which begins with <code>xt_</code> followed by the name
+(spelled out, in the case of numbers and symbols) of the word.   Once your
+word is properly tested you can opt to use the internal entrypoint which replaces <code>xt_</code>
+with <code>w_</code> (for "word") and skips underflow checks.</p>
 </div>
 <div class="paragraph">
 <p>As an example, let&#8217;s turn the following definition into assembly:</p>
@@ -4635,15 +4637,17 @@ numbers and symbols) of the word.</p>
 <pre>; ## GETSTATE ( -- n ) "Get the current state"
 ; ## "getstate" coded Custom
 xt_getstate:
-                jsr xt_state
-                jsr xt_fetch ; @ is pronounced "fetch" in Forth.
+w_getstate:     ; no underflow check so w_ entrypoint is the same as xt_
+                jsr w_state
+                jsr w_fetch ; @ is pronounced "fetch" in Forth.
 z_getstate:
                 rts</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The above code would be added to native_words.asm, probably right after
-get-order.  native_words.asm is roughly in alphabetical order with a few odd
+<p>The above code could be added to words/wordlist.asm, probably right after
+get-order.  Each file in words/*.asm groups related words,
+and each is roughly in alphabetical order by word name with a few exceptions for
 words that need to be close to each other.</p>
 </div>
 <div class="paragraph">
@@ -4651,12 +4655,12 @@ words that need to be close to each other.</p>
 from and their current status.  It is parsed by a tool that helps to track
 information about the words, so the format (including the ##s) is important.
 The first line has the name (which is uppercase, but needs to match whatever
-comes after the xt_ and z_ in the labels below it), the input and output stack
+comes after the xt_, w_ and z_ in the labels below it), the input and output stack
 parameters in standard Forth format, and a string that has a short description
 of what the word does.  The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.)  See the top of native_words.asm for more information on the
+Gforth, etc.)  See the top of words/headers.asm for more information on the
 status field, but "coded" is likely to be the right choice until you&#8217;ve
 thoroughly tested your new word.</p>
 </div>
@@ -4676,13 +4680,14 @@ Forth word, the dash "-" symbol is not allowed in the label (the assembler will
 try to do subtraction), so it is replaced with an underscore anywhere it is
 used.  The one and only RTS should be right after the z_xxxx label.  If you need
 to return early in your word, put a <code>_done:</code> label just before the z_xxxx label
-and branch to that.</p>
+and branch to that.  The w_xxxx label should be immediately after the <code>jsr underflow_n</code>
+check if your word has one, otherwise it should coincide with the xt_xxxx label.</p>
 </div>
 <div class="paragraph">
 <p>You can see that the body is just a sequence of JSRs calling each existing word
-in turn.  If you aren&#8217;t sure of the xt_xxxx name of a forth word, you can search
-native_words.asm for the Forth word (in lowercase) in double quotes and you will
-find it in the header for that word.  <code>xt_fetch</code>, above, could be found by
+in turn.  If you aren&#8217;t sure of the w_xxxx name of a forth word, you can search
+words/*.asm for the Forth word (in lowercase) in double quotes and you will
+find it in the header for that word.  <code>w_fetch</code>, above, could be found by
 searching for "@" (including the quotes) if you didn&#8217;t know its name.</p>
 </div>
 </div>
@@ -4715,22 +4720,23 @@ stack.  Checking emit shows that it&#8217;s a normal (non-immediate) word and wi
 translated into assembly as a JSR.</p>
 </div>
 <div class="paragraph">
-<p>When we go to add our word to native_words.asm, we discover that the name
-xt_star is already in use (for the multiplication word <code>*</code>), so this will show how
-to deal with that complication as well.</p>
+<p>When we go to add our word, we discover that the name
+xt_star is already in use (for the multiplication word <code>*</code> in words/core.asm),
+so this will show how to deal with that complication as well.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>; ## STAR_WORD ( -- ) "Print a * on the screen"
 ; ## "star" coded Custom
 xt_star_word:
+w_star_word
                 ; Put a * character on the stack.
                 dex             ; Make room on the data stack.
                 dex
                 lda #42         ; * is ASCII character 42.
                 sta 0,x         ; Store in low byte of stack cell.
                 stz 1,x         ; high byte is zeroed for characters.
-                jsr xt_emit     ; Print the character to the screen.
+                jsr w_emit      ; Print the character to the screen.
 z_star_word:
                 rts</pre>
 </div>
@@ -4786,7 +4792,7 @@ assembly.  You can find all of the names of internal Tali variables in
 definitions.asm.</p>
 </div>
 <div class="paragraph">
-<p>The assembly version of this (which you can find in native_words.asm as this is
+<p>The assembly version of this (which you can find in words/core.asm as this is
 the actual assembly definition of this word) is:</p>
 </div>
 <div class="listingblock">
@@ -4795,6 +4801,7 @@ the actual assembly definition of this word) is:</p>
 ; ## "is"  auto  ANS core ext
         ; """http://forth-standard.org/standard/core/IS"""
 xt_is:
+w_is:
                 ; This is a state aware word with different behavior
                 ; when used while compiling vs interpreting.
                 ; Check STATE
@@ -4804,16 +4811,16 @@ xt_is:
 _compiling:
                 ; Run ['] to compile the xt of the next word
                 ; as a literal.
-                jsr xt_bracket_tick
+                jsr w_bracket_tick
 
                 ; Postpone DEFER! by compiling a JSR to it.
-                ldy #&gt;xt_defer_store
-                lda #&lt;xt_defer_store
+                ldy #&gt;w_defer_store
+                lda #&lt;w_defer_store
                 jsr cmpl_subroutine
                 bra _done
 _interpreting:
-                jsr xt_tick
-                jsr xt_defer_store
+                jsr w_tick
+                jsr w_defer_store
 _done:
 z_is:           rts</pre>
 </div>
@@ -4883,7 +4890,7 @@ bignum d.</pre>
 <p>The . at the end of the number makes it a double-cell (32-bit on Tali) number.</p>
 </div>
 <div class="paragraph">
-<p>The assembly code for <code>2CONSTANT</code> (taken from native_words.asm) looks like:</p>
+<p>The assembly code for <code>2CONSTANT</code> (taken from words/double.asm) looks like:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -4895,20 +4902,20 @@ bignum d.</pre>
         ; """
 xt_two_constant:
                 jsr underflow_2
-
-                jsr xt_create
-                jsr xt_swap
-                jsr xt_comma
-                jsr xt_comma
+w_two_constant:
+                jsr w_create
+                jsr w_swap
+                jsr w_comma
+                jsr w_comma
 
                 jsr does_runtime    ; does&gt; turns into these two routines.
                 jsr dodoes
 
-                jsr xt_dup
-                jsr xt_fetch
-                jsr xt_swap
-                jsr xt_cell_plus
-                jsr xt_fetch
+                jsr w_dup
+                jsr w_fetch
+                jsr w_swap
+                jsr w_cell_plus
+                jsr w_fetch
 
 z_two_constant: rts</pre>
 </div>
@@ -4924,7 +4931,9 @@ run, an error message will be printed and the rest of the word will not be run.<
 </div>
 <div class="paragraph">
 <p>This word takes a double-cell value on the stack, so underflow_2 was used.  The
-underflow check must be the first line in your word.</p>
+underflow check must be the first line in your word.
+Note the internal w_two_constant entrypoint is placed after the underflow check.
+This speeds up other native words that use 2constant.</p>
 </div>
 <div class="paragraph">
 <p>All of the other words other than <code>does&gt;</code> in this definition are regular words,
@@ -4935,8 +4944,8 @@ followed by a <code>jsr dodoes</code>.</p>
 <div class="sect3">
 <h4 id="_adding_the_header_in_headers_asm">Adding the Header in headers.asm</h4>
 <div class="paragraph">
-<p>Once your word has been entered into native_words.asm with the appropriate
-comment block over it and the xt_xxxx and z_xxxx labels for the entry and exit
+<p>Once your word has been entered into one of the words/*.asm files with the appropriate
+comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren&#8217;t sure where to put your word, then
@@ -6856,6 +6865,10 @@ order if you run it too many times.</p>
 <div class="sect1">
 <h2 id="_glossary">Glossary</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Error determining name on line:
+; ## KEY? (&#8201;&#8212;&#8201;char ) "Return true if a character is available"</p>
+</div>
 <div class="hdlist">
 <table>
 <tr>
@@ -7464,7 +7477,7 @@ word.</p>
 <code>?do</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS core ext</em> ( limit start&#8201;&#8212;&#8201;) "Conditional loop start"
+<p><em>ANS core ext</em> (C:&#8201;&#8212;&#8201;) ( limit start&#8201;&#8212;&#8201;) "Conditional loop start"
 <a href="https://forth-standard.org/standard/core/qDO" class="bare">https://forth-standard.org/standard/core/qDO</a></p>
 </td>
 </tr>
@@ -8243,7 +8256,7 @@ the file disassembler.asm for more details.</p>
 <code>do</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS core</em> ( limit start&#8201;&#8212;&#8201;)  "Start a loop"
+<p><em>ANS core</em> (C:&#8201;&#8212;&#8201;) ( limit start&#8201;&#8212;&#8201;)  "Start a loop"
 <a href="https://forth-standard.org/standard/core/DO" class="bare">https://forth-standard.org/standard/core/DO</a></p>
 </td>
 </tr>
@@ -8556,6 +8569,14 @@ This is a dummy entry, the actual code is shared with ZERO.</p>
 </tr>
 <tr>
 <td class="hdlist1">
+<code>havekey</code>
+</td>
+<td class="hdlist2">
+<p><em>Tali Forth</em> (&#8201;&#8212;&#8201;addr ) "Return address of key? vector"</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
 <code>here</code>
 </td>
 <td class="hdlist2">
@@ -8674,7 +8695,7 @@ INT&gt;NAME to match NAME&gt;INT</p>
 <code>is</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS core ext</em> ( xt "name"&#8201;&#8212;&#8201;) "Set named word to execute xt"
+<p><em>ANS core ext</em> ( xt "name"&#8201;&#8212;&#8201;) or (C: "name" ) "Set named word to execute xt"
 <a href="http://forth-standard.org/standard/core/IS" class="bare">http://forth-standard.org/standard/core/IS</a></p>
 </td>
 </tr>
@@ -8805,6 +8826,20 @@ increment by one.</p>
 <a href="https://forth-standard.org/standard/core/MTimes" class="bare">https://forth-standard.org/standard/core/MTimes</a>
 Multiply two 16 bit numbers, producing a 32 bit result. All
 values are signed. Adapted from FIG Forth for Tali Forth.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+<code>m*/</code>
+</td>
+<td class="hdlist2">
+<p><em>ANS double</em> ( d1 n1 n2&#8201;&#8212;&#8201;d2 ) "Multiply d1 by n1 and divide by n2.  Note n2 may be negative."
+<a href="https://forth-standard.org/standard/double/MTimesDiv" class="bare">https://forth-standard.org/standard/double/MTimesDiv</a>
+From All About FORTH, MVP-Forth, public domain,
+from this forth code which is modified slightly for Tali2:
+DDUP XOR SWAP ABS &gt;R SWAP ABS &gt;R OVER XOR ROT ROT DABS
+SWAP R@ UM* ROT R&gt; UM* ROT 0 D+ R@ UM/MOD ROT ROT R&gt; UM/MOD
+SWAP DROP SWAP ROT 0&lt; if dnegate then</p>
 </td>
 </tr>
 <tr>
@@ -9439,7 +9474,7 @@ This is a dummy entry, the code is shared with xt_else</p>
 <code>to</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS core ext</em> ( n "name"&#8201;&#8212;&#8201;) or ( "name") "Change a value"
+<p><em>ANS core ext</em> ( n "name"&#8201;&#8212;&#8201;) or ( "name" ) "Change a value"
 <a href="https://forth-standard.org/standard/core/TO" class="bare">https://forth-standard.org/standard/core/TO</a>
 Gives a new value to a, uh, VALUE.</p>
 </td>
