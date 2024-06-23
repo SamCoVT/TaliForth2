@@ -3,7 +3,7 @@
         ; """https://forth-standard.org/standard/double/DMinus"""
 xt_d_minus:
                 jsr underflow_4 ; two double numbers
-
+w_d_minus:
                 sec
 
                 lda 6,x         ; LSB of lower word
@@ -35,7 +35,7 @@ z_d_minus:      rts
         ; """https://forth-standard.org/standard/double/DPlus"""
 xt_d_plus:
                 jsr underflow_4 ; two double numbers
-
+w_d_plus:
                 clc
                 lda 2,x         ; LSB of lower word
                 adc 6,x
@@ -70,7 +70,7 @@ z_d_plus:       rts
 
 xt_d_to_s:
                 jsr underflow_2
-
+w_d_to_s:
                 inx
                 inx
 
@@ -84,7 +84,7 @@ z_d_to_s:       rts
 
 xt_dabs:
                 jsr underflow_2 ; double number
-
+w_dabs:
                 lda 1,x         ; MSB of high cell
                 bpl _done       ; positive, we get off light
 
@@ -117,7 +117,7 @@ z_dabs:         rts
         ; """https://forth-standard.org/standard/double/DNEGATE"""
 xt_dnegate:
                 jsr underflow_2 ; double number
-
+w_dnegate:
      		ldy #0
                 sec
 
@@ -151,16 +151,16 @@ z_dnegate:      rts
 
 xt_d_dot:
                 jsr underflow_2
-
-                jsr xt_tuck
-                jsr xt_dabs
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_rot
-                jsr xt_sign
-                jsr xt_number_sign_greater
-                jsr xt_type
-                jsr xt_space
+w_d_dot:
+                jsr w_tuck
+                jsr w_dabs
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_rot
+                jsr w_sign
+                jsr w_number_sign_greater
+                jsr w_type
+                jsr w_space
 
 z_d_dot:        rts
 
@@ -174,20 +174,21 @@ z_d_dot:        rts
 
 xt_d_dot_r:
                 jsr underflow_3
+w_d_dot_r:
                 ; From the forth code:
-                jsr xt_to_r
-                jsr xt_tuck
-                jsr xt_dabs
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_rot
-                jsr xt_sign
-                jsr xt_number_sign_greater
-                jsr xt_r_from
-                jsr xt_over
-                jsr xt_minus
-                jsr xt_spaces
-                jsr xt_type
+                jsr w_to_r
+                jsr w_tuck
+                jsr w_dabs
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_rot
+                jsr w_sign
+                jsr w_number_sign_greater
+                jsr w_r_from
+                jsr w_over
+                jsr w_minus
+                jsr w_spaces
+                jsr w_type
 
 z_d_dot_r:      rts
 
@@ -202,47 +203,47 @@ z_d_dot_r:      rts
         ; SWAP DROP SWAP ROT 0< if dnegate then
 xt_m_star_slash:
                 jsr underflow_4
-
+w_m_star_slash:
                 ; DDUP XOR SWAP ABS >R SWAP ABS >R OVER XOR ROT ROT DABS
-                jsr xt_two_dup
-                jsr xt_xor
-                jsr xt_swap
-                jsr xt_abs
-                jsr xt_to_r
-                jsr xt_swap
-                jsr xt_abs
-                jsr xt_to_r
-                jsr xt_over
-                jsr xt_xor
-                jsr xt_not_rote         ; rot rot
-                jsr xt_dabs
+                jsr w_two_dup
+                jsr w_xor
+                jsr w_swap
+                jsr w_abs
+                jsr w_to_r
+                jsr w_swap
+                jsr w_abs
+                jsr w_to_r
+                jsr w_over
+                jsr w_xor
+                jsr w_not_rote         ; rot rot
+                jsr w_dabs
 
                 ; SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
-                jsr xt_swap
-                jsr xt_r_fetch
-                jsr xt_um_star
-                jsr xt_rot
-                jsr xt_r_from
-                jsr xt_um_star
-                jsr xt_rot
-                jsr xt_zero
-                jsr xt_d_plus
-                jsr xt_r_fetch
-                jsr xt_um_slash_mod
-                jsr xt_not_rote         ; rot rot
-                jsr xt_r_from
-                jsr xt_um_slash_mod
+                jsr w_swap
+                jsr w_r_fetch
+                jsr w_um_star
+                jsr w_rot
+                jsr w_r_from
+                jsr w_um_star
+                jsr w_rot
+                jsr w_zero
+                jsr w_d_plus
+                jsr w_r_fetch
+                jsr w_um_slash_mod
+                jsr w_not_rote         ; rot rot
+                jsr w_r_from
+                jsr w_um_slash_mod
 
                 ; SWAP DROP SWAP ROT 0< if dnegate then ;
-                jsr xt_swap
-                jsr xt_drop
-                jsr xt_swap
-                jsr xt_rot
+                jsr w_swap
+                jsr w_drop
+                jsr w_swap
+                jsr w_rot
                 inx                     ; drop TOS
                 inx
                 lda $fe,x               ; but keep MSB
                 bpl z_m_star_slash      ; ... 0< if ...
-                jsr xt_dnegate
+                jsr w_dnegate
 
 z_m_star_slash: rts
 
@@ -256,20 +257,20 @@ z_m_star_slash: rts
         ; """
 xt_two_constant:
                 jsr underflow_2
-
-                jsr xt_create
-                jsr xt_swap
-                jsr xt_comma
-                jsr xt_comma
+w_two_constant:
+                jsr w_create
+                jsr w_swap
+                jsr w_comma
+                jsr w_comma
 
                 jsr does_runtime    ; does> turns into these two routines.
                 jsr dodoes
 
-                jsr xt_dup
-                jsr xt_fetch
-                jsr xt_swap
-                jsr xt_cell_plus
-                jsr xt_fetch
+                jsr w_dup
+                jsr w_fetch
+                jsr w_swap
+                jsr w_cell_plus
+                jsr w_fetch
 
 z_two_constant: rts
 
@@ -281,15 +282,15 @@ z_two_constant: rts
         ; """
 xt_two_literal:
                 jsr underflow_2 ; double number
-
+w_two_literal:
                 lda #template_push_tos_size
                 asl
                 jsr check_nc_limit
                 bcs _no_inline
 
-                jsr xt_swap
-                jsr xt_literal
-                jmp xt_literal
+                jsr w_swap
+                jsr w_literal
+                jmp w_literal
 
 _no_inline:
                 jsr cmpl_two_literal
@@ -307,8 +308,9 @@ z_two_literal:  rts
         ; CREATE 2 CELLS ALLOT  or just  CREATE 0 , 0 ,
         ; """
 xt_two_variable:
+w_two_variable:
                 ; We just let CRATE and ALLOT do the heavy lifting
-                jsr xt_create
+                jsr w_create
 
                 dex
                 dex
@@ -316,7 +318,7 @@ xt_two_variable:
                 sta 0,x
                 stz 1,x
 
-                jsr xt_allot
+                jsr w_allot
 
 z_two_variable: rts
 
@@ -329,12 +331,12 @@ z_two_variable: rts
         ; """
 xt_ud_dot:
                 jsr underflow_2 ; double number
-
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_number_sign_greater
-                jsr xt_type
-                jsr xt_space
+w_ud_dot:
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_number_sign_greater
+                jsr w_type
+                jsr w_space
 
 z_ud_dot:        rts
 
@@ -346,15 +348,15 @@ z_ud_dot:        rts
         ; """
 xt_ud_dot_r:
                 jsr underflow_3
-
-                jsr xt_to_r
-                jsr xt_less_number_sign
-                jsr xt_number_sign_s
-                jsr xt_number_sign_greater
-                jsr xt_r_from
-                jsr xt_over
-                jsr xt_minus
-                jsr xt_spaces
-                jsr xt_type
+w_ud_dot_r:
+                jsr w_to_r
+                jsr w_less_number_sign
+                jsr w_number_sign_s
+                jsr w_number_sign_greater
+                jsr w_r_from
+                jsr w_over
+                jsr w_minus
+                jsr w_spaces
+                jsr w_type
 
 z_ud_dot_r:      rts

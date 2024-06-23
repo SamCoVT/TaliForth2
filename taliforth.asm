@@ -416,7 +416,7 @@ interpret:
                 ; delimiters per default and skips any leading spaces, which
                 ; PARSE doesn't
 _loop:
-                jsr xt_parse_name       ; ( "string" -- addr u )
+                jsr w_parse_name       ; ( "string" -- addr u )
 
                 ; If PARSE-NAME returns 0 (empty line), no characters were left
                 ; in the line and we need to go get a new line
@@ -427,8 +427,8 @@ _loop:
                 ; Go to FIND-NAME to see if this is a word we know. We have to
                 ; make a copy of the address in case it isn't a word we know and
                 ; we have to go see if it is a number
-                jsr xt_two_dup          ; ( addr u -- addr u addr u )
-                jsr xt_find_name        ; ( addr u addr u -- addr u nt|0 )
+                jsr w_two_dup          ; ( addr u -- addr u addr u )
+                jsr w_find_name        ; ( addr u addr u -- addr u nt|0 )
 
                 ; A zero signals that we didn't find a word in the Dictionary
                 lda 0,x
@@ -442,7 +442,7 @@ _loop:
 
                 ; If the number conversion doesn't work, NUMBER will do the
                 ; complaining for us
-                jsr xt_number           ; ( addr u -- u|d )
+                jsr w_number           ; ( addr u -- u|d )
 
                 ; Otherwise, if we're interpreting, we're done
                 lda state
@@ -455,13 +455,13 @@ _loop:
                 bit status
                 bne _double_number
 
-                jsr xt_literal
+                jsr w_literal
                 ; That was so much fun, let's do it again!
                 bra _loop
 
 _double_number:
                 ; It's a double cell number.
-                jsr xt_two_literal
+                jsr w_two_literal
                 bra _loop
 
 _got_name_token:
@@ -481,11 +481,11 @@ _got_name_token:
 
                 ; Whether interpreting or compiling we'll need to check the
                 ; status byte at nt+1 so let's save it now
-                jsr xt_one_plus
+                jsr w_one_plus
                 lda (0,x)
                 pha
-                jsr xt_one_minus
-                jsr xt_name_to_int      ; ( nt - xt )
+                jsr w_one_minus
+                jsr w_name_to_int      ; ( nt - xt )
 
                 ; See if we are in interpret or compile mode, 0 is interpret
                 lda state
@@ -507,7 +507,7 @@ _interpret:
                 ; skipping EXECUTE completely during RTS. If we were to execute
                 ; xt directly, we have to fool around with the Return Stack
                 ; instead, which is actually slightly slower
-                jsr xt_execute
+                jsr w_execute
 
                 ; That's quite enough for this word, let's get the next one
                 jmp _loop
@@ -522,7 +522,7 @@ _compile:
                 bne _interpret          ; IMMEDIATE word, execute right now
 
                 ; Compile the xt into the Dictionary with COMPILE,
-                jsr xt_compile_comma
+                jsr w_compile_comma
                 bra _loop
 
 _line_done:
@@ -609,7 +609,7 @@ error:
         ; """
                 pha                     ; save error
                 jsr print_error
-                jsr xt_cr
+                jsr w_cr
                 pla
                 cmp #err_underflow      ; should we display return stack?
                 bne _no_underflow
@@ -623,15 +623,15 @@ error:
 -
                 inx
                 beq +
-                jsr xt_space
+                jsr w_space
                 lda $100,x
                 jsr byte_to_ascii
                 bra -
 +
-                jsr xt_cr
+                jsr w_cr
 
 _no_underflow:
-                jmp xt_abort            ; no jsr, as we clobber return stack
+                jmp w_abort            ; no jsr, as we clobber return stack
 
 ; =====================================================================
 ; PRINTING ROUTINES
@@ -700,7 +700,7 @@ print_string:
         ; We do not check to see if the index is out of range. Uses tmp3.
         ; """
                 jsr print_string_no_lf
-                jmp xt_cr               ; JSR/RTS because never compiled
+                jmp w_cr               ; JSR/RTS because never compiled
 
 
 print_u:
@@ -709,11 +709,11 @@ print_u:
         ; basically u. without the space at the end. used for various
         ; outputs
         ; """
-                jsr xt_zero                     ; 0
-                jsr xt_less_number_sign         ; <#
-                jsr xt_number_sign_s            ; #S
-                jsr xt_number_sign_greater      ; #>
-                jmp xt_type                     ; JSR/RTS because never compiled
+                jsr w_zero                     ; 0
+                jsr w_less_number_sign         ; <#
+                jsr w_number_sign_s            ; #S
+                jsr w_number_sign_greater      ; #>
+                jmp w_type                     ; JSR/RTS because never compiled
 
 .weak
 kernel_kbhit .proc

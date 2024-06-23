@@ -2,6 +2,7 @@
 ; ## "block"  auto  ANS block
         ; """https://forth-standard.org/standard/block/BLK"""
 xt_blk:
+w_blk:
                 lda #blk_offset
                 jmp push_upvar_tos
 z_blk:
@@ -11,6 +12,7 @@ z_blk:
 ; ## BLKBUFFER ( -- addr ) "Push address of block buffer"
 ; ## "blkbuffer"  auto  Tali block
 xt_blkbuffer:
+w_blkbuffer:
                 ; blkbuffer address is at UP + blkbuffer_offset.
                 ; Unlike some of the other user variables, we actually
                 ; want to push the address stored here, which will
@@ -33,7 +35,7 @@ z_blkbuffer:    rts
 ; ## "block"  auto  ANS block
         ; """https://forth-standard.org/standard/block/BLOCK"""
 xt_block:
-
+w_block:
                 ; See if the block requested is the same as the one we
                 ; currently have in the buffer. Check the LSB.
                 ldy #buffblocknum_offset
@@ -62,10 +64,10 @@ _not_in_buffer:
                 bne _buffer_available ; Unused or not dirty = available
 
                 ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
+                jsr w_blkbuffer
+                jsr w_buffblocknum
+                jsr w_fetch
+                jsr w_block_write
 
 _buffer_available:
                 ; Save the block number.
@@ -77,9 +79,9 @@ _buffer_available:
                 sta (up),y
 
                 ; Get the requested block.
-                jsr xt_blkbuffer
-                jsr xt_swap
-                jsr xt_block_read
+                jsr w_blkbuffer
+                jsr w_swap
+                jsr w_block_read
 
                 ; Mark the buffer as clean and in-use.
                 lda #1
@@ -102,7 +104,7 @@ _done:
 z_block:        rts
 
 .if "block" in TALI_OPTIONAL_WORDS
-xt_block_c65_init:
+
 ; ## BLOCK_C65_INIT ( -- f ) "Initialize c65 simulator block storage"
 ; ## "block-c65-init"  auto  Tali block
         ; """Set up block IO to read/write to/from c65 block file.
@@ -118,7 +120,8 @@ io_blk_action = 0
 io_blk_number = 0
 io_blk_buffer = 0
 .endweak
-
+xt_block_c65_init:
+w_block_c65_init:
                 lda #$ff
                 sta io_blk_status
                 lda #$0
@@ -135,16 +138,16 @@ io_blk_buffer = 0
                 sta 0,x
                 lda #>c65_blk_read
                 sta 1,x
-                jsr xt_block_read_vector
-                jsr xt_store
+                jsr w_block_read_vector
+                jsr w_store
                 dex
                 dex
                 lda #<c65_blk_write
                 sta 0,x
                 lda #>c65_blk_write
                 sta 1,x
-                jsr xt_block_write_vector
-                jsr xt_store
+                jsr w_block_write_vector
+                jsr w_store
 z_block_c65_init:
                 rts
 
@@ -179,7 +182,7 @@ c65_blk_rw:     lda 0,x                 ; ( addr blk# )
         ; """
 xt_block_ramdrive_init:
                 jsr underflow_1
-
+w_block_ramdrive_init:
                 ; Store the string to run here as a string literal.
                 ; See SLITERAL for the format information. This way, we
                 ; don't have the words defined below in the Dictionary until
@@ -189,7 +192,7 @@ xt_block_ramdrive_init:
 
                 ; The address and length of the ramdrive code is now on the
                 ; stack. Call EVALUATE to run it.
-                jsr xt_evaluate
+                jsr w_evaluate
 
 z_block_ramdrive_init:
                 rts
@@ -220,6 +223,7 @@ ramdrive_code_end:
         ; The stack parameters are ( buffer_address block# -- ).
         ; """
 xt_block_read:
+w_block_read:
                 ; Execute the BLOCK-READ-VECTOR
                 ldy #blockread_offset
                 lda (up),y
@@ -241,6 +245,7 @@ z_block_read:   ; No RTS needed
         ; This word gives the address of the vector so it can be replaced.
         ; """
 xt_block_read_vector:
+w_block_read_vector:
                 ; Get the BLOCK-READ-VECTOR address
                 lda #blockread_offset
                 jmp push_upvar_tos
@@ -251,6 +256,7 @@ z_block_read_vector:
 ; This is the default error message the vectored words BLOCK-READ and
 ; BLOCK-WRITE start with. This word is not included in the dictionary.
 xt_block_word_error:
+w_block_word_error:
                 lda #err_blockwords
                 jmp error       ; no RTS needed
 
@@ -263,6 +269,7 @@ xt_block_word_error:
         ; The stack parameters are ( buffer_address block# -- ).
         ; """
 xt_block_write:
+w_block_write:
                 ; Execute the BLOCK-READ-VECTOR
                 ldy #blockwrite_offset
                 lda (up),y
@@ -283,6 +290,7 @@ z_block_write:  ; No RTS needed
         ; This word gives the address of the vector so it can be replaced.
         ; """
 xt_block_write_vector:
+w_block_write_vector:
                 ; Get the BLOCK-WRITE-VECTOR address
                 lda #blockwrite_offset
                 jmp push_upvar_tos
@@ -293,6 +301,7 @@ z_block_write_vector:
 ; ## BUFFBLOCKNUM ( -- addr ) "Push address of variable holding block in buffer"
 ; ## "buffblocknum"  auto  Tali block
 xt_buffblocknum:
+w_buffblocknum:
                 ; BUFFBLOCKNUM is at UP + buffblocknum_offset
                 lda #buffblocknum_offset
                 jmp push_upvar_tos
@@ -304,6 +313,7 @@ z_buffblocknum:
 ; ## "buffer"  auto  ANS block
         ; """https://forth-standard.org/standard/block/BUFFER"""
 xt_buffer:
+w_buffer:
                 ; Check the buffer status
                 ldy #buffstatus_offset
                 lda (up),y      ; Only bits 0 and 1 are used, so only
@@ -311,10 +321,10 @@ xt_buffer:
                 bne _buffer_available ; Unused or not dirty = available
 
                 ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
+                jsr w_blkbuffer
+                jsr w_buffblocknum
+                jsr w_fetch
+                jsr w_block_write
 
 _buffer_available:
                 ; Save the block number.
@@ -345,6 +355,7 @@ z_buffer:       rts
 ; ## BUFFSTATUS ( -- addr ) "Push address of variable holding buffer status"
 ; ## "buffstatus"  auto  Tali block
 xt_buffstatus:
+w_buffstatus:
                 lda #buffstatus_offset
                 jmp push_upvar_tos
 z_buffstatus:
@@ -355,6 +366,7 @@ z_buffstatus:
 ; ## "empty-buffers"  tested  ANS block ext
         ; """https://forth-standard.org/standard/block/EMPTY-BUFFERS"""
 xt_empty_buffers:
+w_empty_buffers:
                 ; Set the buffer status to empty.
                 ldy #buffstatus_offset
                 lda #0
@@ -368,7 +380,8 @@ z_empty_buffers:
 ; ## "flush"  auto  ANS block
         ; """https://forth-standard.org/standard/block/FLUSH"""
 xt_flush:
-                jsr xt_save_buffers
+w_flush:
+                jsr w_save_buffers
 
                 ; Set the buffer status to empty.
                 ldy #buffstatus_offset
@@ -386,13 +399,13 @@ z_flush:
 
 xt_list:
                 jsr underflow_1
-
+w_list:
                 ; Save the screen number in SCR
-                jsr xt_scr
-                jsr xt_store
+                jsr w_scr
+                jsr w_store
 
                 ; Use L from the editor-wordlist to display the screen.
-                jsr xt_editor_l
+                jsr w_editor_l
 
 z_list:         rts
 .endif
@@ -411,7 +424,7 @@ z_list:         rts
 
 xt_load:
                 jsr underflow_1
-
+w_load:
                 ; Save the current value of BLK on the return stack.
                 ldy #blk_offset+1
                 lda (up),y
@@ -428,7 +441,7 @@ xt_load:
                 sta (up),y
 
                 ; Load that block into a buffer
-                jsr xt_block
+                jsr w_block
 
                 ; Put 1024 on the stack for the screen length.
                 dex
@@ -464,7 +477,7 @@ xt_load:
                 iny
                 lda (up),y
                 sta 1,x
-                jsr xt_block
+                jsr w_block
 
                 ; Drop the buffer address.
                 inx
@@ -480,6 +493,7 @@ z_load:         rts
         ; """https://forth-standard.org/standard/block/SAVE-BUFFERS"""
 
 xt_save_buffers:
+w_save_buffers:
                 ; Check the buffer status
                 ldy #buffstatus_offset
                 lda (up),y      ; Only bits 0 and 1 are used, so only
@@ -487,10 +501,10 @@ xt_save_buffers:
                 bne _done       ; Either not used or not dirty = done!
 
                 ; We need to save the block.
-                jsr xt_blkbuffer
-                jsr xt_buffblocknum
-                jsr xt_fetch
-                jsr xt_block_write
+                jsr w_blkbuffer
+                jsr w_buffblocknum
+                jsr w_fetch
+                jsr w_block_write
 
                 ; Mark the buffer as clean now.
                 lda #1
@@ -506,6 +520,7 @@ z_save_buffers: rts
 ; ## "scr"  auto  ANS block ext
         ; """https://forth-standard.org/standard/block/SCR"""
 xt_scr:
+w_scr:
                 lda #scr_offset
                 jmp push_upvar_tos
 z_scr:
@@ -518,7 +533,7 @@ z_scr:
 
 xt_thru:
                 jsr underflow_2
-
+w_thru:
                 ; We need to loop here, and can't use the data stack
                 ; because the LOADed screens might use it.  We'll
                 ; need to use the same trick that DO loops use, holding
@@ -540,7 +555,7 @@ _thru_loop:
                 pha
 
                 ; Load this screen.
-                jsr xt_load
+                jsr w_load
 
                 ; Get the number and limit back off the stack.  Rather than
                 ; waste time making room on the stack, just use tmp1 and tmp2.
@@ -596,6 +611,7 @@ z_thru:         rts
 ; ## "update"  auto  ANS block
         ; """https://forth-standard.org/standard/block/UPDATE"""
 xt_update:
+w_update:
                 ; Turn on the dirty bit. We can't use TSB here because it only
                 ; has Absolute and Direct Pages addressing modes
                 ldy #buffstatus_offset

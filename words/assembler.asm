@@ -1054,8 +1054,8 @@ z_asm_back_jump:
 xt_asm_back_branch:
                 ; We arrive here with ( addr-l ) of the label on the stack and
                 ; then subtract the current address
-                jsr xt_here             ; ( addr-l addr-h )
-                jsr xt_minus            ; ( offset )
+                jsr w_here             ; ( addr-l addr-h )
+                jsr w_minus            ; ( offset )
 
                 ; We subtract two more because of the branch instruction itself
                 dea

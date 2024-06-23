@@ -2,11 +2,12 @@
 ; ## "also"  auto  ANS search ext
         ; """http://forth-standard.org/standard/search/ALSO"""
 xt_also:
-                jsr xt_get_order
-                jsr xt_over
-                jsr xt_swap
-                jsr xt_one_plus
-                jsr xt_set_order
+w_also:
+                jsr w_get_order
+                jsr w_over
+                jsr w_swap
+                jsr w_one_plus
+                jsr w_set_order
 
 z_also:         rts
 
@@ -27,6 +28,7 @@ z_also:         rts
 ; ## DEFINITIONS ( -- ) "Make first wordlist in search order the current wordlist"
 ; ## "definitions" auto ANS search
 xt_definitions:
+w_definitions:
                 ldy #search_order_offset    ; Transfer byte variable
                 lda (up),y                  ; SEARCH_ORDER[0] to
                 ldy #current_offset         ; byte variable CURRENT.
@@ -53,6 +55,7 @@ z_definitions:  rts
 ; ## "forth"  auto  ANS search ext
         ; """https://forth-standard.org/standard/search/FORTH"""
 xt_forth:
+w_forth:
                 ldy #search_order_offset
                 lda #0          ; The WID for Forth is 0.
 
@@ -74,6 +77,7 @@ z_forth:
         ; """https://forth-standard.org/standard/search/GET-CURRENT"""
 
 xt_get_current:
+w_get_current:
                 ; This is a little different than some of the variables
                 ; in the user area as we want the value rather than
                 ; the address.
@@ -93,6 +97,7 @@ z_get_current:  rts
         ; """https://forth-standard.org/standard/search/GET-ORDER"""
 
 xt_get_order:
+w_get_order:
                 ; Get #ORDER - the number of wordlists in the search order.
                 ldy #num_order_offset
                 lda (up),y
@@ -140,10 +145,11 @@ z_get_order:    rts
         ; """https://forth-standard.org/standard/search/ONLY"""
 
 xt_only:
+w_only:
                 ; Put -1 on data stack.
-                jsr xt_true
+                jsr w_true
                 ; Invoke set-order to set the minimum search order.
-                jsr xt_set_order
+                jsr w_set_order
 
 z_only:         rts
 
@@ -176,8 +182,9 @@ z_only:         rts
         ; """
 
 xt_order:
-                jsr xt_cr
-                jsr xt_get_order        ; ( wid_n ... wid_1 n )
+w_order:
+                jsr w_cr
+                jsr w_get_order        ; ( wid_n ... wid_1 n )
 
                 ; Paranoid: Check if there are no wordlists, a rather
                 ; pathological case. this would mean ( 0 ) on the stack. In
@@ -202,13 +209,13 @@ _loop:
 
                 ; We've printed the wordlists, now we add the current wordlist.
                 ; This follows the convention of Gforth
-                jsr xt_space
-                jsr xt_space
-                jsr xt_get_current      ; ( wid )
+                jsr w_space
+                jsr w_space
+                jsr w_get_current      ; ( wid )
 
                 lda 0,x
                 jsr order_print_wid_string
-                jsr xt_cr
+                jsr w_cr
 
 _drop_done:
                 inx
@@ -239,7 +246,7 @@ order_print_wid_string:
                 dex
                 sta 0,x
                 stz 1,x
-                jmp xt_u_dot            ; JSR/RTS as this routine is not compiled
+                jmp w_u_dot            ; JSR/RTS as this routine is not compiled
 
 _output_string:
                 ; Get the string number based on WID 0 to 3
@@ -264,10 +271,11 @@ _wid_data:
         ; """http://forth-standard.org/standard/search/PREVIOUS"""
 
 xt_previous:
-                jsr xt_get_order
-                jsr xt_nip
-                jsr xt_one_minus
-                jsr xt_set_order
+w_previous:
+                jsr w_get_order
+                jsr w_nip
+                jsr w_one_minus
+                jsr w_set_order
 
 z_previous:     rts
 
@@ -276,6 +284,7 @@ z_previous:     rts
 ; ## ROOT_WORDLIST ( -- u ) "WID for the Root (minimal) wordlist"
 ; ## "root-wordlist"  tested  Tali Editor
 xt_root_wordlist:
+w_root_wordlist:
                 dex             ; The WID for the Root wordlist is 3.
                 dex
                 lda #3
@@ -293,7 +302,7 @@ z_root_wordlist:
 
 xt_search_wordlist:
                 jsr underflow_3
-
+w_search_wordlist:
                 ; Set up tmp1 with the wordlist indicated by wid
                 ; on the stack. Start by putting the base address
                 ; of the wordlists in tmp2.
@@ -355,9 +364,9 @@ xt_search_wordlist:
 
                 ; Change the nt into an xt, but save a copy of the nt
                 ; to look up whether the word is immediate or not.
-                jsr xt_dup              ; ( nt nt )
-                jsr xt_name_to_int      ; ( nt xt )
-                jsr xt_swap             ; ( xt nt )
+                jsr w_dup              ; ( nt nt )
+                jsr w_name_to_int      ; ( nt xt )
+                jsr w_swap             ; ( xt nt )
 
                 ldy #0                  ; Prepare flag
 
@@ -400,7 +409,7 @@ z_search_wordlist:
 
 xt_set_current:
                 jsr underflow_1
-
+w_set_current:
                 ; Save the value from the data stack.
                 ldy #current_offset
                 lda 0,x         ; CURRENT is byte variable
@@ -418,6 +427,7 @@ z_set_current:  rts
         ; """https://forth-standard.org/standard/search/SET-ORDER"""
 
 xt_set_order:
+w_set_order:
                 ; Test for -1 TOS
                 lda #$FF
                 cmp 1,x
@@ -479,19 +489,20 @@ z_set_order:    rts
         ; """https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Word-Lists.html"""
 
 xt_to_order:
+w_to_order:
                 ; Put the wid on the return stack for now.
-                jsr xt_to_r
+                jsr w_to_r
 
                 ; Get the current search order.
-                jsr xt_get_order
+                jsr w_get_order
 
                 ; Get back the wid and add it to the list.
-                jsr xt_r_from
-                jsr xt_swap
-                jsr xt_one_plus
+                jsr w_r_from
+                jsr w_swap
+                jsr w_one_plus
 
                 ; Set the search order with the new list.
-                jsr xt_set_order
+                jsr w_set_order
 
 z_to_order:     rts
 
@@ -505,6 +516,7 @@ z_to_order:     rts
         ; """
 
 xt_wordlist:
+w_wordlist:
                 ; Get the current number of wordlists
                 ldy #num_wordlists_offset
                 lda (up),y      ; This is a byte variable, so only

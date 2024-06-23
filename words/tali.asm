@@ -1,6 +1,7 @@
 ; ## ALLOW_NATIVE ( -- ) "Flag last word to allow native compiling"
 ; ## "allow-native"  auto  Tali Forth
 xt_allow_native:
+w_allow_native:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -14,6 +15,7 @@ z_allow_native:
 ; ## ALWAYS_NATIVE ( -- ) "Flag last word as always natively compiled"
 ; ## "always-native"  auto  Tali Forth
 xt_always_native:
+w_always_native:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -28,6 +30,7 @@ z_always_native:
 ; ## BELL ( -- ) "Emit ASCII BELL"
 ; ## "bell"  tested  Tali Forth
 xt_bell:
+w_bell:
                 lda #7          ; ASCII value for BELl
                 jsr emit_a
 
@@ -44,7 +47,7 @@ z_bell:         rts
         ; """
 xt_bounds:
                 jsr underflow_2
-
+w_bounds:
                 clc
                 lda 0,x                 ; LSB u
                 ldy 2,x                 ; LSB addr
@@ -79,19 +82,19 @@ z_bounds:       rts
         ; """
 xt_cleave:
                 jsr underflow_2
-
+w_cleave:
                 ; We arrive here with ( addr u ). We need to strip any leading
                 ; spaces by hand: PARSE-NAME does do that, but it doesn't
                 ; remember how many spaces were stripped. This means we can't
                 ; calculate the length of the remainder. Fortunately, Tali
                 ; Forth has just the word we need for this:
-                jsr xt_minus_leading    ; -LEADING ( addr u )
+                jsr w_minus_leading    ; -LEADING ( addr u )
 
                 ; The main part we can turn over to PARSE-NAME, except that we
                 ; have a string ( addr u ) and not stuff in the input buffer.
                 ; We get around this by cheating: We place ( addr u ) in the
                 ; input buffer and then call PARSE-NAME.
-                jsr xt_input_to_r       ; save old imput state
+                jsr w_input_to_r       ; save old imput state
 
                 lda 0,x         ; u is new ciblen
                 sta ciblen
@@ -107,7 +110,7 @@ xt_cleave:
                 stz toin+1
 
                 ; PARSE-NAME gives us back the substring of the first word
-                jsr xt_parse_name       ; ( addr u addr-s u-s )
+                jsr w_parse_name       ; ( addr u addr-s u-s )
 
                 ; If we were given an empty string, then we're done. It's the
                 ; resposibility of the user to catch this as a sign to end the
@@ -138,12 +141,12 @@ xt_cleave:
                 ; There is one small problem: PARSE-NAME will probably have
                 ; left the string with the rest of the words with leading
                 ; delimiters. We use our magic -LEADING again
-                jsr xt_two_swap         ; ( addr-s u-s addr u )
-                jsr xt_minus_leading
-                jsr xt_two_swap         ; ( addr u addr-s u-s )
+                jsr w_two_swap         ; ( addr-s u-s addr u )
+                jsr w_minus_leading
+                jsr w_two_swap         ; ( addr u addr-s u-s )
 _done:
                 ; Restore input
-                jsr xt_r_to_input
+                jsr w_r_to_input
 
 z_cleave:       rts
 
@@ -161,7 +164,7 @@ z_cleave:       rts
 
 xt_digit_question:
                 jsr underflow_1
-
+w_digit_question:
                 ; one way or another, we're going to need room for the
                 ; flag on the stack
                 dex
@@ -233,9 +236,9 @@ z_digit_question:
         ; """
 xt_execute_parsing:
                 jsr underflow_3
-
-                jsr xt_input_to_r       ; save normal input for later
-                jsr xt_not_rote         ; -ROT ( xt addr u )
+w_execute_parsing:
+                jsr w_input_to_r       ; save normal input for later
+                jsr w_not_rote         ; -ROT ( xt addr u )
 
                 lda 0,x                 ; TOS is new ciblen
                 sta ciblen
@@ -250,10 +253,10 @@ xt_execute_parsing:
                 stz toin                ; Set >IN to zero
                 stz toin+1
 
-                jsr xt_two_drop         ; 2DROP ( xt )
-                jsr xt_execute
+                jsr w_two_drop         ; 2DROP ( xt )
+                jsr w_execute
 
-                jsr xt_r_to_input
+                jsr w_r_to_input
 
 z_execute_parsing:
                 rts
@@ -274,7 +277,7 @@ xt_find_name:
         ; FIND calls this word
         ; """
                 jsr underflow_2
-
+w_find_name:
                 ; check for special case of an empty string (length zero)
                 lda 0,x
                 ora 1,x
@@ -345,6 +348,7 @@ z_find_name:    rts
 ; ## "havekey" tested Tali Forth
 
 xt_havekey:
+w_havekey:
                 dex
                 dex
                 lda #<havekey
@@ -365,9 +369,9 @@ z_havekey:      rts
 
 xt_hexstore:
                 jsr underflow_3
-
-                jsr xt_dup              ; Save copy of original address
-                jsr xt_two_to_r         ; ( addr1 u1 ) ( R: addr2 addr2 )
+w_hexstore:
+                jsr w_dup              ; Save copy of original address
+                jsr w_two_to_r         ; ( addr1 u1 ) ( R: addr2 addr2 )
 
 _loop:
                 ; Loop until string is totally consumed
@@ -375,14 +379,14 @@ _loop:
                 ora 1,x
                 beq _done
 
-                jsr xt_cleave           ; ( addr1 u1 addr3 u3 ) ( R: addr2 addr2 )
+                jsr w_cleave           ; ( addr1 u1 addr3 u3 ) ( R: addr2 addr2 )
 
                 ; Prepare the conversion of the number.
-                jsr xt_two_to_r
-                jsr xt_zero
-                jsr xt_zero
-                jsr xt_two_r_from       ; ( addr1 u1 0 0 addr3 u3 ) ( R: addr2 addr2 )
-                jsr xt_to_number        ; ( addr1 u1 n n addr4 u4 ) ( R: addr2 addr2 )
+                jsr w_two_to_r
+                jsr w_zero
+                jsr w_zero
+                jsr w_two_r_from       ; ( addr1 u1 0 0 addr3 u3 ) ( R: addr2 addr2 )
+                jsr w_to_number        ; ( addr1 u1 n n addr4 u4 ) ( R: addr2 addr2 )
 
                 ; If u4 is not zero, we have leftover chars and have to do
                 ; things differently
@@ -391,17 +395,17 @@ _loop:
                 bne _have_chars_left
 
                 ; Normal case, this number is all done
-                jsr xt_two_drop         ; ( addr1 u1 n n ) ( R: addr2 addr2 )
-                jsr xt_d_to_s           ; ( addr1 u1 n ) ( R: addr2 addr2 )
+                jsr w_two_drop         ; ( addr1 u1 n n ) ( R: addr2 addr2 )
+                jsr w_d_to_s           ; ( addr1 u1 n ) ( R: addr2 addr2 )
 
                 ; Store the new value
-                jsr xt_r_fetch          ; ( addr1 u1 n addr2 ) ( R: addr2 addr2 )
-                jsr xt_c_store          ; ( addr1 u1 ) ( R: addr2 addr2 )
+                jsr w_r_fetch          ; ( addr1 u1 n addr2 ) ( R: addr2 addr2 )
+                jsr w_c_store          ; ( addr1 u1 ) ( R: addr2 addr2 )
 
                 ; Increase counter
-                jsr xt_r_from           ; R>
-                jsr xt_one_plus         ; 1+
-                jsr xt_to_r             ; >R ( addr1 u1 ) ( R: addr2+1 addr2 )
+                jsr w_r_from           ; R>
+                jsr w_one_plus         ; 1+
+                jsr w_to_r             ; >R ( addr1 u1 ) ( R: addr2+1 addr2 )
                 bra _loop
 
 _have_chars_left:
@@ -421,9 +425,9 @@ _done:
                 inx
                 inx                     ; 2DROP
 
-                jsr xt_two_r_from       ; ( addr2+n addr2 )
-                jsr xt_swap
-                jsr xt_minus            ; ( n )
+                jsr w_two_r_from       ; ( addr2+n addr2 )
+                jsr w_swap
+                jsr w_minus            ; ( n )
 
 z_hexstore:     rts
 
@@ -433,6 +437,7 @@ z_hexstore:     rts
 ; ## "input" tested Tali Forth
 
 xt_input:
+w_input:
                 dex
                 dex
                 lda #<input
@@ -466,6 +471,7 @@ z_input:        rts
         ; """
 
 xt_input_to_r:
+w_input_to_r:
                 ; We arrive here with the return address on the top of the
                 ; 65c02's stack. We need to move it out of the way first
                 pla
@@ -502,7 +508,7 @@ z_input_to_r: 	rts
 
 xt_int_to_name:
                 jsr underflow_1
-
+w_int_to_name:
                 ; Unfortunately, to find the header, we have to walk through
                 ; all of the wordlists. We are running out of tmp variables.
                 ; (I'm assuming there is a reason this is avoiding tmp1) so
@@ -618,6 +624,7 @@ z_int_to_name:  rts
         ; The Gforth version of this word is called LATEST
         ; """
 xt_latestnt:
+w_latestnt:
                 dex
                 dex
 
@@ -635,8 +642,9 @@ z_latestnt:     rts
 ; ## "latestxt"  auto  Gforth
         ; """http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Anonymous-Definitions.html"""
 xt_latestxt:
-                jsr xt_latestnt         ; ( nt )
-                jsr xt_name_to_int      ; ( xt )
+w_latestxt:
+                jsr w_latestnt         ; ( nt )
+                jsr w_name_to_int      ; ( xt )
 
 z_latestxt:     rts
 
@@ -650,7 +658,7 @@ z_latestxt:     rts
 
 xt_name_to_int:
                 jsr underflow_1
-
+w_name_to_int:
                 ; The xt starts four bytes down from the nt
                 lda 0,x
                 clc
@@ -680,7 +688,7 @@ z_name_to_int:  rts
 
 xt_name_to_string:
                 jsr underflow_1
-
+w_name_to_string:
                 dex
                 dex
 
@@ -706,6 +714,7 @@ z_name_to_string:
 ; ## "nc-limit"  tested  Tali Forth
 
 xt_nc_limit:
+w_nc_limit:
                 lda #nc_limit_offset
                 jmp push_upvar_tos
 z_nc_limit:
@@ -715,6 +724,7 @@ z_nc_limit:
 ; ## NEVER_NATIVE ( -- ) "Flag last word as never natively compiled"
 ; ## "never-native"  auto  Tali Forth
 xt_never_native:
+w_never_native:
                 jsr current_to_dp
                 ldy #1          ; offset for status byte
                 lda (dp),y
@@ -732,7 +742,7 @@ z_never_native:
 
 xt_not_rote:
                 jsr underflow_3
-
+w_not_rote:
                 ldy 1,x         ; MSB first
                 lda 3,x
                 sta 1,x
@@ -773,7 +783,7 @@ z_not_rote:     rts
 
 xt_number:
                 jsr underflow_2
-
+w_number:
                 ; we keep the flags for sign and double in tmpdsp because
                 ; we've run out of temporary variables
                 ; sign will be the sign bit, and double will be bit 1
@@ -786,7 +796,7 @@ xt_number:
                 pha
 
                 ; Make a copy of the addr u in case we need to print an error message.
-                jsr xt_two_dup
+                jsr w_two_dup
 
                 ; Look at the first character.
                 lda (2,x)
@@ -923,7 +933,7 @@ _main:
                 stz 6,x
                 stz 7,x
 
-                jsr xt_to_number        ; (ud addr u -- ud addr u )
+                jsr w_to_number        ; (ud addr u -- ud addr u )
 
                 ; test length of returned string, which should be zero
                 lda 0,x
@@ -938,15 +948,15 @@ _number_error:
                 ; Drop the addr u from >NUMBER and the double
                 ; (partially converted number) and print the unkown
                 ; word using the original addr u we saved at the beginning.
-                jsr xt_two_drop ; >NUMBER modified addr u
-                jsr xt_two_drop ; ud   (partially converted number)
+                jsr w_two_drop ; >NUMBER modified addr u
+                jsr w_two_drop ; ud   (partially converted number)
 
                 lda #'>'
                 jsr emit_a
-                jsr xt_type
+                jsr w_type
                 lda #'<'
                 jsr emit_a
-                jsr xt_space
+                jsr w_space
 
                 ; Pull the base of the stack and restore it.
                 pla
@@ -962,8 +972,8 @@ _all_converted:
                 inx
                 inx
 _drop_original_string:
-                jsr xt_two_swap  ; Drop the original addr u
-                jsr xt_two_drop  ; (was saved for unknown word error message)
+                jsr w_two_swap  ; Drop the original addr u
+                jsr w_two_drop  ; (was saved for unknown word error message)
 
                 ; We have a double-cell number on the Data Stack that might
                 ; actually have a minus and might actually be single-cell
@@ -979,7 +989,7 @@ _drop_original_string:
                 ; This is a double cell number. If it had a minus (C=1) negate it
                 bcc _done       ; no minus, all done
 
-                jsr xt_dnegate
+                jsr w_dnegate
 
                 bra _done
 
@@ -995,7 +1005,7 @@ _single:
                 ; If we had a minus (C=1), we'll have to negate it
                 bcc _done       ; no minus, all done
 
-                jsr xt_negate
+                jsr w_negate
 _done:
                 ; Restore the base (in case it was changed by #/$/%)
                 pla
@@ -1009,6 +1019,8 @@ z_number:       rts
         ; """This is also the code for EDITOR-WORDLIST"""
 xt_editor_wordlist:
 xt_one:
+w_editor_wordlist:
+w_one:
                 dex
                 dex
                 lda #1
@@ -1024,6 +1036,7 @@ z_one:
 ; ## OUTPUT ( -- addr ) "Return the address of the EMIT vector address"
 ; ## "output"  tested  Tali Forth
 xt_output:
+w_output:
         ; """Return the address where the jump target for EMIT is stored (but
         ; not the vector itself). By default, this will hold the value of
         ; kernel_putc routine, but this can be changed by the user, hence this
@@ -1049,7 +1062,7 @@ z_output:       rts
         ; """
 
 xt_r_to_input:
-
+w_r_to_input:
                 ; We arrive here with the return address on the top of the
                 ; 65c02's stack. We need to move it out of the way first
                 pla
@@ -1086,6 +1099,7 @@ z_r_to_input: 	rts
         ; Default is false.
         ; """
 xt_strip_underflow:
+w_strip_underflow:
                 lda #uf_strip_offset
                 jmp push_upvar_tos
 z_strip_underflow:
@@ -1098,6 +1112,8 @@ z_strip_underflow:
         ; This code is shared with ASSEMBLER-WORDLIST
 xt_assembler_wordlist:
 xt_two:
+w_assembler_wordlist:
+w_two:
                 dex
                 dex
                 lda #2
@@ -1112,6 +1128,7 @@ z_two:          rts
 ; ## USERADDR ( -- addr ) "Push address of base address of user variables"
 ; ## "useraddr"  tested  Tali Forth
 xt_useraddr:
+w_useraddr:
                 dex
                 dex
                 lda #<up
@@ -1131,7 +1148,7 @@ z_useraddr:     rts
         ; """
 xt_wordsize:
                 jsr underflow_1
-
+w_wordsize:
                 ; We get the start address of the word from its header entry
                 ; for the start of the actual code (execution token, xt)
                 ; which is four bytes down, and the pointer to the end of the
@@ -1171,6 +1188,10 @@ xt_case:
 xt_false:
 xt_forth_wordlist:
 xt_zero:
+w_case:
+w_false:
+w_forth_wordlist:
+w_zero:
                 dex             ; push
                 dex
                 stz 0,x

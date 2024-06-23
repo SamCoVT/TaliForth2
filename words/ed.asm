@@ -10,6 +10,7 @@
         ; ed.asm or the manual for details.
         ; """
 xt_ed:
+w_ed:
                 jsr ed6502      ; kept in separate file
 
 z_ed:           rts
@@ -98,10 +99,10 @@ ed6502:
                 ; (the "target") on the stack. Because the stack picture is
                 ; going to get very confusing very fast, we'll mark them
                 ; specially with "-t" suffixes in the stack comments.
-                jsr xt_zero
-                jsr xt_zero             ; ( addr-t u-t )
+                jsr w_zero
+                jsr w_zero             ; ( addr-t u-t )
 
-                jsr xt_cr
+                jsr w_cr
 
 ed_input_loop:
                 ; Set parameter flag to none (bit 7); default printing is
@@ -134,7 +135,7 @@ ed_input_loop:
                 lda #%10000000
                 tsb ed_flags
 
-                jsr xt_one_plus         ; ( addr-t u-t u+1 )
+                jsr w_one_plus         ; ( addr-t u-t u+1 )
                 jsr ed_is_valid_line
                 bcs +
 
@@ -144,7 +145,7 @@ ed_input_loop:
                 ; We have a legal line number, but we need two entries on
                 ; the parameter list (four if you count the target
                 ; address) to be able to work with the rest of the program.
-                jsr xt_zero             ; ( addr-t u-t u+1 0 )
+                jsr w_zero             ; ( addr-t u-t u+1 0 )
 
                 jmp _line_number_only_from_external
 
@@ -156,8 +157,8 @@ _command_mode:
                 ; computer people. Some commands like "a" will take a "line 0",
                 ; however. We use the ed_flags bit 7 to signal if we are
                 ; without parameters.
-                jsr xt_zero             ; parameter 1 is NOS ( addr-t u-t 0 )
-                jsr xt_zero             ; parameter 2 is TOS ( addr-t u-t 0 0 )
+                jsr w_zero             ; parameter 1 is NOS ( addr-t u-t 0 )
+                jsr w_zero             ; parameter 2 is TOS ( addr-t u-t 0 0 )
 
                 ; We start off by taking care of any parameters. These can be
                 ; '%' for the complete text, '$' for the last line, a line
@@ -265,10 +266,10 @@ _command_mode:
                 lda ciblen+1
                 sta 1,x
 
-                jsr xt_one_minus        ; ( addr-t u-t para1 0 addr u-1 )
-                jsr xt_swap             ; ( addr-t u-t para1 0 u-1 addr )
-                jsr xt_one_plus         ; ( addr-t u-t para1 0 u-1 addr+1 )
-                jsr xt_swap             ; ( addr-t u-t para1 0 addr+1 u-1 )
+                jsr w_one_minus        ; ( addr-t u-t para1 0 addr u-1 )
+                jsr w_swap             ; ( addr-t u-t para1 0 u-1 addr )
+                jsr w_one_plus         ; ( addr-t u-t para1 0 u-1 addr+1 )
+                jsr w_swap             ; ( addr-t u-t para1 0 addr+1 u-1 )
 
                 jmp _check_for_para2
 
@@ -284,7 +285,7 @@ _prefix_dollar:
                 inx                     ; ( addr-t u-t 0 )
 
                 jsr ed_last_line          ; ( addr-t u-t 0 para1 )
-                jsr xt_swap             ; SWAP ( addr-t u-t para1 0 )
+                jsr w_swap             ; SWAP ( addr-t u-t para1 0 )
 
                 ; We have a parameter
                 lda #%10000000
@@ -374,8 +375,8 @@ _prefix_number:
                 ; Set up >NUMBER using CIB and CIBLEN as the location of the
                 ; string to check. First, though, add the "accumulator" of
                 ; >NUMBER as a double number, that is, to single-cell numbers
-                jsr xt_zero
-                jsr xt_zero             ; ( addr-t u-t 0 0 0 0 )
+                jsr w_zero
+                jsr w_zero             ; ( addr-t u-t 0 0 0 0 )
 
                 dex
                 dex
@@ -392,7 +393,7 @@ _prefix_number:
                 lda ciblen+1
                 sta 1,x                 ; ( addr-t u-t 0 0 0 0 cib ciblen )
 
-                jsr xt_to_number        ; ( addr-t u-t 0 0 ud addr2 u2 )
+                jsr w_to_number        ; ( addr-t u-t 0 0 ud addr2 u2 )
 
                 ; If we converted all the characters in the string (u2 is
                 ; zero), then the user just gave us a line number to
@@ -409,14 +410,14 @@ _prefix_number:
                 inx
                 inx                     ; 2DROP ( addr-t u-t 0 0 ud )
 
-                jsr xt_d_to_s           ; D>S ( addr-t u-t 0 0 u )
-                jsr xt_not_rote         ; -ROT ( addr-t u-t u 0 0 )
+                jsr w_d_to_s           ; D>S ( addr-t u-t 0 0 u )
+                jsr w_not_rote         ; -ROT ( addr-t u-t u 0 0 )
 
                 inx
                 inx                     ; ( addr-t u-t u 0 ) drop through
 
 _line_number_only_from_external:
-                jsr xt_swap             ; ( addr-t u-t 0 u )
+                jsr w_swap             ; ( addr-t u-t 0 u )
 
                 jsr ed_is_valid_line
                 bcs +
@@ -425,7 +426,7 @@ _line_number_only_from_external:
                 jmp ed_error_2drop
 +
                 ; Legal line number, so make it the current number
-                jsr xt_swap             ; ( addr-t u-t u 0 )
+                jsr w_swap             ; ( addr-t u-t u 0 )
                 jsr ed_para1_to_cur
 
                 ; We have a parameter
@@ -440,7 +441,7 @@ _have_unconverted_chars:
                 ; command character and need to skip the rest of the prefix
                 ; processing. In this case, the number of unconverted
                 ; characters is equal to the length of the string.
-                jsr xt_dup              ; ( addr-t u-t 0 0 ud addr2 u2 u2 )
+                jsr w_dup              ; ( addr-t u-t 0 0 ud addr2 u2 u2 )
 
                 dex
                 dex                     ; ( addr-t u-t 0 0 ud addr2 u2 u2 ? )
@@ -450,7 +451,7 @@ _have_unconverted_chars:
                 lda ciblen+1
                 sta 1,x                 ; ( addr-t u-t 0 0 ud addr2 u2 u2 ciblen )
 
-                jsr xt_equal            ; ( addr-t u-t 0 0 ud addr2 u2 f )
+                jsr w_equal            ; ( addr-t u-t 0 0 ud addr2 u2 f )
 
                 lda 0,x
                 ora 1,x
@@ -487,9 +488,9 @@ _no_command_yet:
                 inx
                 inx                     ; ( ... 0 0 ud addr2 u2 )
 
-                jsr xt_to_r             ; >R ( ... 0 0 ud addr2 ) (R: u2)
-                jsr xt_not_rote         ; -ROT ( ... 0 0 addr2 ud ) (R: u2)
-                jsr xt_d_to_s           ; D>S  ( ... 0 0 addr2 para1 ) (R: u2)
+                jsr w_to_r             ; >R ( ... 0 0 ud addr2 ) (R: u2)
+                jsr w_not_rote         ; -ROT ( ... 0 0 addr2 ud ) (R: u2)
+                jsr w_d_to_s           ; D>S  ( ... 0 0 addr2 para1 ) (R: u2)
 
                 lda 0,x                 ; LSB
                 sta 6,x
@@ -498,7 +499,7 @@ _no_command_yet:
 
                 inx
                 inx                     ; ( addr-t u-t para1 0 addr2 ) (R: u2)
-                jsr xt_r_from           ; R> ( addr-t u-t para1 0 addr2 u2 ) fall through
+                jsr w_r_from           ; R> ( addr-t u-t para1 0 addr2 u2 ) fall through
 
                 ; We have a parameter
                 lda #%10000000
@@ -584,24 +585,24 @@ _para2_not_dollar:
                 ; 0 addr2+1 u2-1 ), which u2-1 pointing to the first mystery
                 ; character after the comma. Again, we skip the ( addr-t u-t )
                 ; at the beginning of the stack comment here.
-                jsr xt_to_r             ; >R ( ... para1 0 addr2+1 ) (R: u2-1)
-                jsr xt_zero             ; 0 ( ... para1 0 addr2+1 0 ) (R: u2-1)
-                jsr xt_zero             ; 0 ( ... para1 0 addr2+1 0 0 ) (R: u2-1)
-                jsr xt_rot              ; ROT ( ... para1 0 0 0 addr2+1 ) (R: u2-1)
-                jsr xt_r_from           ; R> ( ... para1 0 0 0 addr2+1 u2-1)
+                jsr w_to_r             ; >R ( ... para1 0 addr2+1 ) (R: u2-1)
+                jsr w_zero             ; 0 ( ... para1 0 addr2+1 0 ) (R: u2-1)
+                jsr w_zero             ; 0 ( ... para1 0 addr2+1 0 0 ) (R: u2-1)
+                jsr w_rot              ; ROT ( ... para1 0 0 0 addr2+1 ) (R: u2-1)
+                jsr w_r_from           ; R> ( ... para1 0 0 0 addr2+1 u2-1)
 
                 ; We'll need a copy of the length of the rest of the string to
                 ; see if we've actually done any work
-                jsr xt_dup              ; DUP ( ... para1 0 0 0 addr2+1 u2-1 u2-1)
-                jsr xt_to_r             ; >R ( ... para1 0 0 0 addr2+1 u2-1 ) (R: u2-1)
+                jsr w_dup              ; DUP ( ... para1 0 0 0 addr2+1 u2-1 u2-1)
+                jsr w_to_r             ; >R ( ... para1 0 0 0 addr2+1 u2-1 ) (R: u2-1)
 
-                jsr xt_to_number        ; >NUMBER ( ... para1 0 ud addr3 u3 ) (R: u2-1)
+                jsr w_to_number        ; >NUMBER ( ... para1 0 ud addr3 u3 ) (R: u2-1)
 
                 ; If the original string and the leftover string have the same
                 ; length, then nothing was converted and we have an error
-                jsr xt_dup              ; DUP ( ... para1 0 ud addr3 u3 u3 ) (R: u2-1)
-                jsr xt_r_from           ; R> ( ... para1 0 ud addr3 u3 u3 u2-1 )
-                jsr xt_equal            ; = ( ... para1 0 ud addr3 u3 f )
+                jsr w_dup              ; DUP ( ... para1 0 ud addr3 u3 u3 ) (R: u2-1)
+                jsr w_r_from           ; R> ( ... para1 0 ud addr3 u3 u3 u2-1 )
+                jsr w_equal            ; = ( ... para1 0 ud addr3 u3 f )
 
                 lda 0,x
                 ora 1,x
@@ -630,9 +631,9 @@ _second_number:
                 pha
 
                 ; Clean up the stack
-                jsr xt_two_drop         ; 2DROP ( addr-t u-t para1 0 ud )
-                jsr xt_d_to_s           ; D>S  ( addr-t u-t para1 0 para2 )
-                jsr xt_nip              ; NIP ( addr-t u-t para1 para2 )
+                jsr w_two_drop         ; 2DROP ( addr-t u-t para1 0 ud )
+                jsr w_d_to_s           ; D>S  ( addr-t u-t para1 0 para2 )
+                jsr w_nip              ; NIP ( addr-t u-t para1 para2 )
 
                 ply
 
@@ -724,7 +725,7 @@ ed_all_done:
                 stz ciblen+1
 
                 ; Clean up the stack
-                jsr xt_two_drop                 ; 2DROP ( addr-t u-t )
+                jsr w_two_drop                 ; 2DROP ( addr-t u-t )
 
                 ; Restore the base
                 lda ed_base
@@ -783,7 +784,7 @@ ed_entry_cmd_i:
 
 ; ed_cmd_a_have_para:
                 jsr ed_num_to_addr        ;  ( addr-t u-t addr1 )
-                jsr xt_cr
+                jsr w_cr
 
 _next_string_loop:
                 ; This is where we land when we are continuing in with another
@@ -815,34 +816,34 @@ _next_string_loop:
                 lda #%01000000
                 tsb ed_flags
 
-                jsr xt_cr
+                jsr w_cr
                 jmp ed_input_loop
 
 _add_line:
                 ; Break the linked list so we can insert another node
-                jsr xt_dup              ; DUP ( addr-t u-t addr1 addr1 )
-                jsr xt_here             ; HERE ( addr-t u-t addr1 addr1 here )
-                jsr xt_swap             ; SWAP ( addr-t u-t addr1 here addr1 )
-                jsr xt_fetch            ; @  ( addr-t u-t addr1 here addr2 )
-                jsr xt_comma            ; ,  ( addr-t u-t addr1 here )
+                jsr w_dup              ; DUP ( addr-t u-t addr1 addr1 )
+                jsr w_here             ; HERE ( addr-t u-t addr1 addr1 here )
+                jsr w_swap             ; SWAP ( addr-t u-t addr1 here addr1 )
+                jsr w_fetch            ; @  ( addr-t u-t addr1 here addr2 )
+                jsr w_comma            ; ,  ( addr-t u-t addr1 here )
 
                 ; We're going to need that HERE for the next line if more
                 ; than one line is added. This is a good time to save it on
                 ; the stack
-                jsr xt_tuck             ; TUCK ( addr-t u-t here addr1 here )
+                jsr w_tuck             ; TUCK ( addr-t u-t here addr1 here )
 
                 ; We have now saved the link to the next node at HERE, which is
                 ; where the CP was pointing. CP has been advanced by one cell,
                 ; but we still have the original as HERE on the stack. That
                 ; address now has to go where addr2 was before.
-                jsr xt_swap             ; SWAP ( addr-t u-t here here addr1 )
-                jsr xt_store            ; ! ( addr-t u-t here )
+                jsr w_swap             ; SWAP ( addr-t u-t here here addr1 )
+                jsr w_store            ; ! ( addr-t u-t here )
 
                 ; Thus concludes the mucking about with node links. Now we have
                 ; to create a new header. The CP we access with HERE points to
                 ; the cell after the new node address, which is where we want
                 ; to put ( ) for the new string
-                jsr xt_here             ; HERE ( addr-t u-t here here2)
+                jsr w_here             ; HERE ( addr-t u-t here here2)
 
                 ; Reserve two cells (four bytes on the 65c02) for the ( addr u )
                 ; of the new string
@@ -866,8 +867,8 @@ _add_line:
                 ; is where the new string needs to be. The MOVE command we're
                 ; going to use has the format ( addr1 addr2 u )
 
-                jsr xt_here     ; HERE ( addr-t u-t here here2 here3 )
-                jsr xt_dup      ; DUP ( addr-t u-t here here2 here3 here3 )
+                jsr w_here     ; HERE ( addr-t u-t here here2 here3 )
+                jsr w_dup      ; DUP ( addr-t u-t here here2 here3 here3 )
 
                 dex
                 dex             ; ( addr-t u-t here here2 here3 here3 ? )
@@ -876,7 +877,7 @@ _add_line:
                 lda cib+1
                 sta 1,x         ; ( addr-t u-t here here2 here3 here3 cib )
 
-                jsr xt_swap     ; SWAP ( addr-t u-t here here2 here3 cib here3 )
+                jsr w_swap     ; SWAP ( addr-t u-t here here2 here3 cib here3 )
 
                 dex
                 dex             ; ( addr-t u-t here here2 here3 cib here3 ? )
@@ -885,7 +886,7 @@ _add_line:
                 lda ciblen+1
                 sta 1,x         ; ( addr-t u-t here here2 here3 cib here3 ciblen )
 
-                jsr xt_move     ; ( addr-t u-t here here2 here3 )
+                jsr w_move     ; ( addr-t u-t here here2 here3 )
 
                 ; We need to adjust CP be the length of the string
                 clc
@@ -900,22 +901,22 @@ _add_line:
                 ; The string is now moved safely out of the input buffer to the
                 ; main memory at ( here3 ciblin ). Now we have to fix that
                 ; fact in the header. We start with the address.
-                jsr xt_over             ; OVER ( addr-t u-t here here2 here3 here2 )
-                jsr xt_store            ; ! ( addr-t u-t here here2 )
+                jsr w_over             ; OVER ( addr-t u-t here here2 here3 here2 )
+                jsr w_store            ; ! ( addr-t u-t here here2 )
 
-                jsr xt_one_plus         ; 1+
-                jsr xt_one_plus         ; 1+ ( addr-t u-t here here2+2 )
-                jsr xt_dup              ; DUP ( addr-t u-t here here2+2 here2+2 )
+                jsr w_one_plus         ; 1+
+                jsr w_one_plus         ; 1+ ( addr-t u-t here here2+2 )
+                jsr w_dup              ; DUP ( addr-t u-t here here2+2 here2+2 )
 
                 lda ciblen
                 sta 2,x
                 lda ciblen+1
                 sta 3,x                 ; ( addr-t u-t here ciblen here2+2 )
 
-                jsr xt_store            ; ! ( addr-t u-t here )
+                jsr w_store            ; ! ( addr-t u-t here )
 
                 ; Add a line feed for visuals
-                jsr xt_cr
+                jsr w_cr
 
                 ; Remeber that original HERE we've been dragging along all the
                 ; time? Now we find out why. We return to the loop to pick up
@@ -940,7 +941,7 @@ ed_cmd_d:
                 bne +
 
                 ; The second parameter is a zero, so delete one line
-                jsr xt_over             ; ( addr-t u-t para1 0 para1 )
+                jsr w_over             ; ( addr-t u-t para1 0 para1 )
                 jsr _cmd_d_common       ; ( addr-t u-t para1 0 )
                 bra _cmd_d_done
 +
@@ -958,8 +959,8 @@ _cmd_d_loop:
                 ; error if we start out that way, we might do that in future as
                 ; well. This is not the same code as for 'p', because we have
                 ; to delete from the back
-                jsr xt_two_dup          ; 2DUP ( addr-t u-t para1 para2 para1 para2 )
-                jsr xt_greater_than     ; > ( addr-t u-t para1 para2 f )
+                jsr w_two_dup          ; 2DUP ( addr-t u-t para1 para2 para1 para2 )
+                jsr w_greater_than     ; > ( addr-t u-t para1 para2 f )
 
                 lda 0,x
                 ora 1,x
@@ -970,9 +971,9 @@ _cmd_d_loop:
                 inx
                 inx                     ; Get rid of the flag from >
 
-                jsr xt_dup              ; DUP ( addr-t u-t para1 para2 para2 )
+                jsr w_dup              ; DUP ( addr-t u-t para1 para2 para2 )
                 jsr _cmd_d_common       ; ( addr-t u-t para1 para2 )
-                jsr xt_one_minus        ; 1- ( addr-t u-t para1 para2-1 )
+                jsr w_one_minus        ; 1- ( addr-t u-t para1 para2-1 )
 
                 bra _cmd_d_loop
 
@@ -999,7 +1000,7 @@ _cmd_d_done:
                 lda #%01000000
                 tsb ed_flags
 
-                jsr xt_cr
+                jsr w_cr
 
                 jmp ed_next_command
 
@@ -1009,13 +1010,13 @@ _cmd_d_common:
         ; node and put it in the previous node. The caller is responsible
         ; for setting ed_changed. We arrive here with ( u )
 
-                jsr xt_dup              ; DUP ( addr-t u-t u u )
+                jsr w_dup              ; DUP ( addr-t u-t u u )
                 jsr ed_num_to_addr        ; ( addr-t u-t u addr )
-                jsr xt_fetch            ; @ ( addr-t u-t u addr1 )
-                jsr xt_swap             ; SWAP ( addr-t u-t addr1 u )
-                jsr xt_one_minus        ; 1- ( addr-t u-t addr1 u-1 )
+                jsr w_fetch            ; @ ( addr-t u-t u addr1 )
+                jsr w_swap             ; SWAP ( addr-t u-t addr1 u )
+                jsr w_one_minus        ; 1- ( addr-t u-t addr1 u-1 )
                 jsr ed_num_to_addr        ; ( addr-t u-t addr1 addr-1 )
-                jsr xt_store            ; ! ( addr-t u-t )
+                jsr w_store            ; ! ( addr-t u-t )
 
                 rts
 
@@ -1070,16 +1071,16 @@ _cmd_equ_have_para:
                 bne _cmd_equ_two_paras
 
                 ; We've got one parameter
-                jsr xt_over             ; ( addr-t u-t para1 para2 para1)
+                jsr w_over             ; ( addr-t u-t para1 para2 para1)
                 bra _cmd_equ_done
 
 _cmd_equ_two_paras:
-                jsr xt_dup              ; ( addr-t u-t para1 para2 para2) drop through
+                jsr w_dup              ; ( addr-t u-t para1 para2 para2) drop through
 
 _cmd_equ_done:
-                jsr xt_cr               ; number goes on new line
-                jsr xt_u_dot            ; ( addr-t u-t para1 para2 )
-                jsr xt_cr
+                jsr w_cr               ; number goes on new line
+                jsr w_u_dot            ; ( addr-t u-t para1 para2 )
+                jsr w_cr
 
                 jmp ed_next_command
 
@@ -1095,17 +1096,17 @@ ed_cmd_f:
                 bit ed_flags
                 bmi _cmd_f_have_para
 
-                jsr xt_cr
+                jsr w_cr
 
                 ; No parameters, just a naked "f", so print the address buried
                 ; at the fourth position of the stack: We arrive here with
                 ; ( addr-t u-t 0 0 )
-                jsr xt_to_r             ; >R   ( addr-t u-t 0 ) ( R: 0 )
-                jsr xt_rot              ; ROT  ( u-t 0 addr-t ) ( R: 0 )
-                jsr xt_dup              ; DUP  ( u-t 0 addr-t addr-t ) ( R: 0 )
-                jsr xt_u_dot            ; U.   ( u-t 0 addr-t ) ( R: 0 )
-                jsr xt_not_rote         ; -ROT ( addr-t u-t 0 ) ( R: 0 )
-                jsr xt_r_from           ; R>   ( addr-t u-t 0 0 )
+                jsr w_to_r             ; >R   ( addr-t u-t 0 ) ( R: 0 )
+                jsr w_rot              ; ROT  ( u-t 0 addr-t ) ( R: 0 )
+                jsr w_dup              ; DUP  ( u-t 0 addr-t addr-t ) ( R: 0 )
+                jsr w_u_dot            ; U.   ( u-t 0 addr-t ) ( R: 0 )
+                jsr w_not_rote         ; -ROT ( addr-t u-t 0 ) ( R: 0 )
+                jsr w_r_from           ; R>   ( addr-t u-t 0 0 )
 
                 bra _cmd_f_done
 
@@ -1113,9 +1114,9 @@ _cmd_f_have_para:
                 ; We do no sanity tests at all. This is Forth, if the user
                 ; wants to blow up the Zero Page and the Stack, sure, go right
                 ; ahead, whatever.
-                jsr xt_over
-                jsr xt_cr
-                jsr xt_u_dot
+                jsr w_over
+                jsr w_cr
+                jsr w_u_dot
 
                 lda 2,x
                 sta 6,x
@@ -1123,7 +1124,7 @@ _cmd_f_have_para:
                 sta 7,x                 ; fall through to _cmd_f_done
 
 _cmd_f_done:
-                jsr xt_cr
+                jsr w_cr
 
                 jmp ed_next_command
 
@@ -1159,9 +1160,9 @@ _cmd_i_have_para:
                 beq _cmd_i_done
 
                 ; We have some other line number, so we start one above it
-                jsr xt_one_minus        ; 1-  ( addr-t u-t para1-1 )
-                jsr xt_zero             ; 0   ( addr-t u-t para1-1 0 )
-                jsr xt_max              ; MAX ( addr-t u-t para1-1 | 0 )
+                jsr w_one_minus        ; 1-  ( addr-t u-t para1-1 )
+                jsr w_zero             ; 0   ( addr-t u-t para1-1 0 )
+                jsr w_max              ; MAX ( addr-t u-t para1-1 | 0 )
 _cmd_i_done:
                 jmp ed_entry_cmd_i
 
@@ -1200,7 +1201,7 @@ ed_cmd_p_entry_for_cmd_n:
                 jsr ed_have_text
                 jsr ed_no_line_zero
 
-                jsr xt_cr
+                jsr w_cr
 
                 ; We now know that there is some number in para1. The most
                 ; common case is that para2 is zero and we're being asked to
@@ -1218,7 +1219,7 @@ ed_cmd_p_entry_for_cmd_n:
                 ; Print a single line and be done with it. We could use
                 ; DROP here and leave immediately but we want this routine
                 ; to have a single exit at the bottom.
-                jsr xt_over             ; OVER ( addr-t u-t para1 para2 para1 )
+                jsr w_over             ; OVER ( addr-t u-t para1 para2 para1 )
                 jsr _cmd_p_common       ; ( addr-t u-t para1 para2 )
 
                 bra _cmd_p_all_done
@@ -1228,8 +1229,8 @@ _cmd_p_loop:
                 ; is a bit trickier. If para1 is larger than para2, we're
                 ; done. Note that Unix ed throws an error if we start out
                 ; that way, we might do that in future as well
-                jsr xt_two_dup          ; 2DUP ( addr-t u-t para1 para2 para1 para2 )
-                jsr xt_greater_than     ; > ( addr-t u-t para1 para2 f )
+                jsr w_two_dup          ; 2DUP ( addr-t u-t para1 para2 para1 para2 )
+                jsr w_greater_than     ; > ( addr-t u-t para1 para2 f )
 
                 lda 0,x
                 ora 1,x
@@ -1239,7 +1240,7 @@ _cmd_p_loop:
                 ; continue
                 inx
                 inx                     ; Get rid of the flag from >
-                jsr xt_over             ; ( addr-t u-t para1 para2 para1 )
+                jsr w_over             ; ( addr-t u-t para1 para2 para1 )
                 jsr _cmd_p_common       ; ( addr-t u-t para1 para2 )
 
                 inc 2,x
@@ -1276,8 +1277,8 @@ _cmd_p_common:
 
                 ; Bit 0 is set, this is coming from n. Print the line number
                 ; followed by a tab
-                jsr xt_dup              ; DUP ( addr-t u-t para1 para1 )
-                jsr xt_u_dot            ; U. ( addr-t u-t para1 )
+                jsr w_dup              ; DUP ( addr-t u-t para1 para1 )
+                jsr w_u_dot            ; U. ( addr-t u-t para1 )
 
                 lda #$09                 ; ASCII for Tab
                 jsr emit_a
@@ -1373,11 +1374,11 @@ _cmd_w_para_ready:
                 ; We need to keep a copy of the original target address to
                 ; calculate how many chars (including carriage returns) we
                 ; saved at the end of this routine
-                jsr xt_over             ; OVER ( addr-t u-t addr-t addr-h addr-t )
-                jsr xt_to_r             ; >R ( addr-t u-t addr-t addr-h ) ( R: addr-t )
+                jsr w_over             ; OVER ( addr-t u-t addr-t addr-h addr-t )
+                jsr w_to_r             ; >R ( addr-t u-t addr-t addr-h ) ( R: addr-t )
 
 _cmd_w_loop:
-                jsr xt_fetch            ; @ ( addr-t u-t addr-t addr1 ) ( R: addr-t )
+                jsr w_fetch            ; @ ( addr-t u-t addr-t addr1 ) ( R: addr-t )
 
                 ; If we're at the end of the list, quit. For the next block of
                 ; text, we ignore the ( addr-t u-t ) at the beginning
@@ -1385,42 +1386,42 @@ _cmd_w_loop:
                 ora 1,x
                 beq _cmd_w_eol
 
-                jsr xt_two_dup          ; 2DUP ( addr-t addr-1 addr-t addr-1 ) ( R: addr-t addr-1 addr-t )
-                jsr xt_two_to_r         ; 2>R  ( addr-t addr-1 ) (R: ... )
+                jsr w_two_dup          ; 2DUP ( addr-t addr-1 addr-t addr-1 ) ( R: addr-t addr-1 addr-t )
+                jsr w_two_to_r         ; 2>R  ( addr-t addr-1 ) (R: ... )
 
                 ; Get the address and length of the string from the header
                 ; of this node
-                jsr xt_one_plus         ; 1+ ( addr-t addr1+1 ) (R: ... )
-                jsr xt_one_plus         ; 1+ ( addr-t addr1+2 ) (R: ... )
-                jsr xt_dup              ; DUP ( addr-t addr1+2 addr1+2 ) ( R: ... )
-                jsr xt_fetch            ; @ ( addr-t addr1+2 addr-s ) ( R: ... )
-                jsr xt_swap             ; SWAP ( addr-t addr-s addr1+2 ) ( R: ... )
-                jsr xt_one_plus         ; 1+ ( addr-t addr-s addr1+1 ) (R: ... )
-                jsr xt_one_plus         ; 1+ ( addr-t addr-s addr1+2 ) (R: ... )
-                jsr xt_fetch            ; @ ( addr-t addr-s u-s ) ( R: ... )
-                jsr xt_not_rote         ; -ROT ( u-s addr-t addr-s ) ( R: ... )
-                jsr xt_swap             ; SWAP ( u-s addr-s addr-t ) ( R: ... )
-                jsr xt_rot              ; ROT (addr-s addr-t u-s ) ( R: ... )
+                jsr w_one_plus         ; 1+ ( addr-t addr1+1 ) (R: ... )
+                jsr w_one_plus         ; 1+ ( addr-t addr1+2 ) (R: ... )
+                jsr w_dup              ; DUP ( addr-t addr1+2 addr1+2 ) ( R: ... )
+                jsr w_fetch            ; @ ( addr-t addr1+2 addr-s ) ( R: ... )
+                jsr w_swap             ; SWAP ( addr-t addr-s addr1+2 ) ( R: ... )
+                jsr w_one_plus         ; 1+ ( addr-t addr-s addr1+1 ) (R: ... )
+                jsr w_one_plus         ; 1+ ( addr-t addr-s addr1+2 ) (R: ... )
+                jsr w_fetch            ; @ ( addr-t addr-s u-s ) ( R: ... )
+                jsr w_not_rote         ; -ROT ( u-s addr-t addr-s ) ( R: ... )
+                jsr w_swap             ; SWAP ( u-s addr-s addr-t ) ( R: ... )
+                jsr w_rot              ; ROT (addr-s addr-t u-s ) ( R: ... )
 
                 ; We need a copy of the string length u-s to adjust the pointer
                 ; to the store area later
-                jsr xt_dup              ; DUP (addr-s addr-t u-s u-s ) ( R: ... )
-                jsr xt_to_r             ; >R (addr-s addr-t u-s ) ( R: ... u-s )
+                jsr w_dup              ; DUP (addr-s addr-t u-s u-s ) ( R: ... )
+                jsr w_to_r             ; >R (addr-s addr-t u-s ) ( R: ... u-s )
 
-                jsr xt_move             ; MOVE ( )( R: addr-t addr-1 addr-t )
+                jsr w_move             ; MOVE ( )( R: addr-t addr-1 addr-t )
 
                 ; Calculate the position of the next string in the save area.
                 ; What we don't do is remember the length of the individual
                 ; strings; instead at the end we will subtract addresses to
                 ; get the length of the string
-                jsr xt_r_from           ; R> ( u-s )  ( R: addr-t addr-h addr-t )
-                jsr xt_two_r_from       ; 2R> ( u-s addr-t addr-h ) ( R: addr-t )
-                jsr xt_not_rote         ; -ROT ( addr-h u-s addr-t ) ( R: addr-t )
-                jsr xt_plus             ; + ( addr-h addr-t1 ) ( R: addr-t )
+                jsr w_r_from           ; R> ( u-s )  ( R: addr-t addr-h addr-t )
+                jsr w_two_r_from       ; 2R> ( u-s addr-t addr-h ) ( R: addr-t )
+                jsr w_not_rote         ; -ROT ( addr-h u-s addr-t ) ( R: addr-t )
+                jsr w_plus             ; + ( addr-h addr-t1 ) ( R: addr-t )
 
                 ; But wait, our strings are terminated by Line Feeds in
                 ; memory, so we need to add one
-                jsr xt_dup              ; DUP ( addr-h addr-t1 addr-t1 ) ( R: addr-t )
+                jsr w_dup              ; DUP ( addr-h addr-t1 addr-t1 ) ( R: addr-t )
 
                 dex
                 dex                     ; ( addr-h addr-t1 addr-t1 ? ) ( R: addr-t )
@@ -1428,12 +1429,12 @@ _cmd_w_loop:
                 sta 0,x
                 stz 1,x                 ; ( addr-h addr-t1 addr-t1 c ) ( R: addr-t )
 
-                jsr xt_swap             ; SWAP ( addr-h addr-t1 c addr-t1 ) ( R: addr-t )
-                jsr xt_store            ; ! ( addr-h addr-t1 ) ( R: addr-t )
-                jsr xt_one_plus         ; 1+ ( addr-h addr-t1+1 ) ( R: addr-t )
+                jsr w_swap             ; SWAP ( addr-h addr-t1 c addr-t1 ) ( R: addr-t )
+                jsr w_store            ; ! ( addr-h addr-t1 ) ( R: addr-t )
+                jsr w_one_plus         ; 1+ ( addr-h addr-t1+1 ) ( R: addr-t )
 
                 ; Now we can handle the next line
-                jsr xt_swap             ; SWAP ( addr-t1+1 addr-h ) ( R: addr-t )
+                jsr w_swap             ; SWAP ( addr-t1+1 addr-h ) ( R: addr-t )
 
                 bra _cmd_w_loop
 
@@ -1442,9 +1443,9 @@ _cmd_w_eol:
                 ; ( addr-tn addr-n ) ( R: addr-t ) What we do now is calculate
                 ; the number of characters saved and put that value in the 3OS
                 ; position
-                jsr xt_swap             ; SWAP ( addr-t u-t addr-n addr-tn ) ( R: addr-t )
-                jsr xt_r_from           ; R> ( addr-t u-t addr-n addr-tn addr-t )
-                jsr xt_minus            ; - ( addr-t u-t addr-n u )
+                jsr w_swap             ; SWAP ( addr-t u-t addr-n addr-tn ) ( R: addr-t )
+                jsr w_r_from           ; R> ( addr-t u-t addr-n addr-tn addr-t )
+                jsr w_minus            ; - ( addr-t u-t addr-n u )
 
                 lda 0,x
                 sta 4,x
@@ -1453,10 +1454,10 @@ _cmd_w_eol:
 
                 ; Unix ed puts the number of characters on a new line, so we
                 ; do as well
-                jsr xt_cr
-                jsr xt_dup              ; DUP ( addr-t u addr-n u u )
-                jsr xt_u_dot            ; U. ( addr-t u addr-n u )
-                jsr xt_cr
+                jsr w_cr
+                jsr w_dup              ; DUP ( addr-t u addr-n u u )
+                jsr w_u_dot            ; U. ( addr-t u addr-n u )
+                jsr w_cr
 
                 ; Reset the changed flag
                 lda #%01000000
@@ -1481,12 +1482,12 @@ ed_error:
                 ; clean up the stack itself: We expect it to be empty. Note that
                 ; ed currently does not support reporting the type of error on
                 ; demand like Unix ed does
-                jsr xt_cr
+                jsr w_cr
 
                 lda #'?'
                 jsr emit_a
 
-                jsr xt_cr
+                jsr w_cr
 
                 jmp ed_input_loop
 
@@ -1496,7 +1497,7 @@ ed_error:
 ed_get_input:
         ; Use REFILL to get input from the user, which is left in
         ; ( cib ciblen ) as usual.
-                jsr xt_refill           ;  ( addr-t u-t f )
+                jsr w_refill           ;  ( addr-t u-t f )
 
                 ; If something went wrong while getting the user input, print
                 ; a question mark and try again. No fancy error messages
@@ -1550,10 +1551,10 @@ ed_is_valid_line:
                 beq _is_valid_line_nope_zero    ; ( n )
 
                 ; Not a zero. Now see if we're beyond the last line
-                jsr xt_dup                      ; DUP ( n n )
+                jsr w_dup                      ; DUP ( n n )
                 jsr ed_last_line                  ; ( n n last )
-                jsr xt_swap                     ; SWAP ( n last n )
-                jsr xt_less_than                ; < ( n f )
+                jsr w_swap                     ; SWAP ( n last n )
+                jsr w_less_than                ; < ( n f )
 
                 lda 0,x                         ; 0 flag is good
                 ora 1,x
@@ -1595,7 +1596,7 @@ ed_last_line:
                 sta 1,x                 ; ( addr )
 
 _last_line_loop:
-                jsr xt_fetch            ; ( addr | 0 )
+                jsr w_fetch            ; ( addr | 0 )
 
                 ; If that's over, we're at the end of the list and we're done
                 lda 0,x
@@ -1665,32 +1666,32 @@ ed_num_to_addr:
                 bne _num_to_addr_loop
 
                 ; It's zero, so we're already done
-                jsr xt_nip              ; ( addr-h )
+                jsr w_nip              ; ( addr-h )
                 bra _num_to_addr_done
 
 _num_to_addr_loop:
                 ; Get the first line
-                jsr xt_fetch            ; @ ( u addr1 )
+                jsr w_fetch            ; @ ( u addr1 )
 
                 ; If that's zero, we're at the end of the list and it's over
                 lda 0,x
                 ora 1,x
                 bne +
 
-                jsr xt_nip              ; NIP ( addr1 )
+                jsr w_nip              ; NIP ( addr1 )
                 bra _num_to_addr_done
 +
                 ; It's not zero. See if this is the nth element we're looking
                 ; for
-                jsr xt_swap             ; SWAP ( addr1 u )
-                jsr xt_one_minus        ; 1- ( addr1 u-1 )
+                jsr w_swap             ; SWAP ( addr1 u )
+                jsr w_one_minus        ; 1- ( addr1 u-1 )
 
                 lda 0,x
                 ora 1,x
                 beq _num_to_addr_finished
 
                 ; Not zero yet, try again
-                jsr xt_swap             ; SWAP ( u-1 addr1 )
+                jsr w_swap             ; SWAP ( u-1 addr1 )
 
                 bra _num_to_addr_loop
 
@@ -1721,21 +1722,21 @@ ed_print_addr:
         ; Assumes we have made sure that this address exists. It would be
         ; nice to put the CR at the beginning, but that doesn't work with
         ; the n commands, so at the end it goes. Consumes TOS.
-                jsr xt_one_plus
-                jsr xt_one_plus         ; ( addr+2 )
+                jsr w_one_plus
+                jsr w_one_plus         ; ( addr+2 )
 
-                jsr xt_dup              ; ( addr+2 addr+2 )
+                jsr w_dup              ; ( addr+2 addr+2 )
 
-                jsr xt_one_plus
-                jsr xt_one_plus         ; ( addr+2 addr+4 )
+                jsr w_one_plus
+                jsr w_one_plus         ; ( addr+2 addr+4 )
 
-                jsr xt_fetch            ; ( addr+2 u-s )
-                jsr xt_swap             ; ( u-s addr+2 )
-                jsr xt_fetch            ; ( u-s addr-s )
+                jsr w_fetch            ; ( addr+2 u-s )
+                jsr w_swap             ; ( u-s addr+2 )
+                jsr w_fetch            ; ( u-s addr-s )
 
-                jsr xt_swap             ; ( addr-s u-s )
-                jsr xt_type
-                jsr xt_cr
+                jsr w_swap             ; ( addr-s u-s )
+                jsr w_type
+                jsr w_cr
 
                 rts
 

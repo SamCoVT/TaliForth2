@@ -620,12 +620,12 @@ nt_d_plus:
         .text "d+"
 
 nt_erase:
-        .byte 5, 0      ; underflow checked by FILL
+        .byte 5, UF
         .word nt_blank, xt_erase, z_erase
         .text "erase"
 
 nt_blank:
-        .byte 5, 0     ; underflow checked by FILL
+        .byte 5, UF
         .word nt_fill, xt_blank, z_blank
         .text "blank"
 
@@ -1176,27 +1176,27 @@ nt_if:
         .text "if"
 
 nt_then:
-        .byte 4, IM+CO+NN
+        .byte 4, UF+IM+CO+NN
         .word nt_else, xt_then, z_then
         .text "then"
 
 nt_else:
-        .byte 4, IM+CO+NN
+        .byte 4, UF+IM+CO+NN
         .word nt_repeat, xt_else, z_else
         .text "else"
 
 nt_repeat:
-        .byte 6, IM+CO+NN
+        .byte 6, UF+IM+CO+NN
         .word nt_until, xt_repeat, z_repeat
         .text "repeat"
 
 nt_until:
-        .byte 5, IM+CO+NN
+        .byte 5, UF+IM+CO+NN
         .word nt_while, xt_until, z_until
         .text "until"
 
 nt_while:
-        .byte 5, IM+CO+NN
+        .byte 5, UF+IM+CO+NN
         .word nt_case, xt_while, z_while
         .text "while"
 
@@ -1216,17 +1216,17 @@ nt_endof:
         .text "endof"
 
 nt_endcase:
-        .byte 7, IM+CO+NN
+        .byte 7, UF+IM+CO+NN
         .word nt_defer_fetch, xt_endcase, z_endcase
         .text "endcase"
 
 nt_defer_fetch:
-        .byte 6, 0
+        .byte 6, UF
         .word nt_defer_store, xt_defer_fetch, z_defer_fetch
         .text "defer@"
 
 nt_defer_store:
-        .byte 6, 0
+        .byte 6, UF
         .word nt_is, xt_defer_store, z_defer_store
         .text "defer!"
 
@@ -1277,22 +1277,22 @@ nt_blk:
         .text "blk"
 
 nt_block_write:
-        .byte 11, NN ; Deferred words need the HC (Code Field) flag.
+        .byte 11, NN
         .word nt_block_write_vector, xt_block_write, z_block_write
         .text "block-write"
 
 nt_block_write_vector:
-        .byte 18, NN ; Deferred words need the HC (Code Field) flag.
+        .byte 18, NN
         .word nt_block_read, xt_block_write_vector, z_block_write_vector
         .text "block-write-vector"
 
 nt_block_read:
-        .byte 10, HC+NN ; Deferred words need the HC (Code Field) flag.
+        .byte 10, NN
         .word nt_block_read_vector, xt_block_read, z_block_read
         .text "block-read"
 
 nt_block_read_vector:
-        .byte 17, HC+NN ; Deferred words need the HC (Code Field) flag.
+        .byte 17, NN
         .word nt_save_buffers, xt_block_read_vector, z_block_read_vector
         .text "block-read-vector"
 
