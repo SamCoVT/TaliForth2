@@ -1,7 +1,7 @@
 Tali Forth is currently shipped with a very primitive disassembler, which is
 started with `disasm ( addr u -- )`.
 
-==== Format
+=== Format
 
 The output format is in Simpler Assembler Notation (SAN). Briefly, the
 instruction's mode is added to the mnemonic, leaving the operand a pure number.
@@ -31,7 +31,7 @@ becomes (assuming `hex` for hexadecimal numbers):
 See the Appendix for a more detailed discussion of the format.
 
 
-==== Output
+=== Output
 
 The disassembler prints the address of the instruction, followed by any operand
 and the mnemonic. To get the code of `drop`, for instance, we can use
@@ -61,7 +61,7 @@ size (decimal): 5
 
 Note that `see` does not print the final `rts` instruction.
 
-==== Determining address labels
+=== Determining address labels
 
 When disassembling, using either `disasm` or `see`, the dictionary is searched
 anytime a `jsr` is encountered and the name of the word will be printed if a
@@ -112,7 +112,7 @@ source.
 order_print_wid_string= $9870
 ----
 
-==== Literals and Strings
+=== Literals and Strings
 
 Tali compiles literals into words by saving a jsr to a helper
 routine followed immediately by the data for the literal.  During
@@ -146,7 +146,7 @@ give the values in hex while `disasm` will use the current `base`):
 hex 812 10 type
 ----
 
-==== Gotchas and known issues
+=== Gotchas and known issues
 
 Tali Forth enforces the *signature byte* of the `brk` assembler instruction.
 That is, it is treated like a two-byte instruction. Since you probably shouldn't be
