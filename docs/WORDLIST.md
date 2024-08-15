@@ -42,7 +42,7 @@ RTS instruction at the end of each word.
 | ZERO | `0` | Tali Forth | 6 | **auto** |
 | ABORT_QUOTE | `abort"` | ANS core | 10 | tested |
 | ABS | `abs` | ANS core | 20 | **auto** |
-| ACCEPT | `accept` | ANS core | 248 | **auto** |
+| ACCEPT | `accept` | ANS core | 288 | **auto** |
 | ACTION_OF | `action-of` | ANS core ext | 24 | **auto** |
 | AGAIN | `again` | ANS core ext | 6 | tested |
 | ALIGN | `align` | ANS core | 0 | **auto** |
