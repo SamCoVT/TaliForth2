@@ -1,0 +1,238 @@
+Tali Forth is an excellent platform for playing directly with hardware.  Tali
+lets you poke and prod hardware interactively.  Once you figure out how to use the
+hardware directly, you can write new words to access the hardware.  These words
+can be tested interactively and then be used to write an application that uses the
+hardware.
+
+This tutorial shows how to interface with an LCD on a Ben Eater style 65C02
+computer with a serial port (recommended for Tali) and LCD wired to PORTB of a
+65C22 as shown here: https://eater.net/schematics/6502-serial.png
+
+The important details are that the 65C22 Versatile Interface Adapter (called the
+VIA from here on) is memory mapped starting at address $6000, the LCD DB4-7
+(data pins) are connected to VIA pins PB0-3, LCD RS (register select) is
+connected to VIA PB4, LCD R/W* (read/write*) is connected to VIA PB5, and LCD E
+(enable) is connected to VIA PB6.  Note that the LCD DB0-3 pins are not
+connected, meaning we will need to run the LCD in 4-bit mode.  This is often
+done with LCDs to reduce the number of I/O pins needed to run them - do note
+that the earlier Ben Eater design (without serial port) had a different
+connection scheme and used the LCD in 8-bit mode.
+
+The reference materials to consult will be the W65C22 datasheet for the VIA and
+the Hitachi HD44780U datasheet (your character LCD likely either has this
+chipset or a clone of it - search for "ADE-207-272(Z)" to locate the exact
+version used here).
+
+Because the LCD is connected to the VIA, we will need to initialize the VIA
+first, and then the LCD.  We need bits 0-6 of Port B on the VIA to be outputs.
+Reading in the W65C22 VIA datasheet shows that we will need to access the Data
+Direction Register B (register 2) to set the direction of the pins and Output
+Register B (register 0) to send the data and commands to the LCD. To get
+started, we will make names for these two registers in the VIA.
+
+```
+\ Name the starting address for the VIA.
+\ The registers are memory mapped, so register 2 will be
+\ 2 higher than the base address.  Change this address if
+\ your VIA is in a different location.
+$6000 constant via_base_address
+
+\ Name the two registers we will use.
+\ Calculate their addresses based on the base address.
+via_base_address     constant PB    \ Port B data
+via_base_address 2 + constant DDRB  \ Port B data direction
+```
+
+Now we can try making the pins outputs and make sure we can control them.
+You can test the pins for HIGH and LOW using a multimeter or LED + resistor.
+The VIA datasheet says putting a 1 into a bit in the Data Direction Register
+makes the corresponding port bit an output, so we need to put 1s in bits 0
+through 6.
+
+When accessing 8-bit memory locations (and the hardware we are using is memory
+mapped), the Forth words `C@` (character fetch) and `C!` (character store) can
+be used to directly read and write those locations.  We'll use `C!` here to
+directly control the VIA from Forth.  The % in front of the number tells Tali
+that the number is given directly in binary (you can use $ instead if you prefer
+hex)
+
+```
+\ Make PB0 through PB6 outputs.
+%01111111 DDRB C!
+```
+Once we run this, the pins should be outputs and will stay that way until we
+reset or power cycle the hardware.  Now we can write to the Port B data register
+to control what is output on those pins and use a multimeter to verify it's
+working and we have control of the VIA.  We'll use a value that has alternating
+0s and 1s for testing.
+
+```
+\ Make every other bit a 1.
+%01010101 PB C!
+```
+
+The pins should change immediately after running this code.  As you can see,
+using C! lets you directly poke the hardware to ask it to do thing.  Once this
+has been verified to be working, we'll make some helper words to make working
+with the VIA easier.  (The part in parenthesis is a stack comment and it shows
+what the word accepts from the stack and leaves on the stack.  It's OK to ignore
+it for now if you are unfamiliar with stack comments.)
+
+```
+\ Initialize the VIA with Port B bits 0-6 set up as outputs.
+: Init_VIA ( -- )   %01111111 DDRB C! ;
+\ Write a value (given on the stack) to the Port B pins.
+: PB! ( u -- )   PB C! ;
+\ Get the current value of PB pins.
+: PB@ ( -- u )   PB C@ ;
+```
+
+You'll note that the Init_VIA word contains exactly the same code we ran
+directly earlier, while the PB! is missing the value.  That's because PB! is
+expecting the value to already be on the stack, and you can use this word by
+placing the value you want sent to Port B on the stack and then running PB! like
+"%00001111 PB!".
+
+Once these words are defined, we can use them to start talking to the LCD.  In
+the HD44780U datasheet on page 33, it shows a timing diagram for writing to the
+LCD using 4-bit mode.  Only DB7 (bit 7) of the data is shown, but you are
+supposed to send the upper nybble (4-bits, or half a byte) first and then the
+lower nybble using the same data lines.  Even though the LCD is using DB4-DB7,
+those are connected to bits 0-3 of Port B on the VIA, so we will need to write
+our commands to bits 0-3 of Port B on the VIA.
+
+For each command sent to the LCD, the E (enable) line needs to be strobed, which
+is simply bringing it high and then low.  The R/W* (read/write*) line tells the
+LCD if we are reading or writing, with a 0 meaning we are writing.  Finally, the
+RS (register select) line will be 0 for commands (like clear the screen or move
+the cursor) and 1 of data (eg. the text to display). 
+
+To send a command to the LCD, we need to make the RS bit a 0, R/W* a zero, E a
+zero, and the nybble we want to send on the data lines.  Then we can strobe the
+E line by making it high, and then low.  This transfers the nybble to the LCD.
+To send another nybble (two need to be sent for each byte), you just change the
+data a strobe the E line again.
+
+The bad news is that LCDs start up in 8-bit mode and we need to do a special
+dance to initialize them into 4-bit mode.  The good news is that the datasheet
+tells us exactly the steps to this initialization dance on page 46 (not shown at
+each step is a strobe of the E line).  This dance is complicated enough that we
+will write some words to help us out.
+
+```
+\ Give names to the control lines.
+%01000000 constant LCD_E    \ VIA PB6
+%00100000 constant LCD_R/W* \ VIA PB5, valid forth name
+%00010000 constant LCD_RS   \ VIA PB4
+
+: LCD_strobe ( -- )     \ Bring the strobe light high then low.
+  PB  @                 \ Get the current value of PB.
+  DUP  LCD_E OR  PB!    \ Turn on just the E bit.
+  LCD_E INVERT AND  PB! \ Turn off just the E bit.
+  ;
+
+: LCD_send_nybble ( u -- ) \ Send 4-bit value to LCD.
+  %00001111 AND  \ Make sure only lower 4 bits used.
+  PB@            \ Get current value on PB.
+  %11110000 AND  \ zero out the lower 4 bits and
+  OR DUP PB!     \ replace with nybble.
+  LCD_strobe     \ Send the nybble to the LCD.
+  ;
+
+: LCD_send_byte ( u -- ) \ Send 8-bit value in two nybbles.
+  \ Send the upper nybble first.
+  DUP  4 rshift  LCD_send_nybble
+  \ Send the lower nybble next.
+  LCD_send_nybble
+  ;
+
+: LCD_command ( u -- ) \ Send command to LCD
+  \ Make RS a zero.
+  PB@  LCD_RS INVERT AND  PB!
+  \ Send the command
+  LCD_send_byte
+  LCD_delay
+  ;
+
+: LCD_delay ( -- ) \ Simple delay to give LCD time to react.
+  1000 0 do loop ;
+
+: LCD_Init ( -- )
+  0 PB! \ Zero out the LCD data and control lines to start.
+  \ Force to 8-bit mode (even through we want 4-bit)
+  %00000011 LCD_send_nybble LCD_delay
+  %00000011 LCD_send_nybble LCD_delay
+  %00000011 LCD_send_nybble LCD_delay
+  \ Set to 4-bit mode
+  %00000010 LCD_send_nybble LCD_delay
+  \ Now we can send commands normally.
+  %00100000 LCD_command \ 4-bit mode, 2 lines, 5x8 font
+  %00010000 LCD_command \ move cursor after each char
+  %00001110 LCD_command \ Display on, cursor on, no blinking
+  %00000110 LCD_command \ cursor moves right
+  %00000001 LCD_command \ Clear the screen
+  ;
+
+: LCD_char ( u -- ) \ Put a character on the screen.
+  \ Make RS a one.
+  PB@  LCD_RS OR  PB!
+  \ Send the command
+  LCD_send_byte
+  LCD_delay
+  ;
+```
+
+The three main words that will be used in applications are LCD_Init to
+initialize the LCD into 4-bit mode, LCD_command to send commands to the LCD (see
+pages 24-25 of the HD44780U datasheet for available commands), and LCD_char to
+send text for the LCD to display.  Lets test these by printing a * on the
+screen.
+
+```
+LCD_Init
+42 LCD_char \ 42 is the ASCII value for *
+```
+
+If all is well, the LCD screen should have just a * on it, with a cursor in the
+next location.  If anything isn't working, we can run the guts of a word
+interactively and check the hardware pins to see where it goes wrong.  Once this
+is working, we can print "Hi" next.
+
+```
+char H LCD_char
+char i LCD_char
+```
+
+This is fine for very short messages, but it would be nice to be able to print
+longer messages.  Next we will make a word that prints an entire string to the
+LCD screen.
+
+```
+: LCD_type ( addr u -- ) \ Print a string to the LCD
+ 0 ?do \ Loop through all the characters
+   dup i + c@  LCD_char \ Print the current letter to the LCD
+ loop
+ ;
+```
+
+Now we can print strings so the LCD.  Do note that S" needs a space before the
+first letter of the string.
+
+```
+s" Hi there" LCD_type
+```
+
+We're making a bit of a mess on our LCD, so lets clear the screen.  That's
+command 1 (%00000001) in the datasheet.
+
+```
+1 LCD_command
+```
+
+That seems handy enough we should make it into a word.
+
+```
+\ Clear the LCD screen.
+: LCD_clear ( -- )   1 LCD_command ;
+```
+

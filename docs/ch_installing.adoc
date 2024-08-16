@@ -33,8 +33,7 @@ works fine.
 
 Tali was written to run out of the box on the py65mon simulator from
 https://github.com/mnaberez/py65.(((py65mon))) This is a Python(((Python)))
-program that should run on various operating systems. Py65mon is also required
-for the test suite.
+program that should run on various operating systems.
 
 To install py65mon on Linux(((Linux))), use one of the following commands
 
@@ -56,9 +55,9 @@ first.  Once Python is installed, the above commands should work from
 a Windows command prompt.
 
 
-==== Running the Binary
+==== Running the Binary in py65mon
 
-To start the emulator, run:
+To start Tali in the py65mon simulator, run:
 
 [source,bash]
 ----
@@ -67,7 +66,7 @@ py65mon -m 65c02 -r taliforth-py65mon.bin
 
 Note that the option `-m 65c02` is required, because Tali Forth makes extensive
 use of the additional commands of the CMOS version and will not run on a stock
-6502 MPU.  If you have `make` installed
+6502 MPU.
 
 If you downloaded the full Tali Forth 2 source code and have `make`
 installed, you can also just type:
