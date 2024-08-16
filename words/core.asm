@@ -97,22 +97,12 @@ w_accept:
                 jmp accept_done
 
 _not_zero:
+.if TALI_OPTION_COLOR_INPUT
                 ; Modification to make input visually different than output.
-                lda #27         ; ESC (beginning of ANSI sequence)
-                jsr emit_a
-                lda #'['
-                jsr emit_a
-                lda #'9'        ; WHITE
-                jsr emit_a
-                lda #'7'
-                jsr emit_a
-                lda #';'
-                jsr emit_a
-                lda #'1'        ; BOLD
-                jsr emit_a
-                lda #'m'
-                jsr emit_a      ; end of ANSI sequence
-                
+                lda #str_color_pre_accept ; ANSI escape code sequence to color input
+                jsr print_string_no_lf
+.endif
+
                 lda 0,x         ; number of chars to get in tmp2 ...
                 sta tmp2
                 stz tmp2+1      ; ... but we only accept max 255 chars
@@ -358,15 +348,11 @@ _save_history_done:
 accept_done:            ; nothing to do if we're not saving history
 .endif
 
-                ; Modification to make input visually different than output.
-                lda #27         ; ESC (beginning of ANSI sequence)
-                jsr emit_a
-                lda #'['
-                jsr emit_a
-                lda #'0'        ; NORMAL
-                jsr emit_a
-                lda #'m'
-                jsr emit_a      ; end of ANSI sequence
+.if TALI_OPTION_COLOR_INPUT
+                ; Send the ANSI code to change output color.
+                lda #str_color_post_accept
+                jsr print_string_no_lf
+.endif
 
 z_accept:
                 rts

@@ -35,6 +35,28 @@ TALI_OPTION_HISTORY := 1
 TALI_OPTION_TERSE := 0
 ;TALI_OPTION_TERSE := 1
 
+; TALI_OPTION_COLOR_INPUT uses ANSI escape codes to color input (and output)
+; Requires a terminal that supports ANSI.  Colors can be changed by modifying
+; s_color_pre_accept and s_color_post_accept
+
+TALI_OPTION_COLOR_INPUT := 0
+;TALI_OPTION_COLOR_INPUT := 1
+
+; These strings can be used to change the colors and font effects.  You can set
+; multiple options with semicolons between them.  See your favorite reference
+; for available ANSI codes.
+
+; The input_color_code is called at the beginning of ACCEPT and will color
+; most input.
+
+input_color_code := "97;1" ; WHITE and BOLD
+
+; The outout_color_code is called at the end of ACCEPT and will color most
+; output.
+
+output_color_code := "0"   ; DEFAULT (light gray in many terminals)
+
+
 .include "simulator.asm"
 
 ; py65mon doesn't have kbhit so we roll our own, using a spare byte in the IO area

@@ -2,7 +2,7 @@
 ; Scot W. Stevenson <scot.stevenson@gmail.com>
 ; Modified by Sam Colwell and Patrick Surry
 ; First version: 01. Apr 2016 (for Liara Forth)
-; This version: 23. Mar 2024
+; This version: 16. Aug 2024
 
 ; This file is included by taliforth.asm
 
@@ -55,6 +55,12 @@ ix += 1
 str_disasm_do      = ix
 ix += 1
 .endif
+.if TALI_OPTION_COLOR_INPUT
+str_color_pre_accept  = ix
+ix += 1
+str_color_post_accept = ix
+ix += 1
+.endif
 
 ; Since we can't fit a 16-bit address in a register, we use indexes as offsets
 ; to tables as error and string numbers.
@@ -67,7 +73,9 @@ string_table:
 .if "disassembler" in TALI_OPTIONAL_WORDS
         .word s_disasm_sdc, s_disasm_lit, s_disasm_0bra, s_disasm_loop, s_disasm_do ; 11-15
 .endif
-
+.if TALI_OPTION_COLOR_INPUT
+        .word s_color_pre_accept, s_color_post_accept ; 16-17
+.endif
 ; note .shift is like .text but terminates the string by setting bit 7 of the last character
 ; print_common in taliforth.asm shows how we use these
 
@@ -98,6 +106,19 @@ s_disasm_0bra: .shift "0BRANCH "
 s_disasm_loop: .shift "LOOP "
 s_disasm_do: .shift "DO "
 .endif
+
+.if TALI_OPTION_COLOR_INPUT
+; Provide default colors (ANSI codes) that can be overridden in the platform file.
+.weak
+; Default for input is bold white input
+input_color_code  := "97;1"
+; Default for output is "default" terminal color (usually gray)
+output_color_code := "0"
+.endweak
+s_color_pre_accept:  .shift 27,"[",input_color_code,"m"
+s_color_post_accept: .shift 27,"[",output_color_code,"m"
+.endif
+
 
 ; ## ERROR STRINGS
 
