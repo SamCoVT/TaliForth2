@@ -546,6 +546,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_gotchas_and_known_issues_2">Gotchas and known issues</a></li>
 </ul>
 </li>
+<li><a href="#_tutorial_interfacing_with_hardware">Tutorial: Interfacing with Hardware</a>
+<ul class="sectlevel2">
+<li><a href="#_the_hardware">The Hardware</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_developer_guide">Developer Guide</a>
@@ -4420,6 +4425,50 @@ will actually run correctly (again, addresses will vary):</p>
 <div class="paragraph">
 <p>These mistakes can surface further downstream when the incorrect value on the
 Data Stack causes problems.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tutorial_interfacing_with_hardware">Tutorial: Interfacing with Hardware</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Tali Forth is an excellent platform for playing directly with hardware.  Tali
+lets you poke and prod hardware interactively.  Once you figure out how to use the
+hardware directly, you can write new words to access the hardware.  These words
+can be tested interactively and then be used to write an application that uses the
+hardware.</p>
+</div>
+<div class="paragraph">
+<p>This tutorial shows how to interface some LEDs and pushbutton switches on a Ben
+Eater style 65C02 computer with a serial port (recommended for Tali) and the
+switches and LEDs wires to PORTA of a 65C22 Versatile Interface Adapter (VIA).
+For this example, the VIA will be memory mapped starting at address $6000 and
+the LEDs and pushbutton switches will be wired as shown here.  If your hardware
+is different, you can adjust the Forth source code accordingly.</p>
+</div>
+<div class="sect2">
+<h3 id="_the_hardware">The Hardware</h3>
+<div class="imageblock">
+<div class="content">
+<img src="pics/tutorial_hardware_buttons_and_LEDs.png" alt="tutorial hardware buttons and LEDs">
+</div>
+</div>
+<div class="paragraph">
+<p>The LEDs are connected to Port A bits 0-3 and the pushbutton switches are
+connected to Port A bits 4-7.  The LEDs are wired such that a "1" in a bit will
+light up that LED, while a "0" will turn off that LED.  The switches are wired
+in an "active low" configuration, such that pressing a switch will result in a
+"0" on that bit, and releasing the switch will result in a "1" on that bit.
+Although that may seem backwards, this is a standard method for wiring up
+pushbuttons.  Our software will need to account for the fact that the switches
+are active low.</p>
+</div>
+<div class="paragraph">
+<p>The first step is to initialize Port A of the VIA so that bits 0-3 are outputs
+(to the LEDs) and bits 4-7 are inputs (from the switches).  The datasheet for
+the W65C22 will be our reference material (available directly from WDC at
+<a href="https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf" class="bare">https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf</a>)</p>
 </div>
 </div>
 </div>
@@ -10158,7 +10207,7 @@ under <a href="https://www.ubuntu.com/">Ubuntu</a> Linux 16.04 LTS.</p>
 <div id="footer">
 <div id="footer-text">
 Version 1.1<br>
-Last updated 2024-08-16 10:19:38 -0400
+Last updated 2024-08-19 11:15:30 -0400
 </div>
 </div>
 </body>

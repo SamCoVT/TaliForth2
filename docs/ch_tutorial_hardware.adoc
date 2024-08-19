@@ -4,6 +4,33 @@ hardware directly, you can write new words to access the hardware.  These words
 can be tested interactively and then be used to write an application that uses the
 hardware.
 
+This tutorial shows how to interface some LEDs and pushbutton switches on a Ben
+Eater style 65C02 computer with a serial port (recommended for Tali) and the
+switches and LEDs wires to PORTA of a 65C22 Versatile Interface Adapter (VIA).
+For this example, the VIA will be memory mapped starting at address $6000 and
+the LEDs and pushbutton switches will be wired as shown here.  If your hardware
+is different, you can adjust the Forth source code accordingly.
+
+=== The Hardware
+
+image::pics/tutorial_hardware_buttons_and_LEDs.png[]
+
+The LEDs are connected to Port A bits 0-3 and the pushbutton switches are
+connected to Port A bits 4-7.  The LEDs are wired such that a "1" in a bit will
+light up that LED, while a "0" will turn off that LED.  The switches are wired
+in an "active low" configuration, such that pressing a switch will result in a
+"0" on that bit, and releasing the switch will result in a "1" on that bit.
+Although that may seem backwards, this is a standard method for wiring up
+pushbuttons.  Our software will need to account for the fact that the switches
+are active low.
+
+The first step is to initialize Port A of the VIA so that bits 0-3 are outputs
+(to the LEDs) and bits 4-7 are inputs (from the switches).  The datasheet for
+the W65C22 will be our reference material (available directly from WDC at
+https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf)
+
+
+////
 This tutorial shows how to interface with an LCD on a Ben Eater style 65C02
 computer with a serial port (recommended for Tali) and LCD wired to PORTB of a
 65C22 as shown here: https://eater.net/schematics/6502-serial.png
@@ -236,3 +263,4 @@ That seems handy enough we should make it into a word.
 : LCD_clear ( -- )   1 LCD_command ;
 ```
 
+////

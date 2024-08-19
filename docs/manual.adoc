@@ -66,6 +66,9 @@ include::ch_assembler.adoc[]
 == The Disassembler
 include::ch_disasm.adoc[]
 
+== Tutorial: Interfacing with Hardware
+include::ch_tutorial_hardware.adoc[]
+
 // TODO: Tutorial on native compiling
 
 // --------------------------------------------------------
