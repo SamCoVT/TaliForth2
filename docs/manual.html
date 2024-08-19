@@ -549,6 +549,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_tutorial_interfacing_with_hardware">Tutorial: Interfacing with Hardware</a>
 <ul class="sectlevel2">
 <li><a href="#_the_hardware">The Hardware</a></li>
+<li><a href="#_the_software">The Software</a></li>
 </ul>
 </li>
 </ul>
@@ -4464,11 +4465,184 @@ Although that may seem backwards, this is a standard method for wiring up
 pushbuttons.  Our software will need to account for the fact that the switches
 are active low.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_the_software">The Software</h3>
 <div class="paragraph">
 <p>The first step is to initialize Port A of the VIA so that bits 0-3 are outputs
 (to the LEDs) and bits 4-7 are inputs (from the switches).  The datasheet for
 the W65C22 will be our reference material (available directly from WDC at
-<a href="https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf" class="bare">https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf</a>)</p>
+<a href="https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf" class="bare">https://www.westerndesigncenter.com/wdc/documentation/w65c22.pdf</a>).</p>
+</div>
+<div class="paragraph">
+<p>Referencing Table 2-1 and reading section 2.1 in the W65C22 VIA datasheet shows
+that we will need to access the Data Direction Register A (register 3) to set
+the direction of the pins as well as Input Register A and Output Register A
+(both at register 1 - we&#8217;ll just name this PA for "Port A" and use that for both
+input and output).  To get started, we will make names for these two registers
+in the VIA.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>\ Name the starting address for the VIA.
+\ The registers are memory mapped, so register 3 will be
+\ 3 higher than the base address.  Change this address if
+\ your VIA is in a different location.
+$6000 constant via_base_address
+
+\ Name the two registers we will use.
+\ Calculate their addresses based on the base address.
+via_base_address 1 +  constant PA    \ Port A data
+via_base_address 3 +  constant DDRA  \ Port A data direction</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now we can make bits 0-3 outputs by writing a value to DDRA (Data Direction
+Register A) that has 1s where we want output pins.  We&#8217;ll use binary values in
+this code (starts with % for binary and bit #0 is on the right side) to make it
+easy to see the individual bits, but the values can be given in any base that
+Forth supports.  We&#8217;ll also turn on every other LED so it will be easy to see if
+our code is working.  Because these registers are 8-bits wide, we will use C!
+(Character Store), which stores a single byte at the given address (both given
+on the stack).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>\ Make bits 0-3 on Port A outputs.
+%00001111 DDRA C!
+\ Turn on every other LED.
+%00001010 PA C!</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>That&#8217;s it!  We are now able to directly control the LEDs from Forth just by
+writing a new value to the PA memory location in Forth.  Let&#8217;s make some helper
+words to make working with the LEDs a bit easier.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>: LED_Init ( -- )  \ Initialize the LED pins as outputs.
+   %00001111 DDRA C! ;
+: LED! ( c -- )  \ Send byte to LEDs (only bits 0-3 used).
+   PA C! ;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When the hardware is first powered up, we will need to run LED_Init once (it
+won&#8217;t hurt if it is run again, but it should be run at least once).  After
+that, we can just use LED! to send a new pattern to the LEDs.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>: mydelay ( -- ) \ A simple delay - adjust first number to adjust speed.
+   10000 0 do loop ;
+: LED_Dance ( -- ) \ Make the LEDs dance
+   10 0 do         \ Loop 10 times
+      $1100 LED! mydelay
+      $0110 LED! mydelay
+      $0011 LED! mydelay
+      $1001 LED! mydelay
+   loop ;
+
+\ Try it out.
+LED_Dance</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that we have control of the LEDs, lets move on to the switches.  These are
+wired in an "active low" configuration, so they give a "0" when pressed and a
+"1" when not pressed.  We&#8217;ll start with SW1, which is wired to PA4 so it will be
+in bit 4 when we read from Port A.  We will use the C@ (Character Fetch) word to
+read an 8-bit value from PA.  Let&#8217;s use C@ directly first, and then we will make
+some helper words for determining if each switch is pressed or not.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>\ Read the value on Port A and print it out.
+PA C@ .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><code>PA</code> puts the address of Port A on the stack.  <code>C@</code> reads the value at that
+address and leaves that on the stack.  Finally, <code>.</code> prints the value on the
+stack.  This will print out the byte value from Port A, however it will contain
+both the values of the switches as well as the bits for the LEDs.  By pressing
+different switches while running this code, you can see that the value changes.
+(Hint: You can press CTRL-P to bring up the previous line of Forth code if you
+want to run it again - Tali remembers the last 8 lines.)</p>
+</div>
+<div class="paragraph">
+<p>We will want to "mask" the bits that we are not interested in - in this case by
+forcing them all to be zeroes.  We will use the AND instruction to do that, and
+it needs a bitmask (a special value to indicate which bits we want) that has a 1
+in the bit location we are interested in and zeroes in all other bits.  For SW1,
+on bit 4, that might look like this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>PA C@  %00010000 AND  .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This code is only interested in the switch on bit 4 (SW1).  When that switch is
+pressed, bit 4 will be read as a zero (because the switches are active low).
+This code zeroes out all of the other bits, so the result of this code will be
+zero when the switch is pressed.  Do note that you don&#8217;t get "1" as the result
+when the switch is not pressed, but rather 16 (assuming Tali is in decimal
+mode).  That&#8217;s because bit 4 has the decimal value of 16.  The value for any bit
+can be determined by raising 2 to the bit number.</p>
+</div>
+<div class="paragraph">
+<p>To check a different switch, just change the bitmask.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>\ Check SW2 on bit 5.
+PA C@  %00100000 AND  .</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This code will print the current status of switch SW2 on bit 5.  It also prints
+0 when the switch is pressed, but this prints 64 when the switch is released
+because bit 5&#8217;s value is twice that of bit 4.</p>
+</div>
+<div class="paragraph">
+<p>What we want are some helper words for each button to tell if they are pressed
+or not.  We can then use whether they are pressed or not as a true/false value
+to control loops and IF statements.  Words that test for something and return a
+true or false value usually end with a question mark in the name.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>: SW1?  ( -- f ) \ Return TRUE if SW1 is pressed.
+   PA C@  %00010000 AND  0= ;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Note that we are not printing the result here, but we are checking to see if it
+is zero or not and leaving the true or false result from <code>0=</code> on the stack for
+other code to use.  Our stack comment indicates that this word leaves a flag on
+the stack after it is run.  Other words could be create for the other buttons by
+changing the bitmask.</p>
+</div>
+<div class="paragraph">
+<p>Finally, let&#8217;s put this all together and have the LEDs dance until the switch is
+pressed.  Note that you may need to hold the button down for a bit, as it&#8217;s only
+checked at one point during the LED dance.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>: LED_Dance2 ( -- ) \ Dance the LEDs until SW1 pressed.
+   BEGIN
+      $1100 LED! mydelay
+      $0110 LED! mydelay
+      $0011 LED! mydelay
+      $1001 LED! mydelay
+   SW1? UNTIL ;
+
+\ Try it out.
+LED_Dance2</code></pre>
+</div>
 </div>
 </div>
 </div>
