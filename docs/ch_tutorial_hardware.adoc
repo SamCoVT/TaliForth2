@@ -174,10 +174,10 @@ it's only checked at one point during the LED dance.
 : LED_Dance2 ( -- ) \ Dance the LEDs until SW1 pressed.
    LED_Init
    BEGIN
-      $1100 LED! mydelay
-      $0110 LED! mydelay
-      $0011 LED! mydelay
-      $1001 LED! mydelay
+      %1100 LED! mydelay
+      %0110 LED! mydelay
+      %0011 LED! mydelay
+      %1001 LED! mydelay
    SW1? UNTIL ;
 
 \ Try it out.
@@ -190,8 +190,10 @@ With the above under our belt, we're ready to tackle something a bit more
 advanced.  We'll replace the LEDs and buttons with a character LCD screen.
 
 This section shows how to interface with an LCD on a Ben Eater style 65C02
-computer with a serial port (recommended for Tali) and LCD wired to PORTB of a
-65C22 as shown here: https://eater.net/schematics/6502-serial.png
+computer with a serial port (recommended for Tali) and LCD wired to PORTA and PORTB of a
+65C22 as shown here: https://eater.net/schematics/6502.png
+
+TODO: Redraw schematic to show LCD wiring
 
 The important details are that the 65C22 Versatile Interface Adapter (called the
 VIA from here on) is memory mapped starting at address $6000, the LCD DB0-7

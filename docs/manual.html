@@ -4637,10 +4637,10 @@ it&#8217;s only checked at one point during the LED dance.</p>
 <pre class="highlight"><code>: LED_Dance2 ( -- ) \ Dance the LEDs until SW1 pressed.
    LED_Init
    BEGIN
-      $1100 LED! mydelay
-      $0110 LED! mydelay
-      $0011 LED! mydelay
-      $1001 LED! mydelay
+      %1100 LED! mydelay
+      %0110 LED! mydelay
+      %0011 LED! mydelay
+      %1001 LED! mydelay
    SW1? UNTIL ;
 
 \ Try it out.
@@ -4656,8 +4656,11 @@ advanced.  We&#8217;ll replace the LEDs and buttons with a character LCD screen.
 </div>
 <div class="paragraph">
 <p>This section shows how to interface with an LCD on a Ben Eater style 65C02
-computer with a serial port (recommended for Tali) and LCD wired to PORTB of a
-65C22 as shown here: <a href="https://eater.net/schematics/6502-serial.png" class="bare">https://eater.net/schematics/6502-serial.png</a></p>
+computer with a serial port (recommended for Tali) and LCD wired to PORTA and PORTB of a
+65C22 as shown here: <a href="https://eater.net/schematics/6502.png" class="bare">https://eater.net/schematics/6502.png</a></p>
+</div>
+<div class="paragraph">
+<p>TODO: Redraw schematic to show LCD wiring</p>
 </div>
 <div class="paragraph">
 <p>The important details are that the 65C22 Versatile Interface Adapter (called the
@@ -10626,7 +10629,7 @@ under <a href="https://www.ubuntu.com/">Ubuntu</a> Linux 16.04 LTS.</p>
 <div id="footer">
 <div id="footer-text">
 Version 1.1<br>
-Last updated 2024-08-20 14:15:31 -0400
+Last updated 2024-08-21 20:10:01 -0400
 </div>
 </div>
 </body>
