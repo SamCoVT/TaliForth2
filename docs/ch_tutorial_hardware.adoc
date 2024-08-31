@@ -333,7 +333,7 @@ processed in microseconds.
    %11111111 DDRB C!  \ Data lines all outputs
    \ Make only bits 5-7 outputs on Port A without affecting
    \ the other bits (they may be used for something else).
-   DDRA C@  %1110000 OR  DDRA C!
+   DDRA C@  %11100000 OR  DDRA C!
    \ Start sending commands to initialize the LCD.
    %00111000 LCD_Command \ This needs to be sent three times
    %00111000 LCD_Command \ for reliable software reset of
