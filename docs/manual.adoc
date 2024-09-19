@@ -1,9 +1,9 @@
 = Manual for Tali Forth 2 for the 65c02
-Sam Colwell; Scot W. Stevenson
+Sam Colwell; Scot W. Stevenson; Patrick Surry
 :doctype: book
 :keywords: forth, 6502, assembler, programming, 8-bit, vintage, retro
-:revnumber: 1.0
-:revdate: 03. Jan 2019
+:revnumber: 1.1
+:revdate: 03. Jul 2024
 :showtitle:
 :icons: font
 :toc: left
@@ -25,8 +25,6 @@ For the crew at 6502.org, who made this possible in more ways than one.
 == But why?
 include::ch_why.adoc[]
 
-== Overview of Tali Forth
-include::ch_overview.adoc[]
 
 
 // --------------------------------------------------------
@@ -38,26 +36,46 @@ include::ch_installing.adoc[]
 == Running Tali Forth
 include::ch_running.adoc[]
 
-== Major Components
+= Tutorials for Major Components
 
-=== Blocks
-include::ch_blocks.adoc[]
+// moved into tutorial
+// === Blocks
+// include::ch_blocks.adoc[]
 
-=== The Block Editor
-include::ch_editor_block.adoc[]
+// duplicated in tutorial
+// === The Block Editor
+// include::ch_editor_block.adoc[]
 
-=== The Line-Based Editor `ed`
+== Tutorial: Working with Blocks
+
+include::ch_tutorial_blocks.adoc[]
+
+== Tutorial: Wordlists and the Search Order
+include::ch_tutorial_wordlists.adoc[]
+
+== The Line-Based Editor `ed`
 include::ch_editor_ed.adoc[]
 
-=== The Assembler
+[#ed-tutorial]
+== Tutorial: The `ed` Line-Based Editor[[ed-tutorial]]
+include::ch_tutorial_ed.adoc[]
+
+== The Assembler
 include::ch_assembler.adoc[]
 
-=== The Disassembler
+== The Disassembler
 include::ch_disasm.adoc[]
 
+== Tutorial: Interfacing with Hardware
+include::ch_tutorial_hardware.adoc[]
+
+// TODO: Tutorial on native compiling
 
 // --------------------------------------------------------
 = Developer Guide
+
+== Overview of Tali Forth
+include::ch_overview.adoc[]
 
 == How Tali Forth Works
 include::ch_internals.adoc[]
@@ -73,20 +91,6 @@ http://forum.6502.org/viewforum.php?f=9
 
 See the GitHub page for further details.
 https://github.com/SamCoVT/TaliForth2
-
-
-// --------------------------------------------------------
-= Tutorials
-
-== Working with Blocks
-
-include::ch_tutorial_blocks.adoc[]
-
-== The `ed` Line-Based Editor[[ed-tutorial]]
-include::ch_tutorial_ed.adoc[]
-
-== Wordlists and the Search Order
-include::ch_tutorial_wordlists.adoc[]
 
 
 // --------------------------------------------------------

@@ -14,7 +14,7 @@ For those not familiar with UNIX `ed`, there is <<ed-tutorial,a tutorial>> inclu
 in this manual. This section is a brief overview of the currently available
 functions.
 
-==== Supported Commands
+=== Supported Commands
 
 `ed:` currently supports only a small number of the commands of the Unix version:
 
@@ -43,7 +43,7 @@ An empty line (pressing the ENTER key) will advance by one line and print it. A
 simple number will print that line without the line number and make that line
 the new current line.
 
-==== Future planned commands
+=== Future planned commands
 
 These are subject to available memory. There is also no time frame for these
 additions. 
@@ -60,7 +60,7 @@ s:: Substitute one string on line with another
 !:: Execute a shell command (Forth command in our case)
 #:: Comment, ignore rest of the line
 
-==== Differences to Unix ed
+=== Differences to Unix ed
 
 Apart from missing about 90 percent of the features:
 
@@ -72,7 +72,7 @@ WARNING: `ed:` currently only works with decimal numbers.  It saves and
 restores BASE, but all numbers inside ed: will be decimal.  This includes
 the address used with `w`.
 
-==== Using `ed` for programming
+=== Using `ed` for programming
 
 `Ed:` can be used to write programs and then execute them with `evaluate`. For
 instance, a session to add a small string could look something like this:
@@ -99,9 +99,9 @@ go immediately to saving the text. Then, we can run the program:
 Note that `evaluate` will handle line feeds, carriage returns and other white
 space apart from simple spaces without problems.
 
-==== Known Issues
+=== Known Issues
 
-===== Memory use
+==== Memory use
 
 `Ed:` currently uses memory without releasing it when done. For small, quick
 edits, this probably is not a problem. However, if you known you are going to be
@@ -118,12 +118,12 @@ using more memory, you probably will want to set a marker first.
 
 This issue might be taken care of in a future release.
 
-===== Address of Saved Text
+==== Address of Saved Text
 
 `Ed:` returns the address of the saved text on the stack as `( -- addr u )`.  If
 nothing is saved, the program would return a zero length as TOS.
 
-==== Developer Information
+=== Developer Information
 
 The "buffer" of `ed:` is a simple single-linked list of nodes, consisting of a pointer
 to the next entry, a pointer to the string address, and the length of that

@@ -20,22 +20,9 @@ message asking you to update the vectors.  Once these two vectors have
 been updated, you can use the block words.
 
 If you would like to play with some blocks, but don't have any
-hardware or are running Tali in a simulator, fear not!  Tali has a
-built-in RAM drive that can be accessed by running:
+hardware or are running Tali in a simulator, fear not! Tali has a
+built-in RAM drive that can be used on any hardware or simulator.  If using the
+c65 simulator that comes with Tali, persistant storage can be simulated using
+a file on the PC.
 
-----
-4 block-ramdrive-init
-----
-
-This reserves a chunk of ram with four blocks in it (numbered 0-3) which is
-enough to play around with. It also sets up the routines for reading and writing
-blocks in this ramdrive for you. If you want more blocks, you can change the
-number. Because they start at zero, the last valid block will always be one less
-than the number you provide.
-
-Be careful about creating too many blocks as they are 1K each.  It's also worth
-noting that running `block-ramdrive-init` again will create another ramdrive and
-the existing one will be inaccessible while still taking up space in
-RAM.
-
-See the tutorials on working with blocks for more information on how to use them.
+The following tutorial walks through some examples using 

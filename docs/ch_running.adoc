@@ -8,6 +8,10 @@ go and read Leo Brodie's excellent "Starting Forth", available for
 free online, before continuing through this manual.  You can use Tali
 Forth 2 to run the examples given in the book.
 
+You will also want to refer to Tali's <<Glossary>> for the list of words that
+Tali Forth 2 comes with.  If you are just starting out, you will need to refer
+to this when deciding what words to use or to look up what a particular word does.
+
 === Booting
 
 Out of the box, Tali Forth boots a minimal kernel(((kernel))) to connect to the
@@ -49,33 +53,37 @@ entry, press `CONTROL-n`.
  
 === Words
 
+The <<Glossary>> contains a list of all the words Tali comes with, where they come from,
+their stack usage (as a stack comment), and a brief description of what each word does.
+
 Tali Forth comes with the following Forth words out of the 
 box:
 
 ----
-drop dup swap ! @ over >r r> r@ nip rot -rot tuck , c@ c! +! execute emit 
-type . u. u.r .r d. d.r ud. ud.r ? false true space 0 1 2 2dup ?dup + - 1- 1+ 
-2* 2/ abs dabs and or xor rshift lshift pick char [char] char+ chars cells 
+drop dup swap ! @ over >r r> r@ nip rot -rot tuck , c@ c! +! 0 1 2 execute 
+emit type . u. u.r .r d. d.r m*/ ud. ud.r ? false true space 2dup ?dup + - 1- 
+1+ 2* 2/ abs dabs and or xor rshift lshift pick char [char] char+ chars cells 
 cell+ here = <> < u< u> > 0= 0<> 0> 0< min max 2drop 2swap 2over 2! 2@ 
 2variable 2constant 2literal 2r@ 2r> 2>r invert negate dnegate c, bounds 
 spaces bl -trailing -leading /string refill accept input>r r>input unused 
-depth key allot create does> variable constant value to s>d d>s d- d+ erase 
-blank fill find-name ' ['] name>int int>name name>string >body defer latestxt 
-latestnt parse-name parse execute-parsing source source-id : ; :noname 
-compile, [ ] literal sliteral ." s" s\" postpone immediate compile-only 
-never-native always-native allow-native nc-limit strip-underflow abort abort" 
-do ?do i j loop +loop exit unloop leave recurse quit begin again state 
-evaluate base digit? number >number hex decimal count m* um* * um/mod sm/rem 
-fm/mod / /mod mod */mod */ \ move cmove> cmove pad cleave hexstore within >in 
-<# # #s #> hold sign output input cr page at-xy marker words wordsize aligned 
-align bell dump .s disasm compare search environment? find word ( .( if then 
-else repeat until while case of endof endcase defer@ defer! is action-of 
-useraddr buffer: buffstatus buffblocknum blkbuffer scr blk block-write 
-block-write-vector block-read block-read-vector save-buffers block update 
-buffer empty-buffers flush load thru list block-ramdrive-init definitions 
-wordlist search-wordlist set-current get-current set-order get-order 
-root-wordlist assembler-wordlist editor-wordlist forth-wordlist only also 
-previous >order order forth see ed: cold bye
+depth key key? allot create does> variable constant value to s>d d>s d- d+ 
+erase blank fill find-name ' ['] name>int int>name name>string >body defer 
+latestxt latestnt parse-name parse execute-parsing source source-id : ; 
+:noname compile, [ ] literal sliteral ." s" s\" postpone immediate 
+compile-only never-native always-native allow-native nc-limit strip-underflow 
+abort abort" do ?do i j loop +loop exit unloop leave recurse quit begin again 
+state evaluate base digit? number >number hex decimal count m* um* * um/mod 
+sm/rem fm/mod / /mod mod */mod */ \ move cmove> cmove pad cleave hexstore 
+within >in <# # #s #> hold sign output input havekey cr page at-xy marker 
+words wordsize aligned align bell dump .s disasm compare search environment? 
+find word ( .( if then else repeat until while case of endof endcase defer@ 
+defer! is action-of useraddr buffer: buffstatus buffblocknum blkbuffer scr 
+blk block-write block-write-vector block-read block-read-vector save-buffers 
+block update buffer empty-buffers flush load thru list block-c65-init 
+block-ramdrive-init definitions wordlist search-wordlist set-current 
+get-current set-order get-order root-wordlist assembler-wordlist 
+editor-wordlist forth-wordlist only also previous >order order forth see ed: 
+cold bye
 ----
 
 NOTE: This list might be outdated. To get the current list, run `words` from
@@ -87,7 +95,8 @@ the native words (((native words))) -- those coded in assembler -- always start
 with `drop` and end with `bye`. `bye` is the last word that Tali will find in
 the dictionary. footnote:[If you're going to quit anyway, speed can't be that
 important] The words before `drop` are those that are defined in high-level
-Forth. For more information on individual the words, use the `see` command.
+Forth. For more information on individual words, use the `see` command inside
+Tali Forth and refer to the <<Glossary>>.
 
 TIP: To find out if a given word is available, you can use the sequence
 `s" myword" find-name 0<>` which will return a `true` or `false` flag.
@@ -335,6 +344,9 @@ FORTH-WORDLIST MY-WORDLIST 2 set-order
 FORTH-WORDLIST set-current
 ----
 
+See the <<Tutorial: Wordlists and the Search Order>> for an in-depth look at using wordlists.
+
+
 === Native Compiling
 
 As the name says, subroutine threaded code encodes the words as a series of
@@ -435,5 +447,4 @@ of the Dictionary, which is usually `drop`. Because of this, the high level
 words defined during boot will _not_ be available. There will be an error
 message to document this. Realistically, you'll probably want to restart with
 `cold` if any of this happens.
-
 

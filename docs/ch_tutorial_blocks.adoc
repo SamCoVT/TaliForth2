@@ -1,3 +1,8 @@
+Tali supports the optional BLOCK word set. The 2012 Forth standard
+defines a block as 1024 bytes, and the buffers for them are the same
+size (as opposed to some older forths that had smaller buffers). Tali
+currently comes with one buffer.
+
 Blocks are a simple system for dealing with non-volatile storage.  Originally,
 the storage medium would have been a floppy disk drive, but hobbyists are more
 likely to attach I2C or SPI flash memory to their system.  These storage devices
@@ -23,17 +28,33 @@ In order to facilitate playing with blocks, Tali comes with a special word
 allocates a RAM drive to simulate a mass-storage device.  It also sets up the
 read and write vectors to routines that will move the data in and out of the
 allocated RAM.  If you'd prefer persistent block storage in an external file
-you can try the `block-c65-init` word illustrated below.
+you can use the c65 simulator (included with Tali) and try the `block-c65-init`
+word illustrated below.
 
 If you have an actual storage device, such as a flash memory, you will need to
 write routines for transferring 1K from storage to RAM and from RAM to storage.
+Both of these should have the signature ( addr blk# -- ).
 The addresses (xt) of these routines need to be placed in the existing variables
 `BLOCK-READ-VECTOR` and `BLOCK-WRITE-VECTOR`, respectively.
+If you had written routines named `mybockreader` and `myblockwriter`, That might
+look like:
 
-To get started on this tutorial, we will use the ramdrive with 4 blocks
-allocated.  If you forget this step, you will see an error message about
+----
+' myblockreader BLOCK-READ-VECTOR !
+' myblockwriter BLOCK-WRITE-VECTOR !
+----
+
+If you forget to initialize these vectors, you will see an error message about
 BLOCK-READ-VECTOR and BLOCK-WRITE-VECTOR when you try to use any of the block
 words.
+
+==== Any System or Simulator
+
+To get started on this tutorial, we will use the ramdrive with 4 blocks
+allocated.  This can be used on any system or simulator, regardless of whether
+or not you have real storage.  Because this is done in RAM, the contents will be
+lost when the system is reset or the simulator is stopped.  If you have real
+storage and have installed the vectors to your read/write routines, you can skip this step.
 
 ----
 4 block-ramdrive-init
@@ -41,12 +62,23 @@ words.
 
 This command takes a moment as all of the block memory is initialized to the
 value BLANK (a space) on the assumption you will be placing text there.  When
-complete, you will have 4 blocks (numbered 0-3) available to play with.
+complete, you will have 4 blocks (numbered 0-3) available to play with. It also
+sets up the vectors to routines for reading and writing blocks in this ramdrive for you. If
+you want more blocks, you can change the number. Because they start at zero, the
+last valid block will always be one less than the number you provide.
 
-If you want to use persistent storage instead, create a writable file
-and start the simulator as shown.  The `block-c65-init` word takes no
-arguments and returns true if block storage is available.
-You can read/write up to 65536 1K blocks in your file providing 64Mb of storage.
+Be careful about creating too many blocks, as they are 1K each.  Four will be
+plenty for this tutorial.  It's also worth noting that running
+`block-ramdrive-init` again will create another ramdrive and the existing one
+will be inaccessible while still taking up space in RAM.
+
+==== c65 Simulator Only (comes with Tali)
+
+If you want to simulate using persistent storage instead, create a writable file
+and start the c65 simulator as shown.  Then, in forth, run `block-c65-init`.
+The `block-c65-init` word takes no arguments and returns true if block storage
+is available.  You can read/write up to 65536 1K blocks in your file providing
+64Mb of storage.
 
 ----
 touch somefile.dat
@@ -55,11 +87,12 @@ c65/c65 -b somefile.dat -r taliforth-py65mon.bin
 block-c65-init      ( -- f )
 ----
 
+=== Using Blocks for Forth Code
+
 When using blocks for text or Forth code, the 1K block is further divided into
 16 lines of 64 characters each.  Newlines are typically not used in blocks at
 all, and the unused space is filled with spaces to get to the next line.  Blocks
 that have this type of text data in them are also called a "screen".
-
 
 To see the contents of a block in screen format, you can use the built-in `list`
 command.  It takes the block number (called a screen number when storing text)
@@ -97,7 +130,7 @@ in the other blocks.
 === Editing a screen
 
 In order to edit a block, we will need to bring in the screen editor.  It
-lives in the EDITOR-WORDLIST, which is not used when Tali starts.  To add the
+lives in the EDITOR-WORDLIST, which is not in the search order when Tali starts.  To add the
 editor words, run:
 ----
 forth-wordlist editor-wordlist 2 set-order
@@ -181,10 +214,9 @@ blank.
 15 *   ok
 ----
 
-It is customary for the very first line to be a comment (Tali only supports
-parenthesis comments in blocks) with a description, the programmer's initials,
-and the date.  On line 1 we have entered the word definition, and on line 5 we
-are running the word.
+It is customary for the very first line to be a comment with a description, the
+programmer's initials, and the date.  On line 1 we have entered the word
+definition, and on line 5 we are running the word.
 
 To get Tali to run this code, we use the word `load` on the block number.
 ----
@@ -208,7 +240,7 @@ arguments and simply saves any changes back to the mass storage.
 flush
 ----
 
-=== Working with blocks
+=== Working with Blocks
 
 Blocks can also be used by applications to store data.  The block words bring
 the blocks from mass storage into a 1K buffer where the data can be read or
@@ -247,7 +279,7 @@ command. BLK is 0 when interpreting from the keyboard or from a string.
 SCR:: The screen number currently being edited.  Set by `list`, but you can set
 it yourself if you want.
 
-==== A simple block example
+=== A simple block example
 [.float-group]
 --
 image::pics/blocks-block.png[float=left]
@@ -356,7 +388,7 @@ users may also want to use blocks to hold binary data.  A user might want to do
 this because the block memory space is much larger that the normal 65C02 memory
 space, so a much larger dataset can be stored here than the 65C02 would be able
 to support in RAM.  It may also be desirable for the data to be saved even in the
-absense of power, and when block storage is implemented on a non-volatile meory,
+absence of power, and when block storage is implemented on a non-volatile meory,
 such as EEPROM or FLASH, this is possible.
 
 Because the format of the binary data is up to the user, Forth doesn't directly

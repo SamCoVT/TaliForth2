@@ -6,13 +6,12 @@ in their right mind would want to program in this godforsaken language! <<DH>>
 === Required Tools
 
 To run Tali Forth 2 in a simulator, you will need `python3` and `py65` installed to be
-able to run `py65mon`.
-Tali Forth 2 also ships with the bare-bones `c65` simulator.
-This is much faster than `py65mon` but lacks the debugging and monitor capabilities.
+able to run `py65mon`, or you will need `make` and `gcc` installed to compile the the `c65`
+simulator that comes with Tali (preferred).
 
 To assemble Tali Forth 2, you will need `64tass` (version 1.56.2625 or later) and `make`.
 
-To compile the documentation for Tali Forth 2, you will need the following tools:
+To recompile the documentation for Tali Forth 2, you will need the following tools:
 
 `Ditaa` is used to generate the diagrams from text file descriptions and is
 available at https://ditaa.sourceforge.net/ Ditaa is not required if you are not
@@ -202,7 +201,7 @@ translates into a JSR to the native code implementing the xt (execution token) o
 Most words have an external entrypoint which begins with `xt_` followed by the name
 (spelled out, in the case of numbers and symbols) of the word.   Once your
 word is properly tested you can opt to use the internal entrypoint which replaces `xt_`
-with `w_` (for "word") and skips underflow checks.
+with `w_` (for "word") and skips data stack underflow checks.
 
 As an example, let's turn the following definition into assembly:
 
