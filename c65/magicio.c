@@ -52,11 +52,14 @@ compatibility with windows _kbhit, return non-zero if key ready
 see https://stackoverflow.com/questions/448944/c-non-blocking-keyboard-input
 */
 int _kbhit() {
+  int flag;
   struct timeval tv = {0L, 0L};
   fd_set fds;
   FD_ZERO(&fds);
   FD_SET(0, &fds);
-  return select(1, &fds, NULL, NULL, &tv) > 0;
+  flag = select(1, &fds, NULL, NULL, &tv) > 0;
+  if (!flag) usleep(1000); /* sleep 1ms to avoid busy loop */
+  return flag;
 }
 
 /* non-blocking version of getch() */
