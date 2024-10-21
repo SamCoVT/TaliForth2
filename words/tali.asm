@@ -171,50 +171,15 @@ w_digit_question:
                 stz 1,x
                 stz 3,x                 ; paranoid
 
-                ; Check the character, now in the LSB of NOS. First, make
-                ; sure we're not below the ASCII code for "0"
+                ; Check the character, now in the LSB of NOS.
                 lda 2,x
-                cmp #'0'
-                bcc _done               ; failure flag already set
+                jsr ascii_to_digit
+                bcs _done               ; failure flag already set
 
-                ; Next, see if we are below "9", because that would make
-                ; this a normal number
-                cmp #'9'+1               ; this is actually ":"
-                bcc _checkbase
-
-                ; Well, then let's see if this is the gap between "9" and "A"
-                ; so we can treat the whole range as a number
-                cmp #'A'
-                bcc _done               ; failure flag is already set
-
-                ; probably a letter, so we make sure it is uppercase
-                cmp #'a'
-                bcc _case_done          ; not lower case, too low
-                cmp #'z'+1
-                bcs _case_done          ; not lower case, too high
-
-                clc                     ; just right
-                adc #$E0                ; offset to upper case (wraps)
-
-_case_done:
-                ; get rid of the gap between "9" and "A" so we can treat
-                ; the whole range as one number
-                sec
-                sbc #7                  ; fall through to _checkbase
-
-_checkbase:
-                ; we have a number, now see if it falls inside the range
-                ; provided by BASE
-                sec
-                sbc #'0'                 ; this is also the conversion step
-                cmp base
-                bcs _done               ; already have false flag
-
-                ; Found a legal number
+                ; Found a legal number for current base
                 sta 2,x                 ; put number in NOS
                 dec 0,x                 ; set success flag
                 dec 1,x
-
 _done:
 z_digit_question:
                 rts

@@ -4832,29 +4832,6 @@ w_s_backslash_quote:
 z_s_backslash_quote:
                 rts
 
-;TODO cf DIGIT?
-
-; This is a helper function for s_backslash_quote to convert a character
-; from ASCII to the corresponding hex value, eg 'F'->15
-convert_hex_value:
-
-        cmp #'A'
-        bcc _digit
-
-        ; It's A-F
-        and #$DF                ; Make it uppercase.
-        sec
-        sbc #'7'                ; gives value 10 for 'A'
-        bra _done
-
-_digit:
-        ; It's 0-9
-        sec
-        sbc #'0'
-
-_done:
-        rts
-
 
 
 ; ## S_QUOTE ( "string" -- )( -- addr u ) "Store string in memory"
@@ -5008,30 +4985,18 @@ _escaped:
 
                 ; First digit.
                 inc tmp2+1  ; Adjust flag for second digit next time.
-                lda (tmp1)  ; Get the char again.
-
-                ; Convert to hex
-                jsr convert_hex_value
-
-                ; This is the upper nybble, so move it up.
-                asl
-                asl
-                asl
-                asl
-                sta tmp3    ; Save it for later.
+                lda (tmp1)  ; Get the char and stash it.
+                pha
                 jmp _next_character
 
 _esc_x_second_digit:
-
                 ; We are on the second hex digit of a \x sequence. Clear the
                 ; escaped character flag (because we are handling it right
                 ; here)
                 stz tmp2+1
                 lda (tmp1)
-
-                ; Convert to hex, combine with value in tmp3
-                jsr convert_hex_value
-                ora tmp3
+                ply                     ; recover first of pair
+                jsr ascii_to_byte       ; TODO we're ignoring possible C=1 error
 
                 bra _save_character
 
@@ -6078,9 +6043,9 @@ z_to_in:        rts
         ; avoid having to fool around with the Data Stack.
         ;
         ;     +-----+-----+-----+-----+-----+-----+-----+-----+
-        ;     |   UD-LO   |   UD-HI   |     N     | UD-HI-LO  |
-        ;     |           |           |           |           |
-        ;     |  S    S+1 | S+2   S+3 | S+4   S+5 | S+6   S+7 |
+        ;     |   UD-LO   |   UD-HI   |  N  : ZF  | UD-HI-LO  |
+        ;     |           |           |     :     |           |
+        ;     |  S    S+1 | S+2   S+3 | S+4 : S+5 | S+6   S+7 |
         ;     +-----+-----+-----+-----+-----+-----+-----+-----+
         ;
         ; The math routine works by converting one character to its
@@ -6094,6 +6059,8 @@ z_to_in:        rts
         ; a version of D+ to add ( S S+2 ) and ( S+4 S+6) together,
         ; storing the result back in S and S+2, before we start another
         ; round with it as the new UD-LO and UD-HI.
+        ; For the first several digits, UD-HI will be zero, so we
+        ; save some time by tracking whether UD-HI is zero in S+5.
         ; """
 
 xt_to_number:
@@ -6112,56 +6079,47 @@ w_to_number:
                 sta scratch+2
                 lda 5,x         ; ud-hi MSB
                 sta scratch+3
+                ora scratch+2
+                sta scratch+5   ; flag to track ud-hi zero
 
-                ; Push down one on the Data Stack to use TOS for character
-                ; conversion ( ud-lo ud-hi addr u x )
+                stz scratch+6   ; zero out ud-hi-lo in case we're skipping
+                stz scratch+7
+
+                dex             ; make space on the stack
+                dex
                 dex
                 dex
 
 _loop:
-                ; Get one character based on address
-                lda (4,x)
-                sta 0,x                 ; ( ud-lo ud-hi addr u char )
-                stz 1,x                 ; paranoid
+                ; Fetch one character from current address
+                lda (6,x)
+                jsr ascii_to_digit
+                bcs _done       ; bad digit
 
-                jsr w_digit_question   ; ( char -- n -1 | char 0 )
-
-                ; This gives us ( ud-lo ud-hi addr u char f | n f ), so we
-                ; check the flag. If it is zero, we return what we have and
-                ; let the caller (usually NUMBER) complain
-                lda 0,x
-                bne _digit_ok
-
-                inx
-                inx
-                bra _done       ; ( ud-lo ud-hi addr u char )
-
-_digit_ok:
                 ; Conversion was successful. We arrive here with
-                ; ( ud-lo ud-hi addr u n -1 ) and can start the
-                ; math routine
+                ; ( ud-lo ud-hi addr u ? ? ) and can start the math routine
 
-                ; Save n so we don't have to fool around with the
-                ; Data Stack
-                lda 2,x
+                ; Save the digit, n.  Note the MSB is always zero
                 sta scratch+4
-                lda 3,x
-                sta scratch+5
+
+                lda scratch+5   ; if UD-HI is still zero...
+                beq _skip       ; ... we can skip the first step here
 
                 ; Now multiply ud-hi (the one in the scratchpad, not the
                 ; original one on the Data Stack) with the radix from BASE.
                 ; We can clobber TOS and NOS because we saved n
+                ; The multiply is faster with the smaller base on the left (NOS)
                 lda scratch+2
-                sta 2,x         ; NOS
+                sta 0,x         ; TOS
                 lda scratch+3
-                sta 3,x
+                sta 1,x
 
                 lda base
-                sta 0,x         ; TOS
-                stz 1,x         ; now ( ud-lo ud-hi addr u ud-hi base)
+                sta 2,x         ; NOS
+                stz 3,x         ; ( ud-lo ud-hi addr u base ud-hi )
 
                 ; UM* returns a double-celled number
-                jsr w_um_star  ; ( ud-lo ud-hi addr u ud-hi-lo ud-hi-hi )
+                jsr w_um_star   ; ( ud-lo ud-hi addr u ud-hi-lo ud-hi-hi )
 
                 ; Move ud-hi-lo to safety
                 lda 2,x         ; ud-hi-lo
@@ -6169,66 +6127,60 @@ _digit_ok:
                 lda 3,x
                 sta scratch+7
 
-                ; Now we multiply ud-lo, overwriting the stack entries
+_skip:
+                ; Now we multiply ud-lo, overwriting NOS, TOS
+                ; Again put the smaller base on the left (NOS)
                 lda scratch
-                sta 2,x
+                sta 0,x
                 lda scratch+1
-                sta 3,x         ; ( ud-lo ud-hi addr u ud-lo ud-hi-hi )
+                sta 1,x         ; ( ud-lo ud-hi addr u ? ud-lo )
 
                 lda base
-                sta 0,x
-                stz 1,x         ; ( ud-lo ud-hi addr u ud-lo base )
+                sta 2,x
+                stz 3,x         ; ( ud-lo ud-hi addr u base ud-lo )
 
-                jsr w_um_star  ; ( ud-lo ud-hi addr u ud-lo-lo ud-lo-hi )
-
-                lda 0,x
-                sta scratch+2
-                lda 1,x
-                sta scratch+3
-
-                lda 2,x
-                sta scratch
-                lda 3,x
-                sta scratch+1
+                jsr w_um_star   ; ( ud-lo ud-hi addr u ud-lo-lo ud-lo-hi )
 
                 ; We add ud-lo and n, as well as ud-hi and ud-hi-lo,
                 ; both in the scratch pad
                 clc
-                lda scratch     ; ud-lo LSB
+                lda 2,x         ; ud-lo LSB
                 adc scratch+4   ; n LSB
                 sta scratch     ; this is the new ud-lo
-                lda scratch+1   ; ud-lo MSB
-                adc scratch+5   ; n MSB
+                lda 3,x         ; ud-lo MSB
+                adc #0          ; MSB of digit is 0
                 sta scratch+1
 
-                lda scratch+2   ; LSB
+                lda 0,x         ; ud-hi LSB
                 adc scratch+6
                 sta scratch+2   ; this is the new ud-hi
-                lda scratch+3   ; MSB
+                lda 1,x         ; MSB
                 adc scratch+7
                 sta scratch+3
 
-                ; Clean up: Get rid of one of the two top elements on
-                ; the Data Stack. We don't really care which one
-                inx
-                inx             ; ( ud-lo ud-hi addr u ud-lo-lo )
+                ora scratch+2
+                ora scratch+5
+                sta scratch+5   ; update our ud-hi zero flag
 
-                ; One character down. Move address up
-                inc 4,x
+                ; One character down. Increment address
+                inc 6,x
                 bne +
-                inc 5,x
+                inc 7,x
 +
-                ; Decrease counter
-                dec 2,x
+                ; Decrease counter (< 256)
+                dec 4,x
                 bne _loop
 
 _done:
                 ; Counter has reached zero or we have an error. In both
-                ; cases, we clean up the Data Stack and return. Error gives
-                ; us ( ud-lo ud-hi addr u char ), regular end is
+                ; cases, we clean up the Data Stack and return. Regular end is
                 ; ( ud-lo ud-hi addr u ud-lo )
                 inx
-                inx             ; ( ud-lo ud-hi addr u )
+                inx
+                inx
+                inx
+
+                ; ( ud-lo ud-hi addr u )
 
                 ; The new ud-lo and ud-hi are still on the scratch pad
                 lda scratch     ; new ud-lo

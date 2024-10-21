@@ -270,6 +270,53 @@ _nibble_to_ascii:
                 rts
 
 
+ascii_to_byte:
+        ; convert two ascii hex digit characters in Y (hi) and A (lo) to a byte,
+        ; returning the result in A with C=0 on success, C=1 if invalid.
+        ; Uses tmpdsp.
+        phx
+        ldx base
+        phx
+        ldx #16                 ; parsing hex digits
+        stx base
+        jsr ascii_to_digit      ; lower nibble
+        bcs _done
+        sta tmpdsp
+        tya
+        jsr ascii_to_digit      ; high nibble
+        bcs _done
+        asl                     ; $0-$f on success so shifts leave C=0
+        asl
+        asl
+        asl
+        ora tmpdsp              ; combine with lower nibble
+_done:
+        plx
+        stx base                ; restore original base
+        plx
+        rts
+
+
+ascii_to_digit:
+        ; convert A from ASCII character [0-9A-Za-z] to a digit in the
+        ; current base, with C=0 on success or C=1 with invalid char
+        cmp #$40
+        bcs _hi
+
+        sbc #'0'-1              ; < '0' => large
+        cmp #10                 ; C=1 if >= 10 (error)
+        bcc _chk
+        bcs _done               ; invalid
+_hi:
+        and #$1f                ; mask to accept uc & lc
+        beq _done               ; @ or ` is error (C=1 from above)
+        adc #8                  ; A=1 => 1+8+1=10
+_chk
+        cmp base                ; set C=1 if not < base
+_done:
+        rts
+
+
 ; =====================================================================
 ; HEADER HELPER FUNCTIONS
 ;
