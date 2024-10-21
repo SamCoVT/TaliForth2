@@ -66,8 +66,8 @@ z_bounds:       rts
 ; ## CLEAVE ( addr u -- addr2 u2 addr1 u1 ) "Split off word from string"
 ; ## "cleave"  auto  Tali Forth
 
-        ; """Given a range of memory with words delimited by whitespace,return
-        ; the first word at the top of the stack and the rest of the word
+        ; """Given a range of memory with words delimited by whitespace, return
+        ; the first word at the top of the stack and the rest of the string
         ; following it.
         ;
         ; Example:
@@ -81,70 +81,37 @@ z_bounds:       rts
 xt_cleave:
                 jsr underflow_2
 w_cleave:
-                ; We arrive here with ( addr u ). We need to strip any leading
-                ; spaces by hand: PARSE-NAME does do that, but it doesn't
-                ; remember how many spaces were stripped. This means we can't
-                ; calculate the length of the remainder. Fortunately, Tali
-                ; Forth has just the word we need for this:
-                jsr w_minus_leading    ; -LEADING ( addr u )
+                ; First strip leading spaces:
+                jsr w_minus_leading     ; -LEADING ( addr u )
 
-                ; The main part we can turn over to PARSE-NAME, except that we
-                ; have a string ( addr u ) and not stuff in the input buffer.
-                ; We get around this by cheating: We place ( addr u ) in the
-                ; input buffer and then call PARSE-NAME.
-                jsr w_input_to_r       ; save old imput state
+                jsr w_two_dup
+                ; Make a copy and strip non-whitespace from the tail
 
-                lda 0,x         ; u is new ciblen
-                sta ciblen
-                lda 1,x
-                sta ciblen+1
-
-                lda 2,x         ; addr is new cib
-                sta cib
-                lda 3,x
-                sta cib+1
-
-                stz toin        ; >IN pointer is zero
-                stz toin+1
-
-                ; PARSE-NAME gives us back the substring of the first word
-                jsr w_parse_name       ; ( addr u addr-s u-s )
-
-                ; If we were given an empty string, then we're done. It's the
-                ; resposibility of the user to catch this as a sign to end the
-                ; any loop
+                stz 4,x                 ; length of head
+                stz 5,x
+_loop:
                 lda 0,x
                 ora 1,x
                 beq _done
 
-                ; Now we have to adjust the original string
-                lda 4,x         ; LSB of original u
-                sec
-                sbc 0,x
-                sta 4,x
+                lda (2,x)               ; get first character
+                jsr is_whitespace
+                bcs _done               ; stop on whitespace
 
-                lda 5,x         ; MSB of original u
-                sbc 1,x
-                sta 5,x
+                ; It's whitespace, move one down
+                jsr slash_string_1      ; ( addr+1 u-1 )
 
-                lda 6,x         ; LSB of original addr
-                clc
-                adc 0,x
-                sta 6,x
-
-                lda 7,x         ; MSB of original addr
-                adc 1,x
-                sta 7,x
-
-                ; There is one small problem: PARSE-NAME will probably have
-                ; left the string with the rest of the words with leading
-                ; delimiters. We use our magic -LEADING again
-                jsr w_two_swap         ; ( addr-s u-s addr u )
-                jsr w_minus_leading
-                jsr w_two_swap         ; ( addr u addr-s u-s )
+                ; and increment length of head
+                inc 4,x
+                bne +
+                inc 5,x
++
+                bra _loop
 _done:
-                ; Restore input
-                jsr w_r_to_input
+                ; ( addr1 u1 addr2' u2 )
+                ; Now we just need to strip whitespace from the tail
+                jsr w_minus_leading
+                jsr w_two_swap
 
 z_cleave:       rts
 

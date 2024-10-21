@@ -86,18 +86,16 @@ _found:
                 beq _no_operand
 
                 ; copy Y=1 or 2 operand bytes to scratch+1/2
+                ; and advance our string
                 tya
-                jsr push_a_tos      ; put operand byte count on stack
-
                 stz scratch+2       ; set MSB to zero in case there isn't one
 _copy_operand:
                 lda (tmp2),y
                 sta scratch,y
+                jsr slash_string_1
                 dey
                 bne _copy_operand
 
-                ; ( addr u #op )
-                jsr w_slash_string  ; drop the operand byte(s)
                 ; ( addr+n u-n )
                 dex
                 dex
@@ -206,8 +204,7 @@ _printing_done:
                 jsr w_cr
 
                 ; Housekeeping: Next byte
-                jsr w_one
-                jsr w_slash_string      ; ( addr u -- addr+1 u-1 )
+                jsr slash_string_1      ; ( addr u -- addr+1 u-1 )
 
                 lda 0,x                 ; All done?
                 ora 1,x
@@ -384,8 +381,8 @@ _print_literal:
                 jsr w_over
                 jsr w_one_plus              ; ( addr u addr+1 )
                 jsr w_question              ; Print the value at the address
-                jsr w_two
-                jmp w_slash_string          ; leaving (addr+2 u-2)
+                jsr slash_string_1
+                jmp slash_string_1          ; leaving (addr+2 u-2)
 
 _print_2literal:
                 jsr w_over                  ; ( addr u addr+1 )
