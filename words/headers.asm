@@ -487,7 +487,7 @@ nt_question:
 #nt_header dot, "."
 #nt_header type
 #nt_header emit, "emit", NN
-#nt_header execute
+#nt_header execute, "execute", NN
 #nt_header two, "2"
 #nt_header one, "1"
 #nt_header zero, "0"

@@ -2274,15 +2274,12 @@ z_fill:         rts
 
 ; ## EXECUTE ( xt -- ) "Jump to word based on execution token"
 ; ## "execute"  auto  ANS core
+        ; This word is never natively compiled so that the return
+        ; from the xt will always return to the caller of EXECUTE
         ; """https://forth-standard.org/standard/core/EXECUTE"""
 xt_execute:
                 jsr underflow_1
 w_execute:
-                jsr doexecute   ; do not combine to JMP (native coding)
-
-z_execute:      rts
-
-doexecute:
                 lda 0,x
                 sta ip
                 lda 1,x
@@ -2295,7 +2292,7 @@ doexecute:
                 ; the word we're calling to get back to xt_execute
                 jmp (ip)
 
-; end of doexecute
+z_execute:      ; never reached
 
 
 
