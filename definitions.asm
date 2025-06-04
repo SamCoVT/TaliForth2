@@ -51,7 +51,7 @@ cp_end    = ram_end
 .endif
 padoffset = $ff              ; offset from CP to PAD (holds number strings)
 
-dsp0      = zpage_end-7    ; initial Data Stack Pointer
+dsp0      = zpage_end-7      ; initial Data Stack Pointer
 .endweak
 
 
