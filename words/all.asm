@@ -255,6 +255,11 @@ error:
 ; Underflow tests. We jump to the label with the number of cells (not: bytes)
 ; required for the word. This routine flows into the generic error handling
 ; code
+; Note that using bpl will also generate an error if the stack is more than 64 items (128 bytes)
+; beyond the comparison point (effectively an overflow).
+; An alternative is to switch bpl to bcs everywhere which allows a slightly larger stack.
+; However in that case dsp0 must be at most $f0 or these tests will fail in unexpected ways.
+; See discussion in https://github.com/SamCoVT/TaliForth2/issues/148
 underflow_1:
         ; """Make sure we have at least one cell on the Data Stack"""
                 cpx #+dsp0-1
