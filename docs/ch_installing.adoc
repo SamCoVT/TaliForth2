@@ -7,7 +7,7 @@ git(((git))) or simply download it. To just test Tali Forth using the
 py65mon simulator, all you need is the binary file
 `taliforth-py65mon.bin`.
 
-=== Running 
+=== Running
 
 Tali currently supports two simulators, py65mon and c65.  Py65mon will need to
 be downloaded separately (see below) and c65 comes with Tali in the c65
@@ -25,7 +25,7 @@ Tali Forth 2 in the simulator.
 To exit, you can type `bye` or use CTRL-C to break out of the simulator.
 
 Note: If running on Windows in a git bash shell, you will need to use winpty,
-eg. `winpty make csim`.  This is only needed for the git bash shell.  Running
+e.g. `winpty make csim`.  This is only needed for the git bash shell.  Running
 Tali in c65 from the Windows command prompt or Windows Subsystem for Linux (WSL)
 works fine.
 
@@ -84,7 +84,7 @@ command for you).
 The Tali Forth project started out as a way to run Forth on my own 65c02
 computer, the Übersquirrel(((Übersquirrel))). Though it soon developed a life of
 its own, a central aim of the project is to provide a working, modern Forth that
-people can install on their projects. 
+people can install on their projects.
 
 [#img_uebersquirrel]
 .The functioning Übersquirrel Mark Zero prototype, August 2013. Photo by Scot W. Stevenson
@@ -101,7 +101,7 @@ for details.
 Once you have configured your platform file in the plaform folder, you
 can build a binary (typically programmed into an EEPROM) for your
 hardware with make.  If you made a platform file named
-`platform-mycomp.asm`, then you should `cd` to the main Tali folder 
+`platform-mycomp.asm`, then you should `cd` to the main Tali folder
 and run
 
 [source,bash]

@@ -46,7 +46,7 @@ with the -m (--mute) option to supress output and only displays the
 summary results for each test. Once all of the test have completed,
 the results are compiled into the results.txt file.
 
-It's worth noting that if you interrupt ptest.sh (eg. with a CTRL-C)
+It's worth noting that if you interrupt ptest.sh (e.g. with a CTRL-C)
 it will leave behind some "results_testname.txt" files.  These can
 safely be deleted or they will be cleaned up once ptest.sh is run
 again and allowed to finish.  It's also worth noting that this method

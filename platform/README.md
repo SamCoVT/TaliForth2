@@ -143,7 +143,7 @@ The currently available groups are:
 - `assembler` is a 65c02 assembler.
    The ASSEMBLER-WORDLIST will also be removed if the assembler is removed. (~3K)
 - `disassembler` is the disassembler word DISASM. (~0.5K plus assembler)
-- `wordlist` is for the optional SEARCH-ORDER words (eg. wordlists)
+- `wordlist` is for the optional SEARCH-ORDER words (e.g. wordlists)
    Note: Without "wordlist", you will not be able to use any words from
    the EDITOR or ASSEMBLER wordlists (they should probably be disabled
    by also removing "editor" and "assembler"), and all new words will

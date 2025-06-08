@@ -10,7 +10,7 @@ marker core_c_tests
 \ ------------------------------------------------------------------------
 testing source >in word
 hex
-: gs1 s" source" 2dup evaluate 
+: gs1 s" source" 2dup evaluate
        >r swap >r = r> r> = ;
 T{ gs1 -> <true> <true> }T
 
@@ -20,8 +20,8 @@ variable scans
       0 >in !
    then ;
 
-T{ 2 scans !  
-345 rescan?  
+T{ 2 scans !
+345 rescan?
 -> 345 345 }T
 
 : gs2  5 scans ! s" 123 rescan?" evaluate ;
@@ -30,11 +30,11 @@ T{ gs2 -> 123 123 123 123 123 }T
 : gs3 word count swap c@ ;
 T{ bl gs3 hello -> 5 char h }T
 T{ char " gs3 goodbye" -> 7 char g }T
-T{ bl gs3 
+T{ bl gs3
 drop -> 0 }T \ blank line return zero-length string
 
 : gs4 source >in ! drop ;
-T{ gs4 123 456 
+T{ gs4 123 456
 -> }T
 
 \ ------------------------------------------------------------------------
@@ -42,7 +42,7 @@ testing <# # #s #> hold sign base >number hex decimal
 hex
 
 \ compare two strings.
-: s=  ( addr1 c1 addr2 c2 -- t/f ) 
+: s=  ( addr1 c1 addr2 c2 -- t/f )
    >r swap r@ = if \ make sure strings have same length
       r> ?dup if   \ if non-empty strings
          0 do
@@ -72,11 +72,11 @@ T{ gp4 -> <true> }T
 24 constant max-base   \ base 2 .. 36
 max-base .( max-base post def: ) . cr  ( TODO TEST )
 : count-bits
-   0 0 invert 
-   begin 
+   0 0 invert
+   begin
       dup while
-      >r 1+ r> 2* 
-   repeat 
+      >r 1+ r> 2*
+   repeat
    drop ;
 
 count-bits 2* constant #bits-ud  \ number of bits in ud
@@ -107,7 +107,7 @@ T{ gp6 -> <true> }T
 
 \ Test the numbers 0 to 15 in max-base
 : gp7-1
-   base @ >r  
+   base @ >r
    max-base base !
    <true>
 
@@ -115,14 +115,14 @@ T{ gp6 -> <true> }T
       i 0 <# #s #>
       1 = swap c@ i 30 + = and and
    loop
-   
+
    r> base ! ;
 
 T{ gp7-1 -> <true> }T
 
 \ Test the numbers 16 to max-base in max-base
 : gp7-2
-   base @ >r  
+   base @ >r
    max-base base !
    <true>
 
@@ -130,7 +130,7 @@ T{ gp7-1 -> <true> }T
       i 0 <# #s #>
       2dup type cr
       1 = swap c@ 41 i a - + = and and
-      .s cr 
+      .s cr
    loop
 
    r> base ! ;
@@ -160,7 +160,7 @@ T{ 0 0 gn' g' max-base >number-based -> 10 0 gn-consumed }T
 T{ 0 0 gn' z' max-base >number-based -> 23 0 gn-consumed }T
 
 \ ud should equal ud' and len should be zero.
-: gn1  ( ud base -- ud' len ) 
+: gn1  ( ud base -- ud' len )
    base @ >r base !
    <# #s #>
    0 0 2swap >number swap drop  \ return length only
@@ -180,7 +180,7 @@ T{ max-uint dup max-base gn1 -> max-uint dup 0 }T
 T{ gn2 -> 10 a }T
 
 \ ------------------------------------------------------------------------
-testing numeric constants (eg. #1234 $ABCD %1010 'A')
+testing numeric constants (e.g. #1234 $ABCD %1010 'A')
 decimal
 T{ #10 -> 10 }T
 T{ $10 -> 16 }T
@@ -223,15 +223,15 @@ T{ defer defer1 -> }T
 T{ : action-defer1 action-of defer1 ; -> }T
 T{ ' * ' defer1 defer! ->   }T
 T{          2 3 defer1 -> 6 }T
-T{ action-of defer1 -> ' * }T 
+T{ action-of defer1 -> ' * }T
 T{    action-defer1 -> ' * }T
 
 T{ ' + is defer1 ->   }T
-T{    1 2 defer1 -> 3 }T 
+T{    1 2 defer1 -> 3 }T
 T{ action-of defer1 -> ' + }T
 T{    action-defer1 -> ' + }T
 
-T{ defer defer2 ->   }T 
+T{ defer defer2 ->   }T
 T{ ' * ' defer2 defer! -> }T
 T{   2 3 defer2 -> 6 }T
 T{ ' + is defer2 ->   }T
@@ -248,15 +248,15 @@ T{ ' * ' defer4 defer! -> }T
 T{ 2 3 defer4 -> 6 }T
 T{ ' defer4 defer@ -> ' * }T
 
-T{ ' + is defer4 -> }T 
-T{ 1 2 defer4 -> 3 }T 
+T{ ' + is defer4 -> }T
+T{ 1 2 defer4 -> 3 }T
 T{ ' defer4 defer@ -> ' + }T
 
 T{ defer defer5 -> }T
 T{ : is-defer5 is defer5 ; -> }T
 T{ ' * is defer5 -> }T
 T{ 2 3 defer5 -> 6 }T
-T{ ' + is-defer5 -> }T 
+T{ ' + is-defer5 -> }T
 T{ 1 2 defer5 -> 3 }T
 
 \ ------------------------------------------------------------------------
@@ -293,7 +293,7 @@ T{ seebuf -> 12 12 34 }T
 T{ fbuf char+ fbuf 2 chars move -> }T
 T{ seebuf -> 12 34 34 }T
 
-\ CMOVE and CMOVE> propogation tests taken from 
+\ CMOVE and CMOVE> propogation tests taken from
 \ https://forth-standard.org/standard/string/CMOVE and .../CMOVEtop
 decimal
 create cmbuf  97 c, 98 c, 99 c, 100 c, \ "abcd"
@@ -336,22 +336,22 @@ T{ output-test -> }T
 testing parse-name marker erase
 
 \ Careful editing these, whitespace is significant
-T{ parse-name abcd s" abcd" s= -> <true> }T 
-T{ parse-name   abcde   s" abcde" s= -> <true> }T \ test empty parse area 
+T{ parse-name abcd s" abcd" s= -> <true> }T
+T{ parse-name   abcde   s" abcde" s= -> <true> }T \ test empty parse area
 T{ parse-name  abcde s" abcde" s= -> <true> }T \ test TABS instead of spaces
-T{ parse-name 
-   nip -> 0 }T    \ empty line 
-T{ parse-name    
+T{ parse-name
+   nip -> 0 }T    \ empty line
+T{ parse-name
    nip -> 0 }T    \ line with white space
-T{ : parse-name-test ( "name1" "name2" -- n ) 
+T{ : parse-name-test ( "name1" "name2" -- n )
    parse-name parse-name s= ; -> }T
-T{ parse-name-test abcd abcd -> <true> }T 
-T{ parse-name-test  abcd   abcd   -> <true> }T 
-T{ parse-name-test abcde abcdf -> <false> }T 
-T{ parse-name-test abcdf abcde -> <false> }T 
-T{ parse-name-test abcde abcde 
-    -> <true> }T 
-T{ parse-name-test abcde abcde  
+T{ parse-name-test abcd abcd -> <true> }T
+T{ parse-name-test  abcd   abcd   -> <true> }T
+T{ parse-name-test abcde abcdf -> <false> }T
+T{ parse-name-test abcdf abcde -> <false> }T
+T{ parse-name-test abcde abcde
+    -> <true> }T
+T{ parse-name-test abcde abcde
     -> <true> }T    \ line with white space
 
 \ There is no official ANS test for MARKER, added 22. June 2018
@@ -361,14 +361,14 @@ T{ unused marker_size ! -> }T
 T{ marker quarian -> }T
 : marker_test ." Bosh'tet!" ;
 T{ marker_test -> }T \ should print "Bosh'tet!"
-T{ quarian -> }T 
-T{ parse-name marker_test find-name -> 0 }T 
+T{ quarian -> }T
+T{ parse-name marker_test find-name -> 0 }T
 T{ marker_size @ unused = -> <true> }T
 
 \ There is no official ANS test of ERASE, added 01. July 2018
 T{ create erase_test -> }T
 T{ 9 c, 1 c, 2 c, 3 c, 9 c, -> }T
-T{ erase_test 1+ 3 erase -> }T  \ Erase bytes between 9 
+T{ erase_test 1+ 3 erase -> }T  \ Erase bytes between 9
 T{ erase_test            c@ 9 = -> <true> }T
 T{ erase_test 1 chars +  c@ 0 = -> <true> }T
 T{ erase_test 2 chars +  c@ 0 = -> <true> }T
@@ -379,7 +379,7 @@ T{ erase_test 4 chars +  c@ 9 = -> <true> }T
 \ ------------------------------------------------------------------------
 testing environment
 
-\ This is from the ANS Forth specification at 
+\ This is from the ANS Forth specification at
 \ https://forth-standard.org/standard/core/ENVIRONMENTq but the first
 \ test is commented out because it doesn't seem to make sense
 \ T{ s" x:deferred" environment? dup 0= xor invert -> <true>  }T ( Huh? Why true? )
@@ -399,7 +399,7 @@ T{ s" RETURN-STACK-CELLS" environment? ->      80 <true> }T
 T{ s" STACK-CELLS"        environment? ->      20 <true> }T
 T{ s" WORDLISTS"          environment? ->       9 <true> }T
 
-T{ s" MAX-D"  environment? -> 7FFFFFFF. <true> }T 
+T{ s" MAX-D"  environment? -> 7FFFFFFF. <true> }T
 T{ s" MAX-UD" environment? -> FFFFFFFF. <true> }T
 decimal
 
@@ -411,7 +411,7 @@ create abuf 80 chars allot
 : accept-test
    cr ." please type up to 80 characters:" cr
    abuf 80 accept
-   dup 
+   dup
    cr ." received: " [char] " emit
    abuf swap type [char] " emit cr
 ;

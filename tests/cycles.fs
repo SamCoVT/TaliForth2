@@ -41,7 +41,7 @@ F008 constant cycles
 \ To test a word, put any arguments it needs on the stack, use tick
 \ (') on the word to get it's execution token (xt) and then put
 \ cycle_test, then any stack cleanup.
-\ eg. 5 ' dup cycle_test 2drop
+\ e.g. 5 ' dup cycle_test 2drop
 : cycle_test ( xt -- )
     [ ' cycle_test_runtime 4 + ] literal ! cycle_test_runtime ;
 
@@ -61,238 +61,238 @@ decimal
 \ skipping     abort
 \ skipping     quit
 \ skipping     abort"
-5            ' abs           cycle_test drop      
+5            ' abs           cycle_test drop
 pad 20       ' accept        cycle_test
-some text 
+some text
 drop \ accept test complete
-             ' align         cycle_test           
-5            ' aligned       cycle_test drop      
-5            ' allot         cycle_test           
-: aword ;    ' always-native cycle_test           
-5 5          ' and           cycle_test drop      
+             ' align         cycle_test
+5            ' aligned       cycle_test drop
+5            ' allot         cycle_test
+: aword ;    ' always-native cycle_test
+5 5          ' and           cycle_test drop
 \ skipping     at-xy
-             ' \             cycle_test           
-             ' base          cycle_test drop      
+             ' \             cycle_test
+             ' base          cycle_test drop
 : beginuntil 100 begin 1- ?dup 0= until ;
-             ' beginuntil    cycle_test           
+             ' beginuntil    cycle_test
 : beginwhile 100 begin 1- ?dup while repeat ;
-             ' beginwhile    cycle_test           
-             ' bell          cycle_test           
-             ' bl            cycle_test drop      
-here 5       ' blank         cycle_test           
-5 5          ' bounds        cycle_test 2drop     
+             ' beginwhile    cycle_test
+             ' bell          cycle_test
+             ' bl            cycle_test drop
+here 5       ' blank         cycle_test
+5 5          ' bounds        cycle_test 2drop
 \ skipping     [char]
 \ skipping     [']
 \ skipping     branch
 \ skipping     bye
-5            ' c,            cycle_test           
-5            ' c@            cycle_test drop      
-5 here       ' c!            cycle_test           
-5            ' cell+         cycle_test drop      
-5            ' cells         cycle_test drop      
-             ' char          cycle_test w drop    
-5            ' char+         cycle_test drop      
-5            ' chars         cycle_test drop      
-pad here 5   ' cmove         cycle_test           
-pad here 5   ' cmove>        cycle_test           
-             ' :             cycle_test wrd ;     
-             ' :noname       cycle_test ; drop    
-5            ' ,             cycle_test           
-' aword      ' compile,      cycle_test           
-: bword ;    ' compile-only  cycle_test           
-5            ' constant      cycle_test mycnst    
-here         ' count         cycle_test 2drop     
+5            ' c,            cycle_test
+5            ' c@            cycle_test drop
+5 here       ' c!            cycle_test
+5            ' cell+         cycle_test drop
+5            ' cells         cycle_test drop
+             ' char          cycle_test w drop
+5            ' char+         cycle_test drop
+5            ' chars         cycle_test drop
+pad here 5   ' cmove         cycle_test
+pad here 5   ' cmove>        cycle_test
+             ' :             cycle_test wrd ;
+             ' :noname       cycle_test ; drop
+5            ' ,             cycle_test
+' aword      ' compile,      cycle_test
+: bword ;    ' compile-only  cycle_test
+5            ' constant      cycle_test mycnst
+here         ' count         cycle_test 2drop
 \ skipping     cr
 \ skipping     create
-5. 5.        ' d-            cycle_test 2drop     
-5. 5.        ' d+            cycle_test 2drop     
-5.           ' d>s           cycle_test drop      
--5.          ' dabs          cycle_test 2drop     
-             ' decimal       cycle_test           
+5. 5.        ' d-            cycle_test 2drop
+5. 5.        ' d+            cycle_test 2drop
+5.           ' d>s           cycle_test drop
+-5.          ' dabs          cycle_test 2drop
+             ' decimal       cycle_test
 \ skipping     defer
-             ' depth         cycle_test drop      
-char w       ' digit?        cycle_test 2drop     
+             ' depth         cycle_test drop
+char w       ' digit?        cycle_test 2drop
 \ skipping     disasm
-5.           ' dnegate       cycle_test 2drop     
+5.           ' dnegate       cycle_test 2drop
 : do?word1 5 5 ?do loop ;
-             ' do?word1      cycle_test           
+             ' do?word1      cycle_test
 : do?word2 100 0 ?do i drop loop ;
-             ' do?word2      cycle_test           
+             ' do?word2      cycle_test
 nc-limit @
 257 nc-limit !
 : fib1 0 1 rot 0 ?do over + swap loop drop ;
 0 nc-limit !
 : fib2 0 1 rot 0 ?do over + swap loop drop ;
 nc-limit !
-100          ' fib1          cycle_test drop      
-100          ' fib2          cycle_test drop      
+100          ' fib1          cycle_test drop
+100          ' fib2          cycle_test drop
 : doword 100 0 do loop ;
-             ' doword        cycle_test           
+             ' doword        cycle_test
 : dowordi 100 0 do i drop loop ;
-             ' dowordi       cycle_test           
+             ' dowordi       cycle_test
 : dodoword 100 0 do 10 0 do loop loop ;
-             ' dodoword      cycle_test           
+             ' dodoword      cycle_test
 : dodowordij 100 0 do 10 0 do i drop j drop loop loop ;
-             ' dodowordij    cycle_test           
+             ' dodowordij    cycle_test
 : dodowordbigi 10 0 do 1024 0 do i drop loop loop ;
-             ' dodowordbigi  cycle_test           
+             ' dodowordbigi  cycle_test
 : doword+loop 100 0 do 5 +loop ;
-             ' doword+loop   cycle_test           
+             ' doword+loop   cycle_test
 \ skipping     does
 \ skipping     .
 \ skipping     ."
-             ' s"            cycle_test " 2drop   
-5            ' drop          cycle_test           
+             ' s"            cycle_test " 2drop
+5            ' drop          cycle_test
 \ skipping     dump
-5            ' dup           cycle_test 2drop     
-42           ' emit          cycle_test          
-5 5          ' =             cycle_test drop      
-here 5       ' erase         cycle_test           
-here 5 5     ' fill          cycle_test           
-s" 5"        ' evaluate      cycle_test drop      
-5 ' drop     ' execute       cycle_test           
+5            ' dup           cycle_test 2drop
+42           ' emit          cycle_test
+5 5          ' =             cycle_test drop
+here 5       ' erase         cycle_test
+here 5 5     ' fill          cycle_test
+s" 5"        ' evaluate      cycle_test drop
+5 ' drop     ' execute       cycle_test
 \ skipping     exit
-             ' false         cycle_test drop      
-here         ' @             cycle_test drop      
+             ' false         cycle_test drop
+here         ' @             cycle_test drop
 \ making counted string for find
 here 5 c, char a c, char w c, char o c,
 char r c, char d c,
-             ' find          cycle_test 2drop     
-s" aword"    ' find-name     cycle_test drop      
-5. 5         ' fm/mod        cycle_test 2drop     
-5 5          ' >             cycle_test drop      
-             ' here          cycle_test drop      
-             ' hex           cycle_test decimal   
+             ' find          cycle_test 2drop
+s" aword"    ' find-name     cycle_test drop
+5. 5         ' fm/mod        cycle_test 2drop
+5 5          ' >             cycle_test drop
+             ' here          cycle_test drop
+             ' hex           cycle_test decimal
 \ skipping     hold
 \ skipping     i  ( exercised by doxxx above )
 : ifloop 0 100 0 do i 2 and if 1 else -1 then + loop drop ;
-             ' ifloop        cycle_test           
-: cword ;    ' immediate     cycle_test           
-             ' input         cycle_test drop      
-' dup        ' int>name      cycle_test drop      
-5            ' invert        cycle_test drop      
+             ' ifloop        cycle_test
+: cword ;    ' immediate     cycle_test
+             ' input         cycle_test drop
+' dup        ' int>name      cycle_test drop
+5            ' invert        cycle_test drop
 \ skipping     j
-             ' key           cycle_test drop      
+             ' key           cycle_test drop
 
-             ' latestnt      cycle_test drop      
-             ' latestxt      cycle_test drop      
+             ' latestnt      cycle_test drop
+             ' latestxt      cycle_test drop
 \ skipping     leave
 \ skipping     [
 \ skipping     <#
-5 5          ' <             cycle_test drop      
+5 5          ' <             cycle_test drop
 \ skipping     literal
 \ skipping     loop
 \ skipping     +loop
-5 5          ' lshift        cycle_test drop      
-5 5          ' m*            cycle_test 2drop     
-             ' marker        cycle_test marka     
-             ' marka         cycle_test           
-5 5          ' max           cycle_test drop      
-5 5          ' min           cycle_test drop      
-5 5          ' -             cycle_test drop      
-s" txt   "   ' -trailing     cycle_test 2drop     
-here s" a"   ' move          cycle_test           
-' + int>name ' name>int      cycle_test drop      
-' + int>name ' name>string   cycle_test 2drop     
-             ' nc-limit      cycle_test drop      
-5            ' negate        cycle_test drop      
-: dword ;    ' never-native  cycle_test           
-5 5          ' nip           cycle_test drop      
+5 5          ' lshift        cycle_test drop
+5 5          ' m*            cycle_test 2drop
+             ' marker        cycle_test marka
+             ' marka         cycle_test
+5 5          ' max           cycle_test drop
+5 5          ' min           cycle_test drop
+5 5          ' -             cycle_test drop
+s" txt   "   ' -trailing     cycle_test 2drop
+here s" a"   ' move          cycle_test
+' + int>name ' name>int      cycle_test drop
+' + int>name ' name>string   cycle_test 2drop
+             ' nc-limit      cycle_test drop
+5            ' negate        cycle_test drop
+: dword ;    ' never-native  cycle_test
+5 5          ' nip           cycle_test drop
 \ various nops with x/y bytes/cyles with skipped dea (3A) bytes
 \ EA: 1/2, 22: 2/2, 03: 1/1, FC: 3/4, 5C: 3/8 with skipped dea bytes
 \ expected is 2+2+1+4+8 + jsr/rts = 17 + 6 + 6 = 29
 hex
 : nops [ EA c,  22 c, 3A c,  03 c,  FC c, 3A c, 3A c,  5C c, 3A c, 3A c, ] ;
 decimal
-             ' nops          cycle_test           
-5 5          ' <>            cycle_test drop      
+             ' nops          cycle_test
+5 5          ' <>            cycle_test drop
 5 5 5        ' -rot          cycle_test 2drop drop
-s" 5"        ' number        cycle_test drop      
+s" 5"        ' number        cycle_test drop
 \ skipping     #
 \ skipping     #>
 \ skipping     #s
-             ' 1             cycle_test drop      
-5            ' 1+            cycle_test drop      
-5            ' 1-            cycle_test drop      
-5 5          ' or            cycle_test drop      
-             ' output        cycle_test drop      
+             ' 1             cycle_test drop
+5            ' 1+            cycle_test drop
+5            ' 1-            cycle_test drop
+5 5          ' or            cycle_test drop
+             ' output        cycle_test drop
 5 5          ' over          cycle_test 2drop drop
-             ' pad           cycle_test drop      
+             ' pad           cycle_test drop
 \ skipping     page
-             ' parse-name    cycle_test a 2drop   
-char "       ' parse         cycle_test " 2drop   
-5 0          ' pick          cycle_test 2drop     
-5 5          ' +             cycle_test drop      
-5 here       ' +!            cycle_test           
+             ' parse-name    cycle_test a 2drop
+char "       ' parse         cycle_test " 2drop
+5 0          ' pick          cycle_test 2drop
+5 5          ' +             cycle_test drop
+5 here       ' +!            cycle_test
 \ skipping     postpone
-myvar        ' ?             cycle_test         
-5            ' ?dup          cycle_test 2drop     
+myvar        ' ?             cycle_test
+5            ' ?dup          cycle_test 2drop
 \ skipping     r>
 \ skipping     recurse
-             ' refill        cycle_test          
+             ' refill        cycle_test
 
 drop \ refill
 \ skipping     ]
 5 5 5        ' rot           cycle_test 2drop drop
-5 5          ' rshift        cycle_test drop      
-             ' s"            cycle_test " 2drop   
-5            ' s>d           cycle_test 2drop     
+5 5          ' rshift        cycle_test drop
+             ' s"            cycle_test " 2drop
+5            ' s>d           cycle_test 2drop
 \ skipping     ;
 \ skipping     sign
-s" abc" 1    ' /string       cycle_test 2drop     
+s" abc" 1    ' /string       cycle_test 2drop
 \ skipping     sliteral
-5. 5         ' sm/rem        cycle_test 2drop     
-             ' source        cycle_test 2drop     
-             ' source-id     cycle_test drop      
-             ' space         cycle_test          
-1            ' spaces        cycle_test          
-5 5          ' *             cycle_test drop      
-             ' state         cycle_test drop      
-5 here       ' !             cycle_test           
-5 5          ' swap          cycle_test 2drop     
+5. 5         ' sm/rem        cycle_test 2drop
+             ' source        cycle_test 2drop
+             ' source-id     cycle_test drop
+             ' space         cycle_test
+1            ' spaces        cycle_test
+5 5          ' *             cycle_test drop
+             ' state         cycle_test drop
+5 here       ' !             cycle_test
+5 5          ' swap          cycle_test 2drop
              ' '             cycle_test aword drop
 \ postponing   to ( see value )
-' aword      ' >body         cycle_test drop      
-             ' >in           cycle_test drop      
-0. s" 55"    ' >number       cycle_test 4drop     
+' aword      ' >body         cycle_test drop
+             ' >in           cycle_test drop
+0. s" 55"    ' >number       cycle_test 4drop
 \ skipping     >r
-             ' true          cycle_test drop      
+             ' true          cycle_test drop
 5 5          ' tuck          cycle_test 2drop drop
-             ' 2             cycle_test drop      
-5 5          ' 2drop         cycle_test           
-5 5          ' 2dup          cycle_test 4drop     
-here         ' 2@            cycle_test 2drop     
-5 5 5 5      ' 2over         cycle_test 6drop     
+             ' 2             cycle_test drop
+5 5          ' 2drop         cycle_test
+5 5          ' 2dup          cycle_test 4drop
+here         ' 2@            cycle_test 2drop
+5 5 5 5      ' 2over         cycle_test 6drop
 \ skipping     2r@
 \ skipping     2r>
-5            ' 2/            cycle_test drop      
-5            ' 2*            cycle_test drop      
-5. here      ' 2!            cycle_test           
-5 5 5 5      ' 2swap         cycle_test 4drop     
+5            ' 2/            cycle_test drop
+5            ' 2*            cycle_test drop
+5. here      ' 2!            cycle_test
+5 5 5 5      ' 2swap         cycle_test 4drop
 \ skipping     2>r
-             ' 2variable     cycle_test eword     
-             ' eword         cycle_test drop      
-s" *"        ' type          cycle_test          
-5            ' u.            cycle_test         
-5 5          ' u>            cycle_test drop      
-5 5          ' u<            cycle_test drop      
-             ' strip-underflow   cycle_test drop  
-5. 5         ' um/mod        cycle_test 2drop     
-5 5          ' um*           cycle_test 2drop     
+             ' 2variable     cycle_test eword
+             ' eword         cycle_test drop
+s" *"        ' type          cycle_test
+5            ' u.            cycle_test
+5 5          ' u>            cycle_test drop
+5 5          ' u<            cycle_test drop
+             ' strip-underflow   cycle_test drop
+5. 5         ' um/mod        cycle_test 2drop
+5 5          ' um*           cycle_test 2drop
 \ skipping     unloop
-             ' unused        cycle_test drop      
-5            ' value         cycle_test fword     
-             ' fword         cycle_test drop      
-5            ' to            cycle_test fword     
-             ' variable      cycle_test gword     
-             ' gword         cycle_test drop      
+             ' unused        cycle_test drop
+5            ' value         cycle_test fword
+             ' fword         cycle_test drop
+5            ' to            cycle_test fword
+             ' variable      cycle_test gword
+             ' gword         cycle_test drop
 char "       ' word          cycle_test "txt" drop
 \ skipping     words
-' aword      ' wordsize      cycle_test drop      
-5 5          ' xor           cycle_test drop      
-             ' 0             cycle_test drop      
+' aword      ' wordsize      cycle_test drop
+5 5          ' xor           cycle_test drop
+             ' 0             cycle_test drop
 \ skipping     0branch
-5            ' 0=            cycle_test drop      
-5            ' 0>            cycle_test drop      
-5            ' 0<            cycle_test drop      
-5            ' 0<>           cycle_test drop      
+5            ' 0=            cycle_test drop
+5            ' 0>            cycle_test drop
+5            ' 0<            cycle_test drop
+5            ' 0<>           cycle_test drop
