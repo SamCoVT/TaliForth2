@@ -861,7 +861,7 @@ Tali Forth 2 in the simulator.</p>
 </div>
 <div class="paragraph">
 <p>Note: If running on Windows in a git bash shell, you will need to use winpty,
-eg. <code>winpty make csim</code>.  This is only needed for the git bash shell.  Running
+e.g. <code>winpty make csim</code>.  This is only needed for the git bash shell.  Running
 Tali in c65 from the Windows command prompt or Windows Subsystem for Linux (WSL)
 works fine.</p>
 </div>
@@ -5246,7 +5246,7 @@ However, it&#8217;s helpful to understand a little more detail about
 the header structure as you start tinkering with TaliForth internals.</p>
 </div>
 <div class="paragraph">
-<p>The first byte of the header (offset 0) is the <strong>status byte</strong> contains eight flags (bits)
+<p>The first byte of the header, at offset 0, is the <strong>status byte</strong> containing eight flags
 defined in the file <code>definitions.asm</code>:</p>
 </div>
 <div class="imageblock">
@@ -5371,7 +5371,7 @@ from their assembly implementations.
 </table>
 </div>
 <div class="paragraph">
-<p>Here&#8217;s the full picture of the header:</p>
+<p>Here&#8217;s a complete picture of the header:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -5423,7 +5423,7 @@ all headers consecutively.</p>
 </div>
 <div class="paragraph">
 <p>The length of the header, excluding the name itself, is 4 + 2*DC + LC + FP bytes.
-The specific position of these flags in the status byte makes this easy to calculate:</p>
+The specific position of these flags in the status byte makes this easy to calculate in assembly:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -5441,13 +5441,13 @@ is currently limited to 31 characters.</p>
 <p>The length byte is followed by the <strong>pointer to the previous header</strong> in the linked
 list, i.e. the name token of that word. A 0000 in this position
 signals the beginning of the linked list, which by convention is the word <code>bye</code> for
-the native code words.  If the <code>FP</code> flag is zero we only store the LSB of the word,
-and infer the MSB depending on whether the LSB is less than or greater than that of the
+the native code words.  If the <code>FP</code> flag is zero we only store the LSB of the previous header,
+and infer the MSB depending on whether its LSB is less than or greater than that of the
 current header.</p>
 </div>
 <div class="paragraph">
-<p>This is followed by the current word&#8217;s <strong>execution token</strong> (xt, <code>xt_word</code>) that
-points to the start of the actual code. Some words that have the same
+<p>Next is the current word&#8217;s <strong>execution token</strong> (xt, <code>xt_word</code>) which
+points to the start of the actual assembly code. Some words that have the same
 functionality point to the same code block.   If the <code>DC</code> flag is zero we omit
 this pointer and calculate it based on the length of the header.</p>
 </div>
@@ -6529,7 +6529,7 @@ sudo gem install asciidoctor-pdf</pre>
 <div class="paragraph">
 <p>These tools have an annoying "feature" of having their version number in the
 executable name.  To work around this, I created symbolic links in my personal
-bin folder (eg. a folder in my path) as shown below.  You will need to adjust
+bin folder (e.g. a folder in my path) as shown below.  You will need to adjust
 with the name of these utilities on your system.</p>
 </div>
 <div class="listingblock">
@@ -6736,13 +6736,13 @@ it is, and then follow the steps outlined below for that word type.</p>
 </div>
 <div class="paragraph">
 <p>Once the word has been converted, a dictionary header needs to be added for it
-in words/headers.asm.  This process is covered in detail at the end of this section.</p>
+in <code>words/headers.asm</code>.  This process is covered in detail at the end of this section.</p>
 </div>
 <div class="sect3">
 <h4 id="_processing_regular_non_immediate_words">Processing Regular (Non-Immediate) Words</h4>
 <div class="paragraph">
 <p>If the definition word you are processing is not immediate (you can check this
-with <code>see</code>, eg. <code>see dup</code> and make sure the IM flag is 0) then it just
+with <code>see</code>, e.g. <code>see dup</code> and make sure the IM flag is 0) then it just
 translates into a JSR to the native code implementing the xt (execution token) of that word.
 Most words have an external entrypoint which begins with <code>xt_</code> followed by the name
 (spelled out, in the case of numbers and symbols) of the word.   Once your
@@ -6788,7 +6788,7 @@ parameters in standard Forth format, and a string that has a short description
 of what the word does.  The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.)  See the top of words/headers.asm for more information on the
+Gforth, etc.)  See the top of <code>words/headers.asm</code> for more information on the
 status field, but "coded" is likely to be the right choice until you&#8217;ve
 thoroughly tested your new word.</p>
 </div>
@@ -6797,12 +6797,12 @@ thoroughly tested your new word.</p>
 scope (between two regular labels).  This allows multiple words to all have a
 <code>_done:</code> label, for example, and each word will only branch to its own local
 version of <code>_done:</code> found within its scope.  Any branching within the word
-(eg. for ifs and loops) should be done with local labels.  Labels without an
+(e.g. for ifs and loops) should be done with local labels.  Labels without an
 underscore at the beginning are globally available.</p>
 </div>
 <div class="paragraph">
 <p>The labels xt_xxxx and z_xxxx need to be the entry and exit point, respectively,
-of your word.  The xxxx portion should be your word spelled out (eg. numbers and
+of your word.  The xxxx portion should be your word spelled out (e.g. numbers and
 symbols spelled out with underscores between them).  Although allowed in the
 Forth word, the dash "-" symbol is not allowed in the label (the assembler will
 try to do subtraction), so it is replaced with an underscore anywhere it is
@@ -6822,7 +6822,7 @@ searching for "@" (including the quotes) if you didn&#8217;t know its name.</p>
 <div class="sect3">
 <h4 id="_processing_immediate_words">Processing Immediate Words</h4>
 <div class="paragraph">
-<p>To determine if a word is immediate, use the word <code>see</code> on it (eg. <code>see [char]</code>
+<p>To determine if a word is immediate, use the word <code>see</code> on it (e.g. <code>see [char]</code>
 for the example below).  Processing an immediate word takes a little more
 detective work.  You&#8217;ll need to determine what these words do to the word being
 compiled and then do it yourself in assembly, so that only what is actually
@@ -6913,7 +6913,7 @@ being too long.  The definition in Forth looks like:</p>
 <div class="paragraph">
 <p>This has an <code>IF</code> in it, which we will need to translate into branches and will
 be a good demonstration of using local labels.  This word has stateful behavior
-(eg. it acts differently in INTERPRET mode than it does in COMPILE mode).  While
+(e.g. it acts differently in INTERPRET mode than it does in COMPILE mode).  While
 we could translate the "state @" portion at the beginning into JSRs to xt_state
 and xt_fetch, it will be much faster to look in the state variable directly in
 assembly.  You can find all of the names of internal Tali variables in
@@ -6981,8 +6981,8 @@ run the code for the <code>else</code> section, we use a BRA to a _done label.</
 translated into JSRs.</p>
 </div>
 <div class="paragraph">
-<p>The <code>immediate</code> on the end is handled in the header in headers.asm by adding IM
-to the status flags.  See the top of headers.asm for a description of all of the
+<p>The <code>immediate</code> on the end is handled in the header in <code>words/headers.asm</code> by adding IM
+to the status flags.  See the top of <code>words/headers.asm</code> for a description of all of the
 header fields.</p>
 </div>
 </div>
@@ -7070,56 +7070,50 @@ followed by a <code>jsr dodoes</code>.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_adding_the_header_in_headers_asm">Adding the Header in headers.asm</h4>
+<h4 id="_adding_the_header_in_wordsheaders_asm">Adding the Header in words/headers.asm</h4>
 <div class="paragraph">
 <p>Once your word has been entered into one of the words/*.asm files with the appropriate
 comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren&#8217;t sure where to put your word, then
-put it near the top of the file just under the header for <code>drop</code>.</p>
-</div>
-<div class="paragraph">
-<p>Each header is simply a declaration of bytes and words that provides some basic
-information that Tali needs to use the word, as well as the addresses of the
-beginning and ending (not including the rts at the end) of your word.  That&#8217;s
-why you need the xt_xxxx and z_xxxx labels in your word (where xxxx is the
-spelled-out version of your word&#8217;s name).</p>
-</div>
-<div class="paragraph">
-<p>Before we dicuss adding a word, let&#8217;s go over the form a dictionary header.  The
-fields we will be filling in are described right at the top of headers.asm for
-reference. We&#8217;ll look at an easy to locate word, <code>drop</code>, which is used to
-remove the top item on the stack. It&#8217;s right near the top of the list.  We&#8217;ll also
-show the word <code>dup</code>, which is the next word is the dictionary.
-The headers for these two words currently look like:</p>
+put it near the end of the file just before the header for <code>drop</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>nt_drop:
-        .byte 4, 0
-        .word nt_dup, xt_drop, z_drop
-        .text "drop"
-
-nt_dup:
-        .byte 3, 0
-        .word nt_swap, xt_dup, z_dup
-        .text "dup"</pre>
+<pre>#nt_header drop                 ; DROP is always the first native word in the Dictionary</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The first component of a dictionary header is the label, which comes in the form
-nt_xxxx where xxxx is the spelled out version of your word&#8217;s name.  The xxxx
-should match whatever you used in your xt_xxxx and z_xxxx labels.</p>
+<p>Each header simply provides some basic information that Tali needs to use the word,
+as well as the where the code for the word starts and ends (excluding the final <code>rts</code>).
+That&#8217;s why you need the <code>xt_xxxx</code> and <code>z_xxxx</code> labels in your word (where <code>xxxx</code> is the
+spelled-out version of your word&#8217;s name).</p>
 </div>
 <div class="paragraph">
-<p>The next two fields are byte fields, so we create them with the 64tass assembler
-<code>.byte</code> directive.  The first field is the length of the name, in characters, as
-it will be typed in Tali.  The second field is the status of the word, where
-each bit has a special meaning.  If there is nothing special about your word,
-you will just put 0 here.  If your word needs some of the status flags, you add
-them together (with +) here to form the status byte.  The table below gives the
-constants you will use and a brief description of when to use them.</p>
+<p>Before we discuss adding a word, let&#8217;s go over the form a dictionary header.
+The fields we&#8217;ll be defining are described in words/headers.asm
+with more detail in <a href="#_elements_of_the_header">Elements of the Header</a>.
+In most cases we can simply use the <code>#nt_header</code> macro:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>#nt_header label[, "name"[,flags]]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here <code>label</code> is the <code>xxxx</code> in <code>xt_xxxx</code> and <code>z_xxxx</code>;
+"name" is the actual string to use for the word&#8217;s name if different <code>"xxxx"</code>
+(usually if it contains special characters other than <code>[_a-z0-9]</code>);
+and <code>flags</code> is any combination of required flags from <code>CO, IM, AN, NN, HC</code>
+as detailed in <a href="#_elements_of_the_header">Elements of the Header</a>.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>#nt_header m_star_slash, "m*/" ; uses special characters in the name
+#nt_header exit, "exit", AN+CO ; needs special flags, note need for explicit name "exit" to add flags</pre>
+</div>
 </div>
 <div class="hdlist">
 <table>
@@ -7189,37 +7183,20 @@ your own words in assembly.</p>
 </div>
 <div class="paragraph">
 <p>If you created a short word made out of just JSRs, and
-you wanted it to be an immediate, compile-only word, you might put <code>IM+CO</code> for this field.</p>
+you wanted it to be an immediate, compile-only word, you might add the <code>IM+CO</code> flags.</p>
 </div>
 <div class="paragraph">
-<p>The next line contains three addresses, so the 64tass <code>.word</code> directive is used
-here.  The first address is the nt_xxxx of the next word in the word list (with 0
-used for the very last word in the word list).  The
-words are listed in dictionary order, so this will normally be the nt_xxxx of
-the word just below (there may be some anonymous labels used if the next word is
-conditionally assembled).  The second address is the xt (execution token), or
-entry point, of your new word.  This will be your xt_xxxx label for your word.
-The third address is the end of your routine, just before the RTS instruction.
-You will use your z_xxxx label here.  The xt_xxxx and z_xxxx are used as the
-bounds of your word if it ends up being natively compiled.</p>
-</div>
-<div class="paragraph">
-<p>In the sample headers above, you can see that <code>drop</code> links to <code>dup</code> as the next
-word, and <code>dup</code> links to <code>swap</code> (not shown) as the next word.  When you go to
-add your own word, you will need to adjust these linkages.</p>
-</div>
-<div class="paragraph">
-<p>The last line is the actual name of the word, as it will be typed in forth, in
-lowercase.  It uses the 64tass <code>.text</code> directive and 64tass allows literal
-strings, so you can just put the name of your word in double-quotes.  If your
-word has a double-quote in it, look up <code>nt_s_quote</code> in the headers to see how
-this is handled.</p>
+<p>The  macro automatically chains words together in the dictionary using
+the <code>prev_nt</code> compiler variable.
+If you&#8217;re adding the last word in a new wordlist you should capture
+the current head of the dictionary (the latest NT header)
+by assigning from this variable, e.g. <code>dictionary_start = prev_nt</code>.
+You can then start a new wordlist by resetting <code>prev_nt := 0</code>.</p>
 </div>
 <div class="paragraph">
 <p>Although Tali is not case-sensitive, all words in the dictionary headers <strong>must be
-in lowercase</strong> or Tali will not be able to find them.  The length of this string
-also needs to match the length given as the first byte, or Tali will not be able
-to find this word.</p>
+in lowercase</strong> or Tali will not be able to find them.
+Names should be at most 31 characters.</p>
 </div>
 <div class="paragraph">
 <p>As an example, we&#8217;ll add the words <code>star</code> and <code>is</code> from the previous examples.
@@ -7229,37 +7206,25 @@ requires one of the status flags (<code>is</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>nt_drop:
-        .byte 4, 0
-        .word nt_star_word, xt_drop, z_drop
-        .text "drop"
-
-nt_star_word:
-        .byte 4, 0
-        .word nt_is, xt_star_word, z_star_word
-        .text "star"
-
-nt_is:
-        .byte 2, IM
-        .word nt_dup, xt_is, z_is
-        .text "is"
-nt_dup:
-        .byte 3, 0
-        .word nt_swap, xt_dup, z_dup
-        .text "dup"</pre>
+<pre>...
+#nt_header dup
+#nt_header is, "is", IM
+#nt_header star_word, "*"
+#nt_header drop                 ; DROP is always the first native word in the Dictionary</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The first thing to note is the updated linked list of words.  In order to put
-the new words between <code>drop</code> and <code>dup</code>, we make <code>drop</code> link to <code>star</code>, which then
-links to <code>is</code>, and that links back to <code>dup</code>.  If you use the <code>words</code> command, you will
-find the new words near the beginning of the list.</p>
+<p>The first thing to note is the updated linked list of words.
+By adding our new headers between <code>dup</code> and <code>drop</code>
+they are automatically inserted into the linked word list ` &#8230;&#8203; &#8594; dup &#8594; is &#8594; * -&#8594; drop`.
+If you use the <code>words</code> command, you will find the new words near the beginning of the list.</p>
 </div>
 <div class="paragraph">
-<p>The second thing to note is the status byte of each word.  If the word doesn&#8217;t
-need any special status, then just use 0.  Neither of our added words contain
-the JMP instruction (branches are OK, but JMP is not), so neither is required to
-carry the NN (Never Native) flag.  The word <code>is</code>, in it&#8217;s original Forth form,
+<p>The second thing to note are the flags for each word.
+If the word doesn&#8217;t need any special status, we can ignore the flags argument.
+Neither of our added words contain the JMP instruction (branches are OK, but JMP is not),
+so neither needs the NN (Never Native) flag.
+The word <code>is</code>, in its original Forth form,
 was marked as an immediate word, and we do that by putting the IM flag on it
 here in the dictionary header.</p>
 </div>
@@ -7402,6 +7367,10 @@ also generally available at the 6502.org Users Forum in the Forth category.
 <p>Error determining name on line:
 ; ## KEY? (&#8201;&#8212;&#8201;char ) "Return true if a character is available"</p>
 </div>
+<div class="paragraph">
+<p>Error determining name on line:
+; ## KEY? (&#8201;&#8212;&#8201;char ) "Return true if a character is available"</p>
+</div>
 <div class="hdlist">
 <table>
 <tr>
@@ -7459,6 +7428,7 @@ Completely convert number for pictured numerical output.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Discard input up to close paren ( comment )"
+<a href="http://forth-standard.org/standard/core/p" class="bare">http://forth-standard.org/standard/core/p</a>
 <a href="http://forth-standard.org/standard/core/p" class="bare">http://forth-standard.org/standard/core/p</a></p>
 </td>
 </tr>
@@ -7519,6 +7489,7 @@ single-cell quotient n5.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Finish loop construct"
+<a href="https://forth-standard.org/standard/core/PlusLOOP" class="bare">https://forth-standard.org/standard/core/PlusLOOP</a>
 <a href="https://forth-standard.org/standard/core/PlusLOOP" class="bare">https://forth-standard.org/standard/core/PlusLOOP</a></p>
 </td>
 </tr>
@@ -7971,6 +7942,14 @@ routine by Phil Burk of the same name in pForth, see
 for the original Forth code. We arrive here from NUMBER which has
 made sure that we don&#8217;t have to deal with a sign and we don&#8217;t have
 to deal with a dot as a last character that signalizes double -
+this should be a pure number string.
+<a href="https://forth-standard.org/standard/core/toNUMBER" class="bare">https://forth-standard.org/standard/core/toNUMBER</a>
+Convert a string to a double number. Logic here is based on the
+routine by Phil Burk of the same name in pForth, see
+<a href="https://github.com/philburk/pforth/blob/master/fth/numberio.fth" class="bare">https://github.com/philburk/pforth/blob/master/fth/numberio.fth</a>
+for the original Forth code. We arrive here from NUMBER which has
+made sure that we don&#8217;t have to deal with a sign and we don&#8217;t have
+to deal with a dot as a last character that signalizes double -
 this should be a pure number string.</p>
 </td>
 </tr>
@@ -8010,6 +7989,7 @@ word.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> (C:&#8201;&#8212;&#8201;) ( limit start&#8201;&#8212;&#8201;) "Conditional loop start"
+<a href="https://forth-standard.org/standard/core/qDO" class="bare">https://forth-standard.org/standard/core/qDO</a>
 <a href="https://forth-standard.org/standard/core/qDO" class="bare">https://forth-standard.org/standard/core/qDO</a></p>
 </td>
 </tr>
@@ -8019,6 +7999,7 @@ word.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( n&#8201;&#8212;&#8201;0 | n n ) "Duplicate TOS non-zero"
+<a href="https://forth-standard.org/standard/core/qDUP" class="bare">https://forth-standard.org/standard/core/qDUP</a>
 <a href="https://forth-standard.org/standard/core/qDUP" class="bare">https://forth-standard.org/standard/core/qDUP</a></p>
 </td>
 </tr>
@@ -8067,6 +8048,7 @@ immediate, compile-only word.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS block ext</em> (&#8201;&#8212;&#8201;) "Ignore rest of line"
+<a href="https://forth-standard.org/standard/block/bs" class="bare">https://forth-standard.org/standard/block/bs</a>
 <a href="https://forth-standard.org/standard/block/bs" class="bare">https://forth-standard.org/standard/block/bs</a></p>
 </td>
 </tr>
@@ -8100,6 +8082,8 @@ actually delete the stuff on the Data Stack.</p>
 <td class="hdlist2">
 <p><em>ANS core</em> ( "string"&#8201;&#8212;&#8201;) "If flag TOS is true, ABORT with message"
 <a href="https://forth-standard.org/standard/core/ABORTq" class="bare">https://forth-standard.org/standard/core/ABORTq</a>
+Abort and print a string.
+<a href="https://forth-standard.org/standard/core/ABORTq" class="bare">https://forth-standard.org/standard/core/ABORTq</a>
 Abort and print a string.</p>
 </td>
 </tr>
@@ -8123,6 +8107,11 @@ Return the absolute value of a number.</p>
 Receive a string of at most n1 characters, placing them at
 addr. Return the actual number of characters as n2. Characters
 are echoed as they are received. ACCEPT is called by REFILL in
+modern Forths.
+<a href="https://forth-standard.org/standard/core/ACCEPT" class="bare">https://forth-standard.org/standard/core/ACCEPT</a>
+Receive a string of at most n1 characters, placing them at
+addr. Return the actual number of characters as n2. Characters
+are echoed as they are received. ACCEPT is called by REFILL in
 modern Forths.</p>
 </td>
 </tr>
@@ -8141,6 +8130,7 @@ modern Forths.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> ( addr&#8201;&#8212;&#8201;) "Code backwards branch to address left by BEGIN"
+<a href="https://forth-standard.org/standard/core/AGAIN" class="bare">https://forth-standard.org/standard/core/AGAIN</a>
 <a href="https://forth-standard.org/standard/core/AGAIN" class="bare">https://forth-standard.org/standard/core/AGAIN</a></p>
 </td>
 </tr>
@@ -8252,6 +8242,7 @@ ingore the MSB</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;addr ) "Mark entry point for loop"
+<a href="https://forth-standard.org/standard/core/BEGIN" class="bare">https://forth-standard.org/standard/core/BEGIN</a>
 <a href="https://forth-standard.org/standard/core/BEGIN" class="bare">https://forth-standard.org/standard/core/BEGIN</a></p>
 </td>
 </tr>
@@ -8457,6 +8448,7 @@ when its name is used.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> (C:&#8201;&#8212;&#8201;0) (&#8201;&#8212;&#8201;) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/CASE" class="bare">http://forth-standard.org/standard/core/CASE</a>
 <a href="http://forth-standard.org/standard/core/CASE" class="bare">http://forth-standard.org/standard/core/CASE</a></p>
 </td>
 </tr>
@@ -8486,6 +8478,7 @@ Since this is an 8 bit machine with 16 bit cells, we add two bytes.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( "c"&#8201;&#8212;&#8201;u ) "Convert character to ASCII value"
+<a href="https://forth-standard.org/standard/core/CHAR" class="bare">https://forth-standard.org/standard/core/CHAR</a>
 <a href="https://forth-standard.org/standard/core/CHAR" class="bare">https://forth-standard.org/standard/core/CHAR</a></p>
 </td>
 </tr>
@@ -8789,6 +8782,7 @@ the file disassembler.asm for more details.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (C:&#8201;&#8212;&#8201;) ( limit start&#8201;&#8212;&#8201;)  "Start a loop"
+<a href="https://forth-standard.org/standard/core/DO" class="bare">https://forth-standard.org/standard/core/DO</a>
 <a href="https://forth-standard.org/standard/core/DO" class="bare">https://forth-standard.org/standard/core/DO</a></p>
 </td>
 </tr>
@@ -8869,6 +8863,7 @@ more information.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (C: orig&#8201;&#8212;&#8201;orig' ) (&#8201;&#8212;&#8201;) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/ELSE" class="bare">http://forth-standard.org/standard/core/ELSE</a>
 <a href="http://forth-standard.org/standard/core/ELSE" class="bare">http://forth-standard.org/standard/core/ELSE</a></p>
 </td>
 </tr>
@@ -8900,6 +8895,7 @@ Don&#8217;t make this native compile.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> (C: case-sys&#8201;&#8212;&#8201;) ( x&#8201;&#8212;&#8201;) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/ENDCASE" class="bare">http://forth-standard.org/standard/core/ENDCASE</a>
 <a href="http://forth-standard.org/standard/core/ENDCASE" class="bare">http://forth-standard.org/standard/core/ENDCASE</a></p>
 </td>
 </tr>
@@ -8909,6 +8905,8 @@ Don&#8217;t make this native compile.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> (C: case-sys1 of-sys1-- case-sys2) (&#8201;&#8212;&#8201;) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/ENDOF" class="bare">http://forth-standard.org/standard/core/ENDOF</a>
+This is a dummy entry, the code is shared with ELSE
 <a href="http://forth-standard.org/standard/core/ENDOF" class="bare">http://forth-standard.org/standard/core/ENDOF</a>
 This is a dummy entry, the code is shared with ELSE</p>
 </td>
@@ -8961,6 +8959,13 @@ After processing the line, revert to old input source. We use this
 to compile high-level Forth words and user-defined words during
 start up and cold boot. In contrast to ACCEPT, we need to, uh,
 accept more than 255 characters here, even though it&#8217;s a pain in
+the 8-bit.
+<a href="https://forth-standard.org/standard/core/EVALUATE" class="bare">https://forth-standard.org/standard/core/EVALUATE</a>
+Set SOURCE-ID to -1, make addr u the input source, set &gt;IN to zero.
+After processing the line, revert to old input source. We use this
+to compile high-level Forth words and user-defined words during
+start up and cold boot. In contrast to ACCEPT, we need to, uh,
+accept more than 255 characters here, even though it&#8217;s a pain in
 the 8-bit.</p>
 </td>
 </tr>
@@ -8970,6 +8975,7 @@ the 8-bit.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( xt&#8201;&#8212;&#8201;) "Jump to word based on execution token"
+<a href="https://forth-standard.org/standard/core/EXECUTE" class="bare">https://forth-standard.org/standard/core/EXECUTE</a>
 <a href="https://forth-standard.org/standard/core/EXECUTE" class="bare">https://forth-standard.org/standard/core/EXECUTE</a></p>
 </td>
 </tr>
@@ -8991,6 +8997,9 @@ tests/tali.fs for examples.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Return control to the calling word immediately"
+<a href="https://forth-standard.org/standard/core/EXIT" class="bare">https://forth-standard.org/standard/core/EXIT</a>
+If we&#8217;re in a loop, user should UNLOOP first to clean up
+any loop control. This should be natively compiled.
 <a href="https://forth-standard.org/standard/core/EXIT" class="bare">https://forth-standard.org/standard/core/EXIT</a>
 If we&#8217;re in a loop, user should UNLOOP first to clean up
 any loop control. This should be natively compiled.</p>
@@ -9159,6 +9168,8 @@ output string on
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;n )  "Copy loop counter to stack"
 <a href="https://forth-standard.org/standard/core/I" class="bare">https://forth-standard.org/standard/core/I</a>
+See definitions.asm and the Control Flow section of the manual.
+<a href="https://forth-standard.org/standard/core/I" class="bare">https://forth-standard.org/standard/core/I</a>
 See definitions.asm and the Control Flow section of the manual.</p>
 </td>
 </tr>
@@ -9168,6 +9179,7 @@ See definitions.asm and the Control Flow section of the manual.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (C:&#8201;&#8212;&#8201;orig) (flag&#8201;&#8212;&#8201;) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/IF" class="bare">http://forth-standard.org/standard/core/IF</a>
 <a href="http://forth-standard.org/standard/core/IF" class="bare">http://forth-standard.org/standard/core/IF</a></p>
 </td>
 </tr>
@@ -9240,6 +9252,10 @@ INT&gt;NAME to match NAME&gt;INT</p>
 <a href="https://forth-standard.org/standard/core/J" class="bare">https://forth-standard.org/standard/core/J</a>
 Copy second loop counter from Return Stack to stack. Note we use
 a fudge factor for loop control; see the Control Flow section of
+the manual for more details.
+<a href="https://forth-standard.org/standard/core/J" class="bare">https://forth-standard.org/standard/core/J</a>
+Copy second loop counter from Return Stack to stack. Note we use
+a fudge factor for loop control; see the Control Flow section of
 the manual for more details.</p>
 </td>
 </tr>
@@ -9285,6 +9301,10 @@ The Gforth version of this word is called LATEST</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Leave DO/LOOP construct"
+<a href="https://forth-standard.org/standard/core/LEAVE" class="bare">https://forth-standard.org/standard/core/LEAVE</a>
+Note that this does not work with anything but a DO/LOOP in
+contrast to other versions such as discussed at
+<a href="http://blogs.msdn.com/b/ashleyf/archive/2011/02/06/loopty-do-i-loop.aspx" class="bare">http://blogs.msdn.com/b/ashleyf/archive/2011/02/06/loopty-do-i-loop.aspx</a>
 <a href="https://forth-standard.org/standard/core/LEAVE" class="bare">https://forth-standard.org/standard/core/LEAVE</a>
 Note that this does not work with anything but a DO/LOOP in
 contrast to other versions such as discussed at
@@ -9335,6 +9355,9 @@ it works by calling literal_runtime by compling JSR LITERAL_RT.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Finish loop construct"
+<a href="https://forth-standard.org/standard/core/LOOP" class="bare">https://forth-standard.org/standard/core/LOOP</a>
+Compile-time part of LOOP. This is specialized to
+increment by one.
 <a href="https://forth-standard.org/standard/core/LOOP" class="bare">https://forth-standard.org/standard/core/LOOP</a>
 Compile-time part of LOOP. This is specialized to
 increment by one.</p>
@@ -9521,6 +9544,7 @@ character of the string.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> (C:&#8201;&#8212;&#8201;of-sys) (x1 x2&#8201;&#8212;&#8201;|x1) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/OF" class="bare">http://forth-standard.org/standard/core/OF</a>
 <a href="http://forth-standard.org/standard/core/OF" class="bare">http://forth-standard.org/standard/core/OF</a></p>
 </td>
 </tr>
@@ -9606,6 +9630,11 @@ left of the screen</p>
 Find word in input string delimited by character given. Do not
 skip leading delimiters&#8201;&#8212;&#8201;this is the main difference to PARSE-NAME.
 PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
+<a href="http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE" class="bare">http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE</a>
+<a href="https://forth-standard.org/standard/core/PARSE" class="bare">https://forth-standard.org/standard/core/PARSE</a>
+Find word in input string delimited by character given. Do not
+skip leading delimiters&#8201;&#8212;&#8201;this is the main difference to PARSE-NAME.
+PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
 <a href="http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE" class="bare">http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE</a></p>
 </td>
 </tr>
@@ -9615,6 +9644,18 @@ PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> ( "name"&#8201;&#8212;&#8201;addr u ) "Parse the input"
+<a href="https://forth-standard.org/standard/core/PARSE-NAME" class="bare">https://forth-standard.org/standard/core/PARSE-NAME</a>
+Find next word in input string, skipping leading whitespace. This is
+a special form of PARSE and drops through to that word. See PARSE
+for more detail. We use this word internally for the interpreter
+because it is a lot easier to use. Reference implementations at
+<a href="http://forth-standard.org/standard/core/PARSE-NAME" class="bare">http://forth-standard.org/standard/core/PARSE-NAME</a> and
+<a href="http://www.forth200x.org/reference-implementations/parse-name.fs" class="bare">http://www.forth200x.org/reference-implementations/parse-name.fs</a>
+Roughly, the word is comparable to BL WORD COUNT.&#8201;&#8212;&#8201;Note that
+though the ANS standard talks about skipping "spaces", whitespace
+is actually perfectly legal (see for example
+<a href="http://forth-standard.org/standard/usage#subsubsection.3.4.1.1" class="bare">http://forth-standard.org/standard/usage#subsubsection.3.4.1.1</a>).
+Otherwise, PARSE-NAME chokes on tabs.
 <a href="https://forth-standard.org/standard/core/PARSE-NAME" class="bare">https://forth-standard.org/standard/core/PARSE-NAME</a>
 Find next word in input string, skipping leading whitespace. This is
 a special form of PARSE and drops through to that word. See PARSE
@@ -9711,6 +9752,7 @@ work normally as well</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Copy recursive call to word being defined"
+<a href="https://forth-standard.org/standard/core/RECURSE" class="bare">https://forth-standard.org/standard/core/RECURSE</a>
 <a href="https://forth-standard.org/standard/core/RECURSE" class="bare">https://forth-standard.org/standard/core/RECURSE</a></p>
 </td>
 </tr>
@@ -9732,6 +9774,19 @@ return false and perform no other action." See
 <a href="https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html" class="bare">https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html</a>
 and Conklin &amp; Rather p. 156. Note we don&#8217;t have to care about blocks
 because REFILL is never used on blocks - Tali is able to evaluate the
+entire block as a 1024 byte string.
+<a href="https://forth-standard.org/standard/core/REFILL" class="bare">https://forth-standard.org/standard/core/REFILL</a>
+Attempt to fill the input buffer from the input source, returning
+a true flag if successful. When the input source is the user input
+device, attempt to receive input into the terminal input buffer. If
+successful, make the result the input buffer, set &gt;IN to zero, and
+return true. Receipt of a line containing no characters is considered
+successful. If there is no input available from the current input
+source, return false. When the input source is a string from EVALUATE,
+return false and perform no other action." See
+<a href="https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html" class="bare">https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html</a>
+and Conklin &amp; Rather p. 156. Note we don&#8217;t have to care about blocks
+because REFILL is never used on blocks - Tali is able to evaluate the
 entire block as a 1024 byte string.</p>
 </td>
 </tr>
@@ -9741,6 +9796,7 @@ entire block as a 1024 byte string.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (C: orig dest&#8201;&#8212;&#8201;) (&#8201;&#8212;&#8201;) "Loop flow control"
+<a href="http://forth-standard.org/standard/core/REPEAT" class="bare">http://forth-standard.org/standard/core/REPEAT</a>
 <a href="http://forth-standard.org/standard/core/REPEAT" class="bare">http://forth-standard.org/standard/core/REPEAT</a></p>
 </td>
 </tr>
@@ -9916,6 +9972,7 @@ by Ulrich Hoffmann. See <a href="http://www.xlerb.de/uho/ansi.seq" class="bare">
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;addr u ) "Return location and size of input buffer""
+<a href="https://forth-standard.org/standard/core/SOURCE" class="bare">https://forth-standard.org/standard/core/SOURCE</a>
 <a href="https://forth-standard.org/standard/core/SOURCE" class="bare">https://forth-standard.org/standard/core/SOURCE</a></p>
 </td>
 </tr>
@@ -9925,6 +9982,10 @@ by Ulrich Hoffmann. See <a href="http://www.xlerb.de/uho/ansi.seq" class="bare">
 </td>
 <td class="hdlist2">
 <p><em>ANS core ext</em> (&#8201;&#8212;&#8201;n ) "Return source identifier"
+<a href="https://forth-standard.org/standard/core/SOURCE-ID" class="bare">https://forth-standard.org/standard/core/SOURCE-ID</a> Identify the
+input source unless it is a block (s. Conklin &amp; Rather p. 156). This
+will give the input source: 0 is keyboard, -1 ($FFFF) is character
+string, and a text file gives the fileid.
 <a href="https://forth-standard.org/standard/core/SOURCE-ID" class="bare">https://forth-standard.org/standard/core/SOURCE-ID</a> Identify the
 input source unless it is a block (s. Conklin &amp; Rather p. 156). This
 will give the input source: 0 is keyboard, -1 ($FFFF) is character
@@ -9988,6 +10049,8 @@ Default is false.</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (C: orig&#8201;&#8212;&#8201;) (&#8201;&#8212;&#8201;) "Conditional flow control"
+<a href="http://forth-standard.org/standard/core/THEN" class="bare">http://forth-standard.org/standard/core/THEN</a>
+This is a dummy entry, the code is shared with xt_else
 <a href="http://forth-standard.org/standard/core/THEN" class="bare">http://forth-standard.org/standard/core/THEN</a>
 This is a dummy entry, the code is shared with xt_else</p>
 </td>
@@ -10122,6 +10185,7 @@ Forth code, modified by Garth Wilson, see
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (&#8201;&#8212;&#8201;) "Drop current loop control block"
+<a href="https://forth-standard.org/standard/core/UNLOOP" class="bare">https://forth-standard.org/standard/core/UNLOOP</a>
 <a href="https://forth-standard.org/standard/core/UNLOOP" class="bare">https://forth-standard.org/standard/core/UNLOOP</a></p>
 </td>
 </tr>
@@ -10131,6 +10195,7 @@ Forth code, modified by Garth Wilson, see
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> (C: dest&#8201;&#8212;&#8201;) (&#8201;&#8212;&#8201;) "Loop flow control"
+<a href="http://forth-standard.org/standard/core/UNTIL" class="bare">http://forth-standard.org/standard/core/UNTIL</a>
 <a href="http://forth-standard.org/standard/core/UNTIL" class="bare">http://forth-standard.org/standard/core/UNTIL</a></p>
 </td>
 </tr>
@@ -10190,6 +10255,7 @@ second one so the variable is initialized to zero</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( C: dest&#8201;&#8212;&#8201;orig dest ) ( x&#8201;&#8212;&#8201;) "Loop flow control"
+<a href="http://forth-standard.org/standard/core/WHILE" class="bare">http://forth-standard.org/standard/core/WHILE</a>
 <a href="http://forth-standard.org/standard/core/WHILE" class="bare">http://forth-standard.org/standard/core/WHILE</a></p>
 </td>
 </tr>
@@ -10208,6 +10274,15 @@ second one so the variable is initialized to zero</p>
 </td>
 <td class="hdlist2">
 <p><em>ANS core</em> ( char "name "&#8201;&#8212;&#8201;caddr ) "Parse input stream"
+<a href="https://forth-standard.org/standard/core/WORD" class="bare">https://forth-standard.org/standard/core/WORD</a>
+Obsolete parsing word included for backwards compatibility only.
+Do not use this, use <code>PARSE</code> or <code>PARSE-NAME</code>. Skips leading delimiters
+and copies word to storage area for a maximum size of 255 bytes.
+Returns the result as a counted string (requires COUNT to convert
+to modern format), and inserts a space after the string. See "Forth
+Programmer&#8217;s Handbook" 3rd edition p. 159 and
+<a href="http://www.forth200x.org/documents/html/rationale.html#rat:core:PARSE" class="bare">http://www.forth200x.org/documents/html/rationale.html#rat:core:PARSE</a>
+for discussions of why you shouldn&#8217;t be using WORD anymore.
 <a href="https://forth-standard.org/standard/core/WORD" class="bare">https://forth-standard.org/standard/core/WORD</a>
 Obsolete parsing word included for backwards compatibility only.
 Do not use this, use <code>PARSE</code> or <code>PARSE-NAME</code>. Skips leading delimiters

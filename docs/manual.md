@@ -182,7 +182,7 @@ Tali Forth 2 in the simulator.
 To exit, you can type `bye` or use CTRL-C to break out of the simulator.
 
 Note: If running on Windows in a git bash shell, you will need to use winpty,
-eg. `winpty make csim`. This is only needed for the git bash shell. Running
+e.g. `winpty make csim`. This is only needed for the git bash shell. Running
 Tali in c65 from the Windows command prompt or Windows Subsystem for Linux (WSL)
 works fine.
 
@@ -3047,7 +3047,7 @@ to allow various tricks in the code.
 #### Elements of the Header
 
 Each word has a `name token` (nt, `nt_word` in the code) that points to the
-first byte of its header. The header can vary in size from 4-8 bytes,
+first byte of its header. The header can vary in size from four to eight bytes,
 plus the length of the string containing the word’s name.
 Conceptually the header looks like this:
 
@@ -3060,15 +3060,16 @@ as seen in `words/headers.asm`.
 This ensures that the various parts of the header are defined consistently.
 However, it’s helpful to understand a little more detail about
 the header structure as you start tinkering with TaliForth internals.
-The first byte of the header (offset 0) contains eight status flags
-as defined in the file `definitions.asm`:
+
+The first byte of the header, at offset 0, is the **status byte** containing eight flags
+defined in the file `definitions.asm`:
 
 <figure>
 <img src="pics/status_flags.png" alt="status flags" />
 </figure>
 
 Five of the flags define metadata for the word,
-and three of the flags control the format of the header itself.
+while three control the format of the header itself.
 The metadata flags are:
 
 |  |  |
@@ -3097,13 +3098,16 @@ The **NN** and **AN** flags are interpreted together like this:
 | 0 | 1 | Word can only be inlined (always native; AN). |
 | 1 | 1 | Normal word with return stack juggling removed when inlining (ST). |
 
-The last three flags control the header layout, so that we can optimize memory usage.
-For regular `:` words added to the dictionary we can often halve the header
-from 8 to 4 bytes (excluding the name string).
-We could also reorganize the built-in dictionary to save a little more memory
-but currently have preferred readability, keeping word headers disjoint
-from their assembly implementations.
-Here’s the full picture of the word header:
+The last three flags control the header layout to optimize memory usage.
+For normal `:` words added to the dictionary we can often halve the header
+from eight to four bytes (excluding the name string).
+
+> [!NOTE]
+> We could also reorganize the built-in dictionary to save a little more memory
+> but currently have preferred readability, keeping word headers disjoint
+> from their assembly implementations.
+
+Here’s a complete picture of the header:
 
 <figure>
 <img src="pics/header_detail.png" alt="header detail" />
@@ -3115,8 +3119,8 @@ Here’s the full picture of the word header:
        anywhere in memory, with the xt_word value added to the header.      
        However when DC=0 the word’s code immediately follows the header,    
        reducing the header size by two bytes. Most `:` words                
-       added to the dictionary use this format, since the compiled code     
-       immediately follows the header.                                      |
+       added to the dictionary use this format, since compiled code         
+       is added to the dictionary immediately after the header.             |
 | LC  | **Long code.** The length of the word body can be recorded in       
        either one or two bytes. The length is only required                 
        if the word is inlined, and for `DISASM`. If we don’t care about     
@@ -3127,29 +3131,29 @@ Here’s the full picture of the word header:
        However, if the previous header is within the preceding 256 bytes,   
        we only need to store the LSB and can infer the MSB, saving a byte.  
        This is often the case with small `:` words that are consecutively   
-       added to the dictionary.                                             |
+       added to the dictionary, and with builtin words where we define      
+       all headers consecutively.                                           |
 
-The position of these flags in the status byte is important since they allow
-a simple assembly calculation of the header length as 4 + 2\*DC + LC + FP:
+The length of the header, excluding the name itself, is 4 + 2\*DC + LC + FP bytes.
+The specific position of these flags in the status byte makes this easy to calculate in assembly:
 
             lda flags       ; start with status flags in the accumulator
             and #DC+LC+FP   ; mask the three header length bits
             lsr             ; shift FP to carry flag, so Acc = 2*DC + LC
-            adc #4          ; header length is 4 bytes + 2*DC + LC + FP
-    ---
+            adc #4          ; header length is 4 + 2*DC + LC + FP bytes
 
-The second byte of the header---following the status byte---is the length of the word’s name string, which
+The second byte of the header — following the status byte — is the **length of the word’s name string**, which
 is currently limited to 31 characters.
 
 The length byte is followed by the **pointer to the previous header** in the linked
 list, i.e. the name token of that word. A 0000 in this position
 signals the beginning of the linked list, which by convention is the word `bye` for
-the native code words. If the `FP` flag is zero we only store the LSB of the word,
-and infer the MSB depending on whether the LSB is less than or greater than that of the
+the native code words. If the `FP` flag is zero we only store the LSB of the previous header,
+and infer the MSB depending on whether its LSB is less than or greater than that of the
 current header.
 
-This is followed by the current word’s **execution token** (xt, `xt_word`) that
-points to the start of the actual code. Some words that have the same
+Next is the current word’s **execution token** (xt, `xt_word`) which
+points to the start of the actual assembly code. Some words that have the same
 functionality point to the same code block. If the `DC` flag is zero we omit
 this pointer and calculate it based on the length of the header.
 
@@ -3158,11 +3162,11 @@ this pointer and calculate it based on the length of the header.
 > distinction between the Code Field Area (CFA) and the Parameter Field Area
 > (PFA, also Data Field Area) is meaningless — it’s all "payload".
 
-The next field stores the length of the word (`z_word` - `xt_word`) as either
+The next field stores the **length of the word’s code** (`z_word` - `xt_word`) as either
 one or two bytes based on the `LC` flag. This is used for native
 compilation of the word (if allowed and requested).
 
-Finally we have the **name string** with offset between 4 and 8. The string is *not*
+Finally we have the **name string** at offset between 4 and 8. The string is *not*
 zero-terminated. Tali Forth lowercases names as they are copied into the
 dictionary and also lowercases during lookup, so `quarian` is the same word as
 `QUARIAN`. If the name in the dictionary is directly modified, it is important
@@ -3873,7 +3877,7 @@ and then running the following commands:
 
 These tools have an annoying "feature" of having their version number in the
 executable name. To work around this, I created symbolic links in my personal
-bin folder (eg. a folder in my path) as shown below. You will need to adjust
+bin folder (e.g. a folder in my path) as shown below. You will need to adjust
 with the name of these utilities on your system.
 
     ln -s /usr/bin/asciidoctor.ruby3.2 asciidoctor
@@ -4022,12 +4026,12 @@ with examples. Take each word in the definition, determine which type of word
 it is, and then follow the steps outlined below for that word type.
 
 Once the word has been converted, a dictionary header needs to be added for it
-in words/headers.asm. This process is covered in detail at the end of this section.
+in `words/headers.asm`. This process is covered in detail at the end of this section.
 
 #### Processing Regular (Non-Immediate) Words
 
 If the definition word you are processing is not immediate (you can check this
-with `see`, eg. `see dup` and make sure the IM flag is 0) then it just
+with `see`, e.g. `see dup` and make sure the IM flag is 0) then it just
 translates into a JSR to the native code implementing the xt (execution token) of that word.
 Most words have an external entrypoint which begins with `xt_` followed by the name
 (spelled out, in the case of numbers and symbols) of the word. Once your
@@ -4063,7 +4067,7 @@ parameters in standard Forth format, and a string that has a short description
 of what the word does. The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.) See the top of words/headers.asm for more information on the
+Gforth, etc.) See the top of `words/headers.asm` for more information on the
 status field, but "coded" is likely to be the right choice until you’ve
 thoroughly tested your new word.
 
@@ -4071,11 +4075,11 @@ Local labels begin with an underscore "\_" and are only visible within the same
 scope (between two regular labels). This allows multiple words to all have a
 `_done:` label, for example, and each word will only branch to its own local
 version of `_done:` found within its scope. Any branching within the word
-(eg. for ifs and loops) should be done with local labels. Labels without an
+(e.g. for ifs and loops) should be done with local labels. Labels without an
 underscore at the beginning are globally available.
 
 The labels xt_xxxx and z_xxxx need to be the entry and exit point, respectively,
-of your word. The xxxx portion should be your word spelled out (eg. numbers and
+of your word. The xxxx portion should be your word spelled out (e.g. numbers and
 symbols spelled out with underscores between them). Although allowed in the
 Forth word, the dash "-" symbol is not allowed in the label (the assembler will
 try to do subtraction), so it is replaced with an underscore anywhere it is
@@ -4092,7 +4096,7 @@ searching for "@" (including the quotes) if you didn’t know its name.
 
 #### Processing Immediate Words
 
-To determine if a word is immediate, use the word `see` on it (eg. `see [char]`
+To determine if a word is immediate, use the word `see` on it (e.g. `see [char]`
 for the example below). Processing an immediate word takes a little more
 detective work. You’ll need to determine what these words do to the word being
 compiled and then do it yourself in assembly, so that only what is actually
@@ -4163,7 +4167,7 @@ being too long. The definition in Forth looks like:
 
 This has an `IF` in it, which we will need to translate into branches and will
 be a good demonstration of using local labels. This word has stateful behavior
-(eg. it acts differently in INTERPRET mode than it does in COMPILE mode). While
+(e.g. it acts differently in INTERPRET mode than it does in COMPILE mode). While
 we could translate the "state @" portion at the beginning into JSRs to xt_state
 and xt_fetch, it will be much faster to look in the state variable directly in
 assembly. You can find all of the names of internal Tali variables in
@@ -4222,8 +4226,8 @@ run the code for the `else` section, we use a BRA to a \_done label.
 The `else` section of the `if` just has two regular words, so they are just
 translated into JSRs.
 
-The `immediate` on the end is handled in the header in headers.asm by adding IM
-to the status flags. See the top of headers.asm for a description of all of the
+The `immediate` on the end is handled in the header in `words/headers.asm` by adding IM
+to the status flags. See the top of `words/headers.asm` for a description of all of the
 header fields.
 
 #### Processing DOES\>
@@ -4291,49 +4295,38 @@ All of the other words other than `does>` in this definition are regular words,
 so they just turn into JSRs. The word `does>` turns into a `jsr does_runtime`
 followed by a `jsr dodoes`.
 
-#### Adding the Header in headers.asm
+#### Adding the Header in words/headers.asm
 
 Once your word has been entered into one of the words/\*.asm files with the appropriate
 comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists. The words here are not in alphabetical order and
 are loosely grouped by function. If you aren’t sure where to put your word, then
-put it near the top of the file just under the header for `drop`.
+put it near the end of the file just before the header for `drop`:
 
-Each header is simply a declaration of bytes and words that provides some basic
-information that Tali needs to use the word, as well as the addresses of the
-beginning and ending (not including the rts at the end) of your word. That’s
-why you need the xt_xxxx and z_xxxx labels in your word (where xxxx is the
+    #nt_header drop                 ; DROP is always the first native word in the Dictionary
+
+Each header simply provides some basic information that Tali needs to use the word,
+as well as the where the code for the word starts and ends (excluding the final `rts`).
+That’s why you need the `xt_xxxx` and `z_xxxx` labels in your word (where `xxxx` is the
 spelled-out version of your word’s name).
 
-Before we dicuss adding a word, let’s go over the form a dictionary header. The
-fields we will be filling in are described right at the top of headers.asm for
-reference. We’ll look at an easy to locate word, `drop`, which is used to
-remove the top item on the stack. It’s right near the top of the list. We’ll also
-show the word `dup`, which is the next word is the dictionary.
-The headers for these two words currently look like:
+Before we discuss adding a word, let’s go over the form a dictionary header.
+The fields we’ll be defining are described in words/headers.asm
+with more detail in [Elements of the Header](#_elements_of_the_header).
+In most cases we can simply use the `#nt_header` macro:
 
-    nt_drop:
-            .byte 4, 0
-            .word nt_dup, xt_drop, z_drop
-            .text "drop"
+    #nt_header label[, "name"[,flags]]
 
-    nt_dup:
-            .byte 3, 0
-            .word nt_swap, xt_dup, z_dup
-            .text "dup"
+Here `label` is the `xxxx` in `xt_xxxx` and `z_xxxx`;
+"name" is the actual string to use for the word’s name if different `"xxxx"`
+(usually if it contains special characters other than `[_a-z0-9]`);
+and `flags` is any combination of required flags from `CO, IM, AN, NN, HC`
+as detailed in [Elements of the Header](#_elements_of_the_header).
+For example:
 
-The first component of a dictionary header is the label, which comes in the form
-nt_xxxx where xxxx is the spelled out version of your word’s name. The xxxx
-should match whatever you used in your xt_xxxx and z_xxxx labels.
-
-The next two fields are byte fields, so we create them with the 64tass assembler
-`.byte` directive. The first field is the length of the name, in characters, as
-it will be typed in Tali. The second field is the status of the word, where
-each bit has a special meaning. If there is nothing special about your word,
-you will just put 0 here. If your word needs some of the status flags, you add
-them together (with +) here to form the status byte. The table below gives the
-constants you will use and a brief description of when to use them.
+    #nt_header m_star_slash, "m*/" ; uses special characters in the name
+    #nt_header exit, "exit", AN+CO ; needs special flags, note need for explicit name "exit" to add flags
 
 |  |  |
 |----|----|
@@ -4359,67 +4352,40 @@ This is used for words like R\>, R@ and \>R but you’re unlikely to need this f
 your own words in assembly. |
 
 If you created a short word made out of just JSRs, and
-you wanted it to be an immediate, compile-only word, you might put `IM+CO` for this field.
+you wanted it to be an immediate, compile-only word, you might add the `IM+CO` flags.
 
-The next line contains three addresses, so the 64tass `.word` directive is used
-here. The first address is the nt_xxxx of the next word in the word list (with 0
-used for the very last word in the word list). The
-words are listed in dictionary order, so this will normally be the nt_xxxx of
-the word just below (there may be some anonymous labels used if the next word is
-conditionally assembled). The second address is the xt (execution token), or
-entry point, of your new word. This will be your xt_xxxx label for your word.
-The third address is the end of your routine, just before the RTS instruction.
-You will use your z_xxxx label here. The xt_xxxx and z_xxxx are used as the
-bounds of your word if it ends up being natively compiled.
-
-In the sample headers above, you can see that `drop` links to `dup` as the next
-word, and `dup` links to `swap` (not shown) as the next word. When you go to
-add your own word, you will need to adjust these linkages.
-
-The last line is the actual name of the word, as it will be typed in forth, in
-lowercase. It uses the 64tass `.text` directive and 64tass allows literal
-strings, so you can just put the name of your word in double-quotes. If your
-word has a double-quote in it, look up `nt_s_quote` in the headers to see how
-this is handled.
+The macro automatically chains words together in the dictionary using
+the `prev_nt` compiler variable.
+If you’re adding the last word in a new wordlist you should capture
+the current head of the dictionary (the latest NT header)
+by assigning from this variable, e.g. `dictionary_start = prev_nt`.
+You can then start a new wordlist by resetting `prev_nt := 0`.
 
 Although Tali is not case-sensitive, all words in the dictionary headers **must be
-in lowercase** or Tali will not be able to find them. The length of this string
-also needs to match the length given as the first byte, or Tali will not be able
-to find this word.
+in lowercase** or Tali will not be able to find them.
+Names should be at most 31 characters.
 
 As an example, we’ll add the words `star` and `is` from the previous examples.
 Technically, `is` is already in the dictionary, but this example will show
 you how to create the header for a regular word (`star`) and for one that
 requires one of the status flags (`is`).
 
-    nt_drop:
-            .byte 4, 0
-            .word nt_star_word, xt_drop, z_drop
-            .text "drop"
+    ...
+    #nt_header dup
+    #nt_header is, "is", IM
+    #nt_header star_word, "*"
+    #nt_header drop                 ; DROP is always the first native word in the Dictionary
 
-    nt_star_word:
-            .byte 4, 0
-            .word nt_is, xt_star_word, z_star_word
-            .text "star"
+The first thing to note is the updated linked list of words.
+By adding our new headers between `dup` and `drop`
+they are automatically inserted into the linked word list \` …​ → dup → is → \* -→ drop\`.
+If you use the `words` command, you will find the new words near the beginning of the list.
 
-    nt_is:
-            .byte 2, IM
-            .word nt_dup, xt_is, z_is
-            .text "is"
-    nt_dup:
-            .byte 3, 0
-            .word nt_swap, xt_dup, z_dup
-            .text "dup"
-
-The first thing to note is the updated linked list of words. In order to put
-the new words between `drop` and `dup`, we make `drop` link to `star`, which then
-links to `is`, and that links back to `dup`. If you use the `words` command, you will
-find the new words near the beginning of the list.
-
-The second thing to note is the status byte of each word. If the word doesn’t
-need any special status, then just use 0. Neither of our added words contain
-the JMP instruction (branches are OK, but JMP is not), so neither is required to
-carry the NN (Never Native) flag. The word `is`, in it’s original Forth form,
+The second thing to note are the flags for each word.
+If the word doesn’t need any special status, we can ignore the flags argument.
+Neither of our added words contain the JMP instruction (branches are OK, but JMP is not),
+so neither needs the NN (Never Native) flag.
+The word `is`, in its original Forth form,
 was marked as an immediate word, and we do that by putting the IM flag on it
 here in the dictionary header.
 
@@ -4516,6 +4482,9 @@ See the GitHub page for further details.
 Error determining name on line:
 ; \## KEY? ( — char ) "Return true if a character is available"
 
+Error determining name on line:
+; \## KEY? ( — char ) "Return true if a character is available"
+
 |  |  |
 |----|----|
 | `!` | *ANS core* ( n addr — ) "Store TOS in memory"
@@ -4533,6 +4502,7 @@ Completely convert number for pictured numerical output. |
 | `'` | *ANS core* ( "name" — xt ) "Return a word’s execution token (xt)"
 <https://forth-standard.org/standard/core/Tick> |
 | `(` | *ANS core* ( — ) "Discard input up to close paren ( comment )"
+<http://forth-standard.org/standard/core/p>
 <http://forth-standard.org/standard/core/p> |
 | `*` | *ANS core* ( n n — n ) "16\*16 -→ 16 "
 <https://forth-standard.org/standard/core/Times>
@@ -4551,6 +4521,7 @@ single-cell quotient n5. |
 | `+!` | *ANS core* ( n addr — ) "Add number to value at given address"
 <https://forth-standard.org/standard/core/PlusStore> |
 | `+loop` | *ANS core* ( — ) "Finish loop construct"
+<https://forth-standard.org/standard/core/PlusLOOP>
 <https://forth-standard.org/standard/core/PlusLOOP> |
 | `,` | *ANS core* ( n — ) "Allot and store one cell in memory"
 <https://forth-standard.org/standard/core/Comma>
@@ -4674,6 +4645,14 @@ routine by Phil Burk of the same name in pForth, see
 for the original Forth code. We arrive here from NUMBER which has
 made sure that we don’t have to deal with a sign and we don’t have
 to deal with a dot as a last character that signalizes double -
+this should be a pure number string.
+<https://forth-standard.org/standard/core/toNUMBER>
+Convert a string to a double number. Logic here is based on the
+routine by Phil Burk of the same name in pForth, see
+<https://github.com/philburk/pforth/blob/master/fth/numberio.fth>
+for the original Forth code. We arrive here from NUMBER which has
+made sure that we don’t have to deal with a sign and we don’t have
+to deal with a dot as a last character that signalizes double -
 this should be a pure number string. |
 | `>order` | *Gforth search* ( wid — ) "Add wordlist at beginning of search order"
 <https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Word-Lists.html> |
@@ -4685,8 +4664,10 @@ word. |
 | `?` | *ANS tools* ( addr — ) "Print content of a variable"
 <https://forth-standard.org/standard/tools/q> |
 | `?do` | *ANS core ext* (C: — ) ( limit start — ) "Conditional loop start"
+<https://forth-standard.org/standard/core/qDO>
 <https://forth-standard.org/standard/core/qDO> |
 | `?dup` | *ANS core* ( n — 0 \| n n ) "Duplicate TOS non-zero"
+<https://forth-standard.org/standard/core/qDUP>
 <https://forth-standard.org/standard/core/qDUP> |
 | `@` | *ANS core* ( addr — n ) "Push cell content from memory to stack"
 <https://forth-standard.org/standard/core/Fetch> |
@@ -4700,6 +4681,7 @@ This is an immediate and compile-only word |
 Compile the ASCII value of a character as a literal. This is an
 immediate, compile-only word. |
 | `\` | *ANS block ext* ( — ) "Ignore rest of line"
+<https://forth-standard.org/standard/block/bs>
 <https://forth-standard.org/standard/block/bs> |
 | `]` | *ANS core* ( — ) "Enter the compile state"
 <https://forth-standard.org/standard/right-bracket>
@@ -4712,6 +4694,8 @@ stack pointer (the Return Stack) anyway during QUIT. Note we don’t
 actually delete the stuff on the Data Stack. |
 | `abort"` | *ANS core* ( "string" — ) "If flag TOS is true, ABORT with message"
 <https://forth-standard.org/standard/core/ABORTq>
+Abort and print a string.
+<https://forth-standard.org/standard/core/ABORTq>
 Abort and print a string. |
 | `abs` | *ANS core* ( n — u ) "Return absolute value of a number"
 <https://forth-standard.org/standard/core/ABS>
@@ -4721,10 +4705,16 @@ Return the absolute value of a number. |
 Receive a string of at most n1 characters, placing them at
 addr. Return the actual number of characters as n2. Characters
 are echoed as they are received. ACCEPT is called by REFILL in
+modern Forths.
+<https://forth-standard.org/standard/core/ACCEPT>
+Receive a string of at most n1 characters, placing them at
+addr. Return the actual number of characters as n2. Characters
+are echoed as they are received. ACCEPT is called by REFILL in
 modern Forths. |
 | `action-of` | *ANS core ext* ( "name" — xt ) "Get named deferred word’s xt"
 <http://forth-standard.org/standard/core/ACTION-OF> |
 | `again` | *ANS core ext* ( addr — ) "Code backwards branch to address left by BEGIN"
+<https://forth-standard.org/standard/core/AGAIN>
 <https://forth-standard.org/standard/core/AGAIN> |
 | `align` | *ANS core* ( — ) "Make sure CP is aligned on word size"
 <https://forth-standard.org/standard/core/ALIGN>
@@ -4759,6 +4749,7 @@ ANSI code is ESC\[\<n+1\>;\<m+1\>H |
 The ANS Forth standard sees the base up to 36, so we can cheat and
 ingore the MSB |
 | `begin` | *ANS core* ( — addr ) "Mark entry point for loop"
+<https://forth-standard.org/standard/core/BEGIN>
 <https://forth-standard.org/standard/core/BEGIN> |
 | `bell` | *Tali Forth* ( — ) "Emit ASCII BELL" |
 | `bl` | *ANS core* ( — c ) "Push ASCII value of SPACE to stack"
@@ -4817,6 +4808,7 @@ when its name is used. |
 | `c@` | *ANS core* ( addr — c ) "Get a character/byte from given address"
 <https://forth-standard.org/standard/core/CFetch> |
 | `case` | *ANS core ext* (C: — 0) ( — ) "Conditional flow control"
+<http://forth-standard.org/standard/core/CASE>
 <http://forth-standard.org/standard/core/CASE> |
 | `cell+` | *ANS core* ( u — u ) "Add cell size in bytes"
 <https://forth-standard.org/standard/core/CELLPlus>
@@ -4825,6 +4817,7 @@ Since this is an 8 bit machine with 16 bit cells, we add two bytes. |
 | `cells` | *ANS core* ( u — u ) "Convert cells to size in bytes"
 <https://forth-standard.org/standard/core/CELLS> |
 | `char` | *ANS core* ( "c" — u ) "Convert character to ASCII value"
+<https://forth-standard.org/standard/core/CHAR>
 <https://forth-standard.org/standard/core/CHAR> |
 | `char+` | *ANS core* ( addr — addr+1 ) "Add the size of a character unit to address"
 <https://forth-standard.org/standard/core/CHARPlus> |
@@ -4925,6 +4918,7 @@ the file disassembler.asm for more details. |
 | `dnegate` | *ANS double* ( d — d ) "Negate double cell number"
 <https://forth-standard.org/standard/double/DNEGATE> |
 | `do` | *ANS core* (C: — ) ( limit start — ) "Start a loop"
+<https://forth-standard.org/standard/core/DO>
 <https://forth-standard.org/standard/core/DO> |
 | `does>` | *ANS core* ( — ) "Add payload when defining new words"
 <https://forth-standard.org/standard/core/DOES>
@@ -4949,6 +4943,7 @@ used. See the tutorial on Wordlists and the Search Order for
 more information. |
 | `el` | *Tali Editor* ( line# — ) "Erase the given line number" |
 | `else` | *ANS core* (C: orig — orig' ) ( — ) "Conditional flow control"
+<http://forth-standard.org/standard/core/ELSE>
 <http://forth-standard.org/standard/core/ELSE> |
 | `emit` | *ANS core* ( char — ) "Print character to current output"
 <https://forth-standard.org/standard/core/EMIT>
@@ -4959,8 +4954,11 @@ Don’t make this native compile. |
 | `empty-buffers` | *ANS block ext* ( — ) "Empty all buffers without saving"
 <https://forth-standard.org/standard/block/EMPTY-BUFFERS> |
 | `endcase` | *ANS core ext* (C: case-sys — ) ( x — ) "Conditional flow control"
+<http://forth-standard.org/standard/core/ENDCASE>
 <http://forth-standard.org/standard/core/ENDCASE> |
 | `endof` | *ANS core ext* (C: case-sys1 of-sys1-- case-sys2) ( — ) "Conditional flow control"
+<http://forth-standard.org/standard/core/ENDOF>
+This is a dummy entry, the code is shared with ELSE
 <http://forth-standard.org/standard/core/ENDOF>
 This is a dummy entry, the code is shared with ELSE |
 | `enter-screen` | *Tali Editor* ( scr# — ) "Enter all lines for given screen" |
@@ -4978,8 +4976,16 @@ After processing the line, revert to old input source. We use this
 to compile high-level Forth words and user-defined words during
 start up and cold boot. In contrast to ACCEPT, we need to, uh,
 accept more than 255 characters here, even though it’s a pain in
+the 8-bit.
+<https://forth-standard.org/standard/core/EVALUATE>
+Set SOURCE-ID to -1, make addr u the input source, set \>IN to zero.
+After processing the line, revert to old input source. We use this
+to compile high-level Forth words and user-defined words during
+start up and cold boot. In contrast to ACCEPT, we need to, uh,
+accept more than 255 characters here, even though it’s a pain in
 the 8-bit. |
 | `execute` | *ANS core* ( xt — ) "Jump to word based on execution token"
+<https://forth-standard.org/standard/core/EXECUTE>
 <https://forth-standard.org/standard/core/EXECUTE> |
 | `execute-parsing` | *Gforth* ( addr u xt — ) "Pass a string to a parsing word"
 <https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html>
@@ -4987,6 +4993,9 @@ Execute the parsing word defined by the execution token (xt) on the
 string as if it were passed on the command line. See the file
 tests/tali.fs for examples. |
 | `exit` | *ANS core* ( — ) "Return control to the calling word immediately"
+<https://forth-standard.org/standard/core/EXIT>
+If we’re in a loop, user should UNLOOP first to clean up
+any loop control. This should be natively compiled.
 <https://forth-standard.org/standard/core/EXIT>
 If we’re in a loop, user should UNLOOP first to clean up
 any loop control. This should be natively compiled. |
@@ -5043,8 +5052,11 @@ output string on
 <https://github.com/philburk/pforth/blob/master/fth/numberio.fth> |
 | `i` | *ANS core* ( — n ) "Copy loop counter to stack"
 <https://forth-standard.org/standard/core/I>
+See definitions.asm and the Control Flow section of the manual.
+<https://forth-standard.org/standard/core/I>
 See definitions.asm and the Control Flow section of the manual. |
 | `if` | *ANS core* (C: — orig) (flag — ) "Conditional flow control"
+<http://forth-standard.org/standard/core/IF>
 <http://forth-standard.org/standard/core/IF> |
 | `immediate` | *ANS core* ( — ) "Mark most recent word as IMMEDIATE"
 <https://forth-standard.org/standard/core/IMMEDIATE>
@@ -5068,6 +5080,10 @@ INT\>NAME to match NAME\>INT |
 <https://forth-standard.org/standard/core/J>
 Copy second loop counter from Return Stack to stack. Note we use
 a fudge factor for loop control; see the Control Flow section of
+the manual for more details.
+<https://forth-standard.org/standard/core/J>
+Copy second loop counter from Return Stack to stack. Note we use
+a fudge factor for loop control; see the Control Flow section of
 the manual for more details. |
 | `key` | *ANS core* ( — char ) "Get one character from the input" |
 | `l` | *Tali Editor* ( — ) "List the current screen"
@@ -5078,6 +5094,10 @@ The Gforth version of this word is called LATEST |
 | `latestxt` | *Gforth* ( — xt ) "Push most recent xt to the stack"
 <http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Anonymous-Definitions.html> |
 | `leave` | *ANS core* ( — ) "Leave DO/LOOP construct"
+<https://forth-standard.org/standard/core/LEAVE>
+Note that this does not work with anything but a DO/LOOP in
+contrast to other versions such as discussed at
+<http://blogs.msdn.com/b/ashleyf/archive/2011/02/06/loopty-do-i-loop.aspx>
 <https://forth-standard.org/standard/core/LEAVE>
 Note that this does not work with anything but a DO/LOOP in
 contrast to other versions such as discussed at
@@ -5093,6 +5113,9 @@ it works by calling literal_runtime by compling JSR LITERAL_RT. |
 | `load` | *ANS block* ( scr# — ) "Load the Forth code in a screen/block"
 <https://forth-standard.org/standard/block/LOAD> |
 | `loop` | *ANS core* ( — ) "Finish loop construct"
+<https://forth-standard.org/standard/core/LOOP>
+Compile-time part of LOOP. This is specialized to
+increment by one.
 <https://forth-standard.org/standard/core/LOOP>
 Compile-time part of LOOP. This is specialized to
 increment by one. |
@@ -5160,6 +5183,7 @@ dot to signal a double cell number is required to be the last
 character of the string. |
 | `o` | *Tali Editor* ( line# — ) "Overwrite the given line" |
 | `of` | *ANS core ext* (C: — of-sys) (x1 x2 — \|x1) "Conditional flow control"
+<http://forth-standard.org/standard/core/OF>
 <http://forth-standard.org/standard/core/OF> |
 | `only` | *ANS search ext* ( — ) "Set earch order to minimum wordlist"
 <https://forth-standard.org/standard/search/ONLY> |
@@ -5189,8 +5213,25 @@ left of the screen |
 Find word in input string delimited by character given. Do not
 skip leading delimiters — this is the main difference to PARSE-NAME.
 PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
+<http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE>
+<https://forth-standard.org/standard/core/PARSE>
+Find word in input string delimited by character given. Do not
+skip leading delimiters — this is the main difference to PARSE-NAME.
+PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
 <http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE> |
 | `parse-name` | *ANS core ext* ( "name" — addr u ) "Parse the input"
+<https://forth-standard.org/standard/core/PARSE-NAME>
+Find next word in input string, skipping leading whitespace. This is
+a special form of PARSE and drops through to that word. See PARSE
+for more detail. We use this word internally for the interpreter
+because it is a lot easier to use. Reference implementations at
+<http://forth-standard.org/standard/core/PARSE-NAME> and
+<http://www.forth200x.org/reference-implementations/parse-name.fs>
+Roughly, the word is comparable to BL WORD COUNT. — Note that
+though the ANS standard talks about skipping "spaces", whitespace
+is actually perfectly legal (see for example
+<http://forth-standard.org/standard/usage#subsubsection.3.4.1.1>).
+Otherwise, PARSE-NAME chokes on tabs.
 <https://forth-standard.org/standard/core/PARSE-NAME>
 Find next word in input string, skipping leading whitespace. This is
 a special form of PARSE and drops through to that word. See PARSE
@@ -5231,6 +5272,7 @@ and toin from the Return Stack. |
 This word is Compile Only in Tali Forth, though Gforth has it
 work normally as well |
 | `recurse` | *ANS core* ( — ) "Copy recursive call to word being defined"
+<https://forth-standard.org/standard/core/RECURSE>
 <https://forth-standard.org/standard/core/RECURSE> |
 | `refill` | *ANS core ext* ( — f ) "Refill the input buffer"
 <https://forth-standard.org/standard/core/REFILL>
@@ -5245,8 +5287,22 @@ return false and perform no other action." See
 <https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html>
 and Conklin & Rather p. 156. Note we don’t have to care about blocks
 because REFILL is never used on blocks - Tali is able to evaluate the
+entire block as a 1024 byte string.
+<https://forth-standard.org/standard/core/REFILL>
+Attempt to fill the input buffer from the input source, returning
+a true flag if successful. When the input source is the user input
+device, attempt to receive input into the terminal input buffer. If
+successful, make the result the input buffer, set \>IN to zero, and
+return true. Receipt of a line containing no characters is considered
+successful. If there is no input available from the current input
+source, return false. When the input source is a string from EVALUATE,
+return false and perform no other action." See
+<https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html>
+and Conklin & Rather p. 156. Note we don’t have to care about blocks
+because REFILL is never used on blocks - Tali is able to evaluate the
 entire block as a 1024 byte string. |
 | `repeat` | *ANS core* (C: orig dest — ) ( — ) "Loop flow control"
+<http://forth-standard.org/standard/core/REPEAT>
 <http://forth-standard.org/standard/core/REPEAT> |
 | `root-wordlist` | *Tali Editor* ( — u ) "WID for the Root (minimal) wordlist" |
 | `rot` | *ANS core* ( a b c — b c a ) "Rotate first three stack entries downwards"
@@ -5303,8 +5359,13 @@ Add the runtime for an existing string. |
 Symmetric signed division. Compare FM/MOD. Based on F-PC 3.6
 by Ulrich Hoffmann. See <http://www.xlerb.de/uho/ansi.seq> |
 | `source` | *ANS core* ( — addr u ) "Return location and size of input buffer""
+<https://forth-standard.org/standard/core/SOURCE>
 <https://forth-standard.org/standard/core/SOURCE> |
 | `source-id` | *ANS core ext* ( — n ) "Return source identifier"
+<https://forth-standard.org/standard/core/SOURCE-ID> Identify the
+input source unless it is a block (s. Conklin & Rather p. 156). This
+will give the input source: 0 is keyboard, -1 (\$FFFF) is character
+string, and a text file gives the fileid.
 <https://forth-standard.org/standard/core/SOURCE-ID> Identify the
 input source unless it is a block (s. Conklin & Rather p. 156). This
 will give the input source: 0 is keyboard, -1 (\$FFFF) is character
@@ -5326,6 +5387,8 @@ Default is false. |
 | `swap` | *ANS core* ( b a — a b ) "Exchange TOS and NOS"
 <https://forth-standard.org/standard/core/SWAP> |
 | `then` | *ANS core* (C: orig — ) ( — ) "Conditional flow control"
+<http://forth-standard.org/standard/core/THEN>
+This is a dummy entry, the code is shared with xt_else
 <http://forth-standard.org/standard/core/THEN>
 This is a dummy entry, the code is shared with xt_else |
 | `thru` | *ANS block ext* ( scr# scr# — ) "Load screens in the given range"
@@ -5362,8 +5425,10 @@ This is the basic division operation all others use. Based on FIG
 Forth code, modified by Garth Wilson, see
 <http://6502.org/source/integers/ummodfix/ummodfix.htm> |
 | `unloop` | *ANS core* ( — ) "Drop current loop control block"
+<https://forth-standard.org/standard/core/UNLOOP>
 <https://forth-standard.org/standard/core/UNLOOP> |
 | `until` | *ANS core* (C: dest — ) ( — ) "Loop flow control"
+<http://forth-standard.org/standard/core/UNTIL>
 <http://forth-standard.org/standard/core/UNTIL> |
 | `unused` | *ANS core ext* ( — u ) "Return size of space available to Dictionary"
 <https://forth-standard.org/standard/core/UNUSED>
@@ -5381,10 +5446,20 @@ There are various Forth definitions for this word, such as
 `CREATE 1 CELLS ALLOT` or `CREATE 0 ,` We use a variant of the
 second one so the variable is initialized to zero |
 | `while` | *ANS core* ( C: dest — orig dest ) ( x — ) "Loop flow control"
+<http://forth-standard.org/standard/core/WHILE>
 <http://forth-standard.org/standard/core/WHILE> |
 | `within` | *ANS core ext* ( n1 n2 n3 — ) "Test n1 within range \[n2, n3) or outwith \[n3, n2)"
 <https://forth-standard.org/standard/core/WITHIN> |
 | `word` | *ANS core* ( char "name " — caddr ) "Parse input stream"
+<https://forth-standard.org/standard/core/WORD>
+Obsolete parsing word included for backwards compatibility only.
+Do not use this, use `PARSE` or `PARSE-NAME`. Skips leading delimiters
+and copies word to storage area for a maximum size of 255 bytes.
+Returns the result as a counted string (requires COUNT to convert
+to modern format), and inserts a space after the string. See "Forth
+Programmer’s Handbook" 3rd edition p. 159 and
+<http://www.forth200x.org/documents/html/rationale.html#rat:core:PARSE>
+for discussions of why you shouldn’t be using WORD anymore.
 <https://forth-standard.org/standard/core/WORD>
 Obsolete parsing word included for backwards compatibility only.
 Do not use this, use `PARSE` or `PARSE-NAME`. Skips leading delimiters

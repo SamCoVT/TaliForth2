@@ -501,7 +501,7 @@ In most cases we can simply use the `#nt_header` macro:
 
 ----
 #nt_header label[, "name"[,flags]]
----
+----
 
 Here `label` is the `xxxx` in `xt_xxxx` and `z_xxxx`;
 "name" is the actual string to use for the word's name if different `"xxxx"`
@@ -573,7 +573,7 @@ The second thing to note are the flags for each word.
 If the word doesn't need any special status, we can ignore the flags argument.
 Neither of our added words contain the JMP instruction (branches are OK, but JMP is not),
 so neither needs the NN (Never Native) flag.
-The word `is`, in it's original Forth form,
+The word `is`, in its original Forth form,
 was marked as an immediate word, and we do that by putting the IM flag on it
 here in the dictionary header.
 
