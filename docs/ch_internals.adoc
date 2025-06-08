@@ -104,22 +104,33 @@ of the byte below the DSP.
 === Dictionary
 
 Tali Forth follows the traditional model of a Forth dictionary -- a linked list
-of words terminated with a zero pointer. The headers and code are kept separate
+of words terminated with a zero pointer. The headers and code can be separated
 to allow various tricks in the code.
 
 
 ==== Elements of the Header
 
-Each header is at least eight bytes long:
-
-image::pics/header_diagram.png[]
-
 Each word has a `name token` (nt, `nt_word` in the code) that points to the
-first byte of the header. This is the length of the word's name string, which
-is limited to 255 characters.
+first byte of its header.  The header can vary in size from four to eight bytes,
+plus the length of the string containing the word's name.
+Conceptually the header looks like this:
 
-The second byte in the header (index 1) contains the status flags. It is created by
-the flags defined in the file `definitions.asm`:
+image::pics/header_simple.png[]
+
+In practice headers are usually generated using the `#nt_header` macro
+as seen in `words/headers.asm`.
+This ensures that the various parts of the header are defined consistently.
+However, it's helpful to understand a little more detail about
+the header structure as you start tinkering with TaliForth internals.
+
+The first byte of the header, at offset 0, is the **status byte** containing eight flags
+defined in the file `definitions.asm`:
+
+image::pics/status_flags.png[]
+
+Five of the flags define metadata for the word,
+while three control the format of the header itself.
+The metadata flags are:
 
 [horizontal]
 CO::
@@ -136,14 +147,13 @@ AN::
   return stack state.  Setting both *NN* and *AN* together indicates a Word which can be either
   inlined or not with a specific return stack prologue that is removed when inlined.
   This is limited to the words `R>`, `R@`, `>R`, `2R>`, `2R@`, and `2>R`.
-
 HC::
   *Has CFA.* The Word's first three bytes are considered the Code Field Area (CFA).
   The CFA is a `jsr` to either a known handler like `dovar` or indirectly to `dodefer`
   and is followed by the Parameter Field Area (PFA) with any data used by the CFA.
   This is used by words defined with `create` so that `>body` returns the correct value.
 
-The *NN* and *AN* flags are intrepreted together like this:
+The *NN* and *AN* flags are interpreted together like this:
 
 [%autowidth]
 |===
@@ -156,32 +166,80 @@ The *NN* and *AN* flags are intrepreted together like this:
 
 |===
 
+The last three flags control the header layout to optimize memory usage.
+For normal `:` words added to the dictionary we can often halve the header
+from eight to four bytes (excluding the name string).
 
-Note there are currently three bits unused.
+NOTE: We could also reorganize the built-in dictionary to save a little more memory
+but currently have preferred readability, keeping word headers disjoint
+from their assembly implementations.
 
-The status byte is followed by the **pointer to the next header** in the linked
-list, which makes it the name token of the next word. A 0000 in this position
-signals the end of the linked list, which by convention is the word `bye` for
-the native code words.
+Here's a complete picture of the header:
 
-This is followed by the current word's **execution token** (xt, `xt_word`) that
-points to the start of the actual code. Some words that have the same
-functionality point to the same code block.
+image::pics/header_detail.png[]
+
+[horizontal]
+DC::
+  *Disjoint code.* When DC=1, the word's code can be located
+  anywhere in memory, with the xt_word value added to the header.
+  However when DC=0 the word's code immediately follows the header,
+  reducing the header size by two bytes.  Most `:` words
+  added to the dictionary use this format, since compiled code
+  is added to the dictionary immediately after the header.
+LC::
+  *Long code.* The length of the word body can be recorded in
+  either one or two bytes.  The length is only required
+  if the word is inlined, and for `DISASM`.  If we don't care about
+  inlining long words we can always use a single byte and report
+  a length of 255 (see `fixup_long_word`).
+FP::
+  *Far previous.* Normally we store a two byte `nt_prev` pointer
+  for the previous header in the linked list.
+  However, if the previous header is within the preceding 256 bytes,
+  we only need to store the LSB and can infer the MSB, saving a byte.
+  This is often the case with small `:` words that are consecutively
+  added to the dictionary, and with builtin words where we define
+  all headers consecutively.
+
+The length of the header, excluding the name itself, is 4 + 2*DC + LC + FP bytes.
+The specific position of these flags in the status byte makes this easy to calculate in assembly:
+
+----
+        lda flags       ; start with status flags in the accumulator
+        and #DC+LC+FP   ; mask the three header length bits
+        lsr             ; shift FP to carry flag, so Acc = 2*DC + LC
+        adc #4          ; header length is 4 + 2*DC + LC + FP bytes
+----
+
+The second byte of the header -- following the status byte -- is the **length of the word's name string**, which
+is currently limited to 31 characters.
+
+The length byte is followed by the **pointer to the previous header** in the linked
+list, i.e. the name token of that word. A 0000 in this position
+signals the beginning of the linked list, which by convention is the word `bye` for
+the native code words.  If the `FP` flag is zero we only store the LSB of the previous header,
+and infer the MSB depending on whether its LSB is less than or greater than that of the
+current header.
+
+Next is the current word's **execution token** (xt, `xt_word`) which
+points to the start of the actual assembly code. Some words that have the same
+functionality point to the same code block.   If the `DC` flag is zero we omit
+this pointer and calculate it based on the length of the header.
 
 NOTE: Because Tali uses a subroutine threaded model (STC), the classic Forth
 distinction between the Code Field Area (CFA) and the Parameter Field Area
 (PFA, also Data Field Area) is meaningless -- it's all "payload".
 
-The next pointer is for the **end of the code** (`z_word`) to enable native
+The next field stores the **length of the word's code** (`z_word` - `xt_word`) as either
+one or two bytes based on the `LC` flag.  This is used for native
 compilation of the word (if allowed and requested).
 
-The **name string** starts at the eighth byte. The string is _not_
+Finally we have the **name string** at offset between 4 and 8. The string is _not_
 zero-terminated.  Tali Forth lowercases names as they are copied into the
 dictionary and also lowercases during lookup, so `quarian` is the same word as
 `QUARIAN`.  If the name in the dictionary is directly modified, it is important
 to ensure that only lowercase letters are used, or else Tali will not be able
 to find that word.
-
 
 ==== Structure of the Header List
 

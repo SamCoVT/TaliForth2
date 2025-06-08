@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.22">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <meta name="keywords" content="forth, 6502, assembler, programming, 8-bit, vintage, retro">
 <meta name="author" content="Sam Colwell, Scot W. Stevenson, Patrick Surry">
 <title>Manual for Tali Forth 2 for the 65c02</title>
@@ -3809,22 +3809,22 @@ write the machine code right away.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>        nt: A2A  xt: A3C
-        flags (CO AN IM NN HC ST): 0 0 0 1 1 0
+<pre>        nt: 813  xt: 826
+        flags: CO 0 IM 0 AN 0 NN 0 HC 0 | UF 0 ST 0
         size (decimal): 19
 
-        0A3C  A9 01 CA CA 95 00 74 01  20 3D D6 20 89 D6 A9 20  ......t.  =. ...
-        0A4C  20 30 8E   0.
+        0826  A9 01 CA CA 95 00 74 01  20 B5 D8 20 21 D9 A9 20  ......t.  .. !..
+        0836  20 86 86   ..
 
-        A3C      1 lda.#   <i class="conum" data-value="1"></i><b>(1)</b>
-        A3E        dex     <i class="conum" data-value="2"></i><b>(2)</b>
-        A3F        dex
-        A40      0 sta.zx
-        A42      1 stz.zx
-        A44   D63D jsr     <i class="conum" data-value="3"></i><b>(3)</b>
-        A47   D689 jsr
-        A4A     20 lda.#
-        A4C   8E30 jsr</pre>
+        826      1 lda.#   <i class="conum" data-value="1"></i><b>(1)</b>
+        828        dex     <i class="conum" data-value="2"></i><b>(2)</b>
+        829        dex
+        82A      0 sta.zx
+        82C      1 stz.zx
+        82E   D8B5 jsr     1 STACK DEPTH CHECK  <i class="conum" data-value="3"></i><b>(3)</b>
+        831   D921 jsr
+        834     20 lda.#
+        836   8686 jsr</pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -4245,15 +4245,15 @@ base. So <code>see drop</code> produces:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>nt: BC3E  xt: 8D2E
-flags (CO AN IM NN HC ST): 0 0 0 0 0 0
+<pre>nt: BC34  xt: 8653
+flags: CO 0 IM 0 AN 0 NN 0 HC 0 | UF 1 ST 0
 size (decimal): 5
 
-8D2E  20 29 D8 E8 E8   )...
+8653  20 B5 D8 E8 E8   ....
 
-8D2E   D829 jsr     STACK DEPTH CHECK
-8D31        inx
-8D32        inx</pre>
+8653   D8B5 jsr     1 STACK DEPTH CHECK
+8656        inx
+8657        inx</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4271,35 +4271,35 @@ Forth dictionary and so no name will be printed.  Here is an example when runnin
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>nt: C9FF  xt: 9845
-flags (CO AN IM NN HC ST): 0 0 0 0 0 0
+<pre>nt: CA31  xt: B31A
+flags: CO 0 IM 0 AN 0 NN 0 HC 0 | UF 0 ST 0
 size (decimal): 42
 
-9845  20 63 89 20 34 91 B5 00  F0 1E A8 E8 E8 B5 00 5A   c. 4... .......Z
-9855  20 70 98 7A 88 D0 F4 20  1E A1 20 1E A1 20 29 91   p.z...  .. .. ).
-9865  B5 00 20 70 98 20 63 89  E8 E8  .. p. c. ..
+B31A  20 EC 83 20 EA B2 B5 00  F0 1E A8 E8 E8 B5 00 5A   .. .... .......Z
+B32A  20 45 B3 7A 88 D0 F4 20  B3 91 20 B3 91 20 DF B2   E.z...  .. .. ..
+B33A  B5 00 20 45 B3 20 EC 83  E8 E8  .. E. .. ..
 
-9845   8963 jsr     cr
-9848   9134 jsr     get-order
-984B      0 lda.zx
-984D     1E beq
-984F        tay
-9850        inx
-9851        inx
-9852      0 lda.zx
-9854        phy
-9855   9870 jsr
-9858        ply
-9859        dey
-985A     F4 bne
-985C   A11E jsr     space
-985F   A11E jsr     space
-9862   9129 jsr     get-current
-9865      0 lda.zx
-9867   9870 jsr
-986A   8963 jsr     cr
-986D        inx
-986E        inx</pre>
+B31A   83EC jsr     cr
+B31D   B2EA jsr     get-order
+B320      0 lda.zx
+B322     1E beq     B342 v
+B324        tay
+B325        inx
+B326        inx
+B327      0 lda.zx
+B329        phy
+B32A   B345 jsr
+B32D        ply
+B32E        dey
+B32F     F4 bne     B325 ^
+B331   91B3 jsr     space
+B334   91B3 jsr     space
+B337   B2DF jsr     get-current
+B33A      0 lda.zx
+B33C   B345 jsr
+B33F   83EC jsr     cr
+B342        inx
+B343        inx</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -4326,25 +4326,23 @@ disassembling from just after the literal value.  Doubles are saved in memory as
 two single cell literal values.</p>
 </div>
 <div class="paragraph">
-<p>Strings are similar, however they are saved in memory as a jmp over the string
-data, then the string data, then a jsr to the string handling routine, and
-finally the address and length of the string (similar to how literals are
+<p>Strings are similar, they are saved in memory as a jsr to the string handling routine,
+then the string length and inline string data (similar to how literals are
 handled).  When the disassembler encounters a string, it will print SLITERAL
-followed by the address and length of the string.</p>
+followed by the length of the string and a snippet of the data:</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>: example s" This is a string" ;  ok
 see example
-nt: 800  xt: 80F
-flags (CO AN IM NN HC ST): 0 0 0 1 1 0
-size (decimal): 26
+nt: 827  xt: 836
+flags: CO 0 IM 0 AN 0 NN 0 HC 0 | UF 0 ST 0
+size (decimal): 21
 
-080F  4C 22 08 54 68 69 73 20  69 73 20 61 20 73 74 72  L".This  is a str
-081F  69 6E 67 20 A9 A0 12 08  10 00  ing .... ..
+0836  20 29 A2 10 00 54 68 69  73 20 69 73 20 61 20 73   )...Thi s is a s
+0846  74 72 69 6E 67                                    tring
 
-80F    822 jmp
-822   A0A9 jsr     SLITERAL 812 10
+836   A229 jsr     SLITERAL 10 This is a strin...
  ok</pre>
 </div>
 </div>
@@ -4355,7 +4353,8 @@ give the values in hex while <code>disasm</code> will use the current <code>base
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>hex 812 10 type</pre>
+<pre>hex 836 5 + 10 cr type
+This is a string ok</pre>
 </div>
 </div>
 </div>
@@ -4925,7 +4924,7 @@ Decisions in the Forth Kernel" at
 </div>
 <div class="paragraph">
 <p>Spoiler alert: Tali Forth is a subroutine-threaded (STC) variant with a 16-bit
-cell size and a dictionary that keeps headers and code separate. If you don&#8217;t
+cell size and a dictionary that allows separated headers and code. If you don&#8217;t
 care and just want to use the program, skip ahead.</p>
 </div>
 <div class="sect3">
@@ -5050,12 +5049,13 @@ no checks for overflow because those cases tend to be rare.</p>
 <div class="sect3">
 <h4 id="_dictionary_structure">Dictionary Structure</h4>
 <div class="paragraph">
-<p>Each Forth word consists of the actual code and the header that holds the
-meta-data. The headers are arranged as a simple single-linked list.</p>
+<p>The implementation of each Forth word consists of its actual assembly code
+along with a header that holds meta-data for the word.
+The headers are arranged as a simple single-linked list.</p>
 </div>
 <div class="paragraph">
 <p>In contrast to Tali Forth 1, which kept the header and body of the words
-together, Tali Forth 2 keeps them separate. This lets us play various tricks
+together, Tali Forth 2 allows them to be separated. This lets us play various tricks
 with the code to make it more effective.</p>
 </div>
 </div>
@@ -5222,27 +5222,42 @@ of the byte below the DSP.</p>
 <h3 id="_dictionary">Dictionary</h3>
 <div class="paragraph">
 <p>Tali Forth follows the traditional model of a Forth dictionary&#8201;&#8212;&#8201;a linked list
-of words terminated with a zero pointer. The headers and code are kept separate
+of words terminated with a zero pointer. The headers and code can be separated
 to allow various tricks in the code.</p>
 </div>
 <div class="sect3">
 <h4 id="_elements_of_the_header">Elements of the Header</h4>
 <div class="paragraph">
-<p>Each header is at least eight bytes long:</p>
+<p>Each word has a <code>name token</code> (nt, <code>nt_word</code> in the code) that points to the
+first byte of its header.  The header can vary in size from four to eight bytes,
+plus the length of the string containing the word&#8217;s name.
+Conceptually the header looks like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="pics/header_diagram.png" alt="header diagram">
+<img src="pics/header_simple.png" alt="header simple">
 </div>
 </div>
 <div class="paragraph">
-<p>Each word has a <code>name token</code> (nt, <code>nt_word</code> in the code) that points to the
-first byte of the header. This is the length of the word&#8217;s name string, which
-is limited to 255 characters.</p>
+<p>In practice headers are usually generated using the <code>#nt_header</code> macro
+as seen in <code>words/headers.asm</code>.
+This ensures that the various parts of the header are defined consistently.
+However, it&#8217;s helpful to understand a little more detail about
+the header structure as you start tinkering with TaliForth internals.</p>
 </div>
 <div class="paragraph">
-<p>The second byte in the header (index 1) contains the status flags. It is created by
-the flags defined in the file <code>definitions.asm</code>:</p>
+<p>The first byte of the header (offset 0) is the <strong>status byte</strong> contains eight flags (bits)
+defined in the file <code>definitions.asm</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/status_flags.png" alt="status flags">
+</div>
+</div>
+<div class="paragraph">
+<p>Five of the flags define metadata for the word,
+while three control the format of the header itself.
+The metadata flags are:</p>
 </div>
 <div class="hdlist">
 <table>
@@ -5298,7 +5313,7 @@ This is used by words defined with <code>create</code> so that <code>&gt;body</c
 </table>
 </div>
 <div class="paragraph">
-<p>The <strong>NN</strong> and <strong>AN</strong> flags are intrepreted together like this:</p>
+<p>The <strong>NN</strong> and <strong>AN</strong> flags are interpreted together like this:</p>
 </div>
 <table class="tableblock frame-all grid-all fit-content">
 <colgroup>
@@ -5337,18 +5352,104 @@ This is used by words defined with <code>create</code> so that <code>&gt;body</c
 </tbody>
 </table>
 <div class="paragraph">
-<p>Note there are currently three bits unused.</p>
+<p>The last three flags control the header layout to optimize memory usage.
+For normal <code>:</code> words added to the dictionary we can often halve the header
+from eight to four bytes (excluding the name string).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We could also reorganize the built-in dictionary to save a little more memory
+but currently have preferred readability, keeping word headers disjoint
+from their assembly implementations.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>The status byte is followed by the <strong>pointer to the next header</strong> in the linked
-list, which makes it the name token of the next word. A 0000 in this position
-signals the end of the linked list, which by convention is the word <code>bye</code> for
-the native code words.</p>
+<p>Here&#8217;s the full picture of the header:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/header_detail.png" alt="header detail">
+</div>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+DC
+</td>
+<td class="hdlist2">
+<p><strong>Disjoint code.</strong> When DC=1, the word&#8217;s code can be located
+anywhere in memory, with the xt_word value added to the header.
+However when DC=0 the word&#8217;s code immediately follows the header,
+reducing the header size by two bytes.  Most <code>:</code> words
+added to the dictionary use this format, since compiled code
+is added to the dictionary immediately after the header.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+LC
+</td>
+<td class="hdlist2">
+<p><strong>Long code.</strong> The length of the word body can be recorded in
+either one or two bytes.  The length is only required
+if the word is inlined, and for <code>DISASM</code>.  If we don&#8217;t care about
+inlining long words we can always use a single byte and report
+a length of 255 (see <code>fixup_long_word</code>).</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+FP
+</td>
+<td class="hdlist2">
+<p><strong>Far previous.</strong> Normally we store a two byte <code>nt_prev</code> pointer
+for the previous header in the linked list.
+However, if the previous header is within the preceding 256 bytes,
+we only need to store the LSB and can infer the MSB, saving a byte.
+This is often the case with small <code>:</code> words that are consecutively
+added to the dictionary, and with builtin words where we define
+all headers consecutively.</p>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The length of the header, excluding the name itself, is 4 + 2*DC + LC + FP bytes.
+The specific position of these flags in the status byte makes this easy to calculate:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>        lda flags       ; start with status flags in the accumulator
+        and #DC+LC+FP   ; mask the three header length bits
+        lsr             ; shift FP to carry flag, so Acc = 2*DC + LC
+        adc #4          ; header length is 4 + 2*DC + LC + FP bytes</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The second byte of the header&#8201;&#8212;&#8201;following the status byte&#8201;&#8212;&#8201;is the <strong>length of the word&#8217;s name string</strong>, which
+is currently limited to 31 characters.</p>
+</div>
+<div class="paragraph">
+<p>The length byte is followed by the <strong>pointer to the previous header</strong> in the linked
+list, i.e. the name token of that word. A 0000 in this position
+signals the beginning of the linked list, which by convention is the word <code>bye</code> for
+the native code words.  If the <code>FP</code> flag is zero we only store the LSB of the word,
+and infer the MSB depending on whether the LSB is less than or greater than that of the
+current header.</p>
 </div>
 <div class="paragraph">
 <p>This is followed by the current word&#8217;s <strong>execution token</strong> (xt, <code>xt_word</code>) that
 points to the start of the actual code. Some words that have the same
-functionality point to the same code block.</p>
+functionality point to the same code block.   If the <code>DC</code> flag is zero we omit
+this pointer and calculate it based on the length of the header.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -5365,11 +5466,12 @@ distinction between the Code Field Area (CFA) and the Parameter Field Area
 </table>
 </div>
 <div class="paragraph">
-<p>The next pointer is for the <strong>end of the code</strong> (<code>z_word</code>) to enable native
+<p>The next field stores the <strong>length of the word&#8217;s code</strong> (<code>z_word</code> - <code>xt_word</code>) as either
+one or two bytes based on the <code>LC</code> flag.  This is used for native
 compilation of the word (if allowed and requested).</p>
 </div>
 <div class="paragraph">
-<p>The <strong>name string</strong> starts at the eighth byte. The string is <em>not</em>
+<p>Finally we have the <strong>name string</strong> at offset between 4 and 8. The string is <em>not</em>
 zero-terminated.  Tali Forth lowercases names as they are copied into the
 dictionary and also lowercases during lookup, so <code>quarian</code> is the same word as
 <code>QUARIAN</code>.  If the name in the dictionary is directly modified, it is important
@@ -6091,14 +6193,14 @@ compiled as subroutine jumps. Take a simple word such as</p>
 <div class="listingblock">
 <div class="content">
 <pre>see aaa
-nt: 800  xt: 80B
-flags (CO AN IM NN HC ST): 0 0 0 1 1 0
+nt: 890  xt: 89B
+flags: CO 0 IM 0 AN 0 NN 0 HC 0 | UF 0 ST 0
 size (decimal): 6
 
-080B  20 A2 A7 20 2E 8D   .. ..
+089B  20 59 9E 20 53 86   Y. S.
 
-80B   A7A2 jsr     0
-80E   8D2E jsr     drop</pre>
+89B   9E59 jsr     0
+89E   8653 jsr     drop</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -6118,19 +6220,19 @@ and define a new word with the same instructions with</p>
 <div class="listingblock">
 <div class="content">
 <pre>see bbb
-nt: 812  xt: 81D
-flags (CO AN IM NN HC ST): 0 0 0 1 1 0
+nt: 8A2  xt: 8AD
+flags: CO 0 IM 0 AN 0 NN 0 HC 0 | UF 0 ST 0
 size (decimal): 11
 
-081D  CA CA 74 00 74 01 20 29  D8 E8 E8  ..t.t. ) ...
+08AD  CA CA 74 00 74 01 20 B5  D8 E8 E8  ..t.t. . ...
 
-81D        dex
-81E        dex
-81F      0 stz.zx
-821      1 stz.zx
-823   D829 jsr     STACK DEPTH CHECK
-826        inx
-827        inx</pre>
+8AD        dex
+8AE        dex
+8AF      0 stz.zx
+8B1      1 stz.zx
+8B3   D8B5 jsr     1 STACK DEPTH CHECK
+8B6        inx
+8B7        inx</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -6404,7 +6506,8 @@ going to change any of the diagrams.</p>
 </div>
 <div class="paragraph">
 <p>Ditaa is a java program, so I made a helper script (named just <code>ditaa</code>) to help
-run it.  You&#8217;ll need to replace the path to the jar file for your system.</p>
+run it.  You&#8217;ll need to replace the path to the jar file for your system.
+For OS X users, <code>brew install ditaa</code> gives you an executable <code>ditaa</code> without the helper script.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -7068,8 +7171,8 @@ on its size and the value in the Forth variable <code>nc-limit</code>.</p>
 HC
 </td>
 <td class="hdlist2">
-<p>Has CFA (words created by CREATE and DOES&gt; only).  You will probably never
-need this bit for words that you write in assembly.</p>
+<p>Has CFA (flags words created by CREATE and DOES&gt; only).  This is an internal
+flag that you will probably never need for words that you write in assembly.</p>
 </td>
 </tr>
 <tr>
@@ -7502,7 +7605,7 @@ uses it for everything. We follow the book here, and recommend
 <code>.r</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS core ext</em> ( n u&#8201;&#8212;&#8201;) "Print NOS as unsigned number with TOS with"
+<p><em>ANS core ext</em> ( n u&#8201;&#8212;&#8201;) "Print NOS as unsigned number with TOS width"
 <a href="https://forth-standard.org/standard/core/DotR" class="bare">https://forth-standard.org/standard/core/DotR</a></p>
 </td>
 </tr>
@@ -7710,8 +7813,7 @@ the next two bytes. This is equvalent to  <code>DUP CELL+ @ SWAP @</code></p>
 </td>
 <td class="hdlist2">
 <p><em>ANS double</em> (C: d&#8201;&#8212;&#8201;) (&#8201;&#8212;&#8201;d) "Compile a literal double word"
-<a href="https://forth-standard.org/standard/double/TwoLITERAL" class="bare">https://forth-standard.org/standard/double/TwoLITERAL</a>
-Shares code with xt_sliteral for compiling a double word</p>
+<a href="https://forth-standard.org/standard/double/TwoLITERAL" class="bare">https://forth-standard.org/standard/double/TwoLITERAL</a></p>
 </td>
 </tr>
 <tr>
@@ -7785,7 +7887,7 @@ Compile a word with no nt.  ";" will put its xt on the stack.</p>
 <code>;</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS core</em> (&#8201;&#8212;&#8201;) "End compilation of new word"
+<p><em>ANS core</em> (&#8201;&#8212;&#8201;) or (&#8201;&#8212;&#8201;xt ) for :noname "End compilation of new word"
 <a href="https://forth-standard.org/standard/core/Semi" class="bare">https://forth-standard.org/standard/core/Semi</a>
 End the compilation of a new word into the Dictionary.</p>
 </td>
@@ -8127,10 +8229,10 @@ more information.</p>
 <code>at-xy</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS facility</em> ( n m&#8201;&#8212;&#8201;) "Move cursor to position given"
+<p><em>ANS facility</em> ( m n&#8201;&#8212;&#8201;) "Move cursor to position given"
 <a href="https://forth-standard.org/standard/facility/AT-XY" class="bare">https://forth-standard.org/standard/facility/AT-XY</a>
-On an ANSI compatible terminal, place cursor at row n colum m.
-ANSI code is ESC[&lt;n&gt;;&lt;m&gt;H</p>
+On an ANSI compatible terminal, place cursor at row n column m.
+ANSI code is ESC[&lt;n+1&gt;;&lt;m+1&gt;H</p>
 </td>
 </tr>
 <tr>
@@ -8434,7 +8536,7 @@ move left".</p>
 <code>cmove&gt;</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS string</em> ( add1 add2 u&#8201;&#8212;&#8201;) "Copy bytes from high to low"
+<p><em>ANS string</em> ( addr1 addr2 u&#8201;&#8212;&#8201;) "Copy bytes from high to low"
 <a href="https://forth-standard.org/standard/string/CMOVEtop" class="bare">https://forth-standard.org/standard/string/CMOVEtop</a>
 Based on code in Leventhal, Lance A. "6502 Assembly Language
 Routines", p. 201, where it is called "move right".</p>
@@ -9097,7 +9199,7 @@ error message.</p>
 <td class="hdlist2">
 <p><em>Tali Forth</em> (&#8201;&#8212;&#8201;) ( R:&#8201;&#8212;&#8201;n n n n ) "Save input state to the Return Stack"
 Save the current input state as defined by insrc, cib, ciblen, and
-toin to the Return Stack. Used by EVALUTE.</p>
+toin to the Return Stack. Used by EVALUATE.</p>
 </td>
 </tr>
 <tr>
@@ -9105,7 +9207,7 @@ toin to the Return Stack. Used by EVALUTE.</p>
 <code>int&gt;name</code>
 </td>
 <td class="hdlist2">
-<p><em>Tali Forth</em> ( xt&#8201;&#8212;&#8201;nt ) "Get name token from execution token"
+<p><em>Tali Forth</em> ( xt&#8201;&#8212;&#8201;nt | 0 ) "Get name token from execution token"
 www.complang.tuwien.ac.at/forth/gforth/Docs-html/Name-token.html
 This is called &gt;NAME in Gforth, but we change it to
 INT&gt;NAME to match NAME&gt;INT</p>
@@ -9263,7 +9365,7 @@ values are signed. Adapted from FIG Forth for Tali Forth.</p>
 <code>m*/</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS double</em> ( d1 n1 n2&#8201;&#8212;&#8201;d2 ) "Multiply d1 by n1 and divide by n2.  Note n2 may be negative."
+<p><em>ANS double</em> ( d1 n1 n2&#8201;&#8212;&#8201;d2 ) "Multiply d1 by n1 and divide the triple result by n2.  All values are signed."
 <a href="https://forth-standard.org/standard/double/MTimesDiv" class="bare">https://forth-standard.org/standard/double/MTimesDiv</a>
 From All About FORTH, MVP-Forth, public domain,
 from this forth code which is modified slightly for Tali2:
@@ -9792,7 +9894,7 @@ code and disassembles it.</p>
 <code>sliteral</code>
 </td>
 <td class="hdlist2">
-<p><em>ANS string</em> ( addr u&#8201;&#8212;&#8201;)(&#8201;&#8212;&#8201;addr u ) "Compile a string for runtime"
+<p><em>ANS string</em> (C: addr u&#8201;&#8212;&#8201;) (&#8201;&#8212;&#8201;addr u ) "Compile a string for runtime"
 <a href="https://forth-standard.org/standard/string/SLITERAL" class="bare">https://forth-standard.org/standard/string/SLITERAL</a>
 Add the runtime for an existing string.</p>
 </td>
@@ -10633,7 +10735,7 @@ under <a href="https://www.ubuntu.com/">Ubuntu</a> Linux 16.04 LTS.</p>
 <div id="footer">
 <div id="footer-text">
 Version 1.1<br>
-Last updated 2025-02-19 13:30:24 -0500
+Last updated 2025-06-04 17:46:34 -0400
 </div>
 </div>
 </body>

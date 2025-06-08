@@ -19,6 +19,7 @@ going to change any of the diagrams.
 
 Ditaa is a java program, so I made a helper script (named just `ditaa`) to help
 run it.  You'll need to replace the path to the jar file for your system.
+For OS X users, `brew install ditaa` gives you an executable `ditaa` without the helper script.
 
 ----
 #!/bin/sh
@@ -191,7 +192,7 @@ with examples.  Take each word in the definition, determine which type of word
 it is, and then follow the steps outlined below for that word type.
 
 Once the word has been converted, a dictionary header needs to be added for it
-in words/headers.asm.  This process is covered in detail at the end of this section.
+in `words/headers.asm`.  This process is covered in detail at the end of this section.
 
 ==== Processing Regular (Non-Immediate) Words
 
@@ -234,7 +235,7 @@ parameters in standard Forth format, and a string that has a short description
 of what the word does.  The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.)  See the top of words/headers.asm for more information on the
+Gforth, etc.)  See the top of `words/headers.asm` for more information on the
 status field, but "coded" is likely to be the right choice until you've
 thoroughly tested your new word.
 
@@ -401,8 +402,8 @@ run the code for the `else` section, we use a BRA to a _done label.
 The `else` section of the `if` just has two regular words, so they are just
 translated into JSRs.
 
-The `immediate` on the end is handled in the header in headers.asm by adding IM
-to the status flags.  See the top of headers.asm for a description of all of the
+The `immediate` on the end is handled in the header in `words/headers.asm` by adding IM
+to the status flags.  See the top of `words/headers.asm` for a description of all of the
 header fields.
 
 ==== Processing DOES>
