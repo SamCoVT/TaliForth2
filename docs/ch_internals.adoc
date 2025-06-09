@@ -341,7 +341,7 @@ s" 1 2 + ." evaluate
 Tali Forth uses `evaluate` to load high-level Forth words from the file
 `forth_words.fs` and, if present, any extra, user-defined words from
 `user_words.fs`.  The code in these files has all comments removed and all
-whitespace replaced with a single splace between words.  This minimized version
+whitespace replaced with a single space between words.  This minimized version
 is assembled directly into the ROM image as a string that will be evaluated at
 startup.
 
