@@ -195,8 +195,9 @@ _success:
                 ; Main compile/execute routine
                 jsr interpret
 
-                ; Test for Data Stack underflow. Tali Forth does not check for
-                ; overflow because it is so rare
+                ; Test for Data Stack underflow. Tali Forth doesn't explicitly check for
+                ; overflow because it is so rare but the `bpl` test will trigger a
+                ; wraparound "underflow" error if the stack exceeds 64 words.
                 cpx #dsp0+1
                 bpl underflow_error      ; DSP must always be smaller than DSP0
 
