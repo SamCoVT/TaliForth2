@@ -176,7 +176,12 @@ prev_nt ::= _nt
 
 
 ; prev_nt tracks the previous header, and is reset after each wordlist
-prev_nt := 0
+; It is reset here to zero only if it doesn't exist.
+; If users want to add words written in assembly to their platform file
+; they can use prev_nt := 0 in their platform file and then #nt_header
+; to create the headers for those words.  This needs to be done BEFORE
+; including taliforth.asm
+prev_nt :?= 0
 
 
 ; FORTH-WORDLIST

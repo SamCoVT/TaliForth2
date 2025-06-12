@@ -62,7 +62,24 @@ kernel_putc = WriteCharacter
 kernel_bye:
                 brk
 
+; a test word to see if we can get it into the dictionary.
+xt_testword:
+w_testword:
+                ; Put a 5 on the data stack.
+                dex
+                dex
+                lda #5
+                sta 0,x
+                stz 1,x
+z_testword:
+                rts
 
+; Create a header for the word.
+; By doing this before including the rest of Tali, it should go on the end
+; of the FORTH wordlist.
+prev_nt := 0
+#nt_header testword
+    
 ; Put the guts of Tali Forth 2 here.
 .include "../taliforth.asm" ; zero page variables, definitions
 
