@@ -50,7 +50,7 @@ Our lack of registers and the goal of creating a simple and easy to understand
 Forth makes subroutine threading the most attractive solution, so Tali 2 is an
 STC Forth. We try to mitigate the pain caused by the 12 cycle cost of each and
 every `jsr`-`rts` combination by including a relatively high number of native
-words.
+words, as well as in-built support for inlining of most words.
 
 
 ==== Register Use

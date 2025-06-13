@@ -9,5 +9,5 @@ nt_word --> +----------------+
             +----------------+
             | Length of code | -> z_word - xt_word
             +----------------+
-            | Name string    | Name length ascii bytes
+            | Name string    |  Ascii bytes, unterminated.
             +----------------+

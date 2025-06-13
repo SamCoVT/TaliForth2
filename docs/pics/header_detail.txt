@@ -12,7 +12,7 @@ nt_word --> +-----------------+  V
     ^       |    (1 byte)     |   with bits 5..7 reserved (all 0)
     |       +-----------------+
     +------ |     Prev NT     |   FP selects either (0) only lsb of nt_prev
-            | (1 or 2 bytes)  |   or (1) normal lsb/msb of nt_prev
+            | (1 or 2 bytes)  |   or (1) both lsb/msb of nt_prev
             +-----------------+
     +------ |  Start of code  |   DC selects either (0) code follows header
     |       | (0 or 2 bytes)  |   or (1) two byte xt_word value

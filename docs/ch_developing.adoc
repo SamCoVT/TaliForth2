@@ -16,15 +16,15 @@ To recompile the documentation for Tali Forth 2, you will need the following too
 `Ditaa` is used to generate the diagrams from text file descriptions and is
 available at https://ditaa.sourceforge.net/ Ditaa is not required if you are not
 going to change any of the diagrams.
-
 Ditaa is a java program, so I made a helper script (named just `ditaa`) to help
 run it.  You'll need to replace the path to the jar file for your system.
-For OS X users, `brew install ditaa` gives you an executable `ditaa` without the helper script.
 
 ----
 #!/bin/sh
 java -jar /path/to/jarfile/ditaa0_9.jar $@
 ----
+
+NOTE: For OS X users, `brew install ditaa` gives you an executable `ditaa` without the helper script.
 
 `asciidoctor` and `asciidoctor-pdf` are used to generate the html and PDF versions
 of this manual.  These are rubygems are are installed by first installing ruby
@@ -139,9 +139,12 @@ installed). This also updates the file listings in the `docs` folder.
 * The Y register, however, is free to be changed by subroutines. This also means
   it should not be expected to survive subroutines unchanged.
 
-* Natively coded words generally should have exactly one point of entry -- the
+* Natively coded words generally should have exactly one external point of entry -- the
   `xt_word` link -- and exactly one point of exit at `z_word`. In may cases,
   this requires a branch to an internal label `_done` right before `z_word`.
+
+* Most words also include an internal `w_word` entrypoint that skips any underflow test.
+  This allows native code to call each other more efficiently.
 
 * Because of the way native compiling works, the trick of combining
   `jsr`-`rts` pairs to a single `jmp` instruction (usually) doesn't work.
@@ -215,7 +218,7 @@ Translates into:
 ; ## "getstate" coded Custom
 xt_getstate:
 w_getstate:     ; no underflow check so w_ entrypoint is the same as xt_
-                jsr w_state
+                jsr w_state ; note we use the internal entrypoint for efficiency
                 jsr w_fetch ; @ is pronounced "fetch" in Forth.
 z_getstate:
                 rts
@@ -478,8 +481,8 @@ followed by a `jsr dodoes`.
 
 ==== Adding the Header in words/headers.asm
 
-Once your word has been entered into one of the words/*.asm files with the appropriate
-comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
+Once your word has been entered into one of the `words/*.asm` files with the appropriate
+comment block over it and the `xt_xxxx`, `w_xxxx` and `z_xxxx` labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren't sure where to put your word, then
@@ -512,7 +515,7 @@ For example:
 
 ----
 #nt_header m_star_slash, "m*/" ; uses special characters in the name
-#nt_header exit, "exit", AN+CO ; needs special flags, note need for explicit name "exit" to add flags
+#nt_header exit, "exit", AN+CO ; needs special flags so "exit" must also be added
 ----
 
 [horizontal]

@@ -4985,7 +4985,7 @@ variants, but uses more space and is slower.</p>
 Forth makes subroutine threading the most attractive solution, so Tali 2 is an
 STC Forth. We try to mitigate the pain caused by the 12 cycle cost of each and
 every <code>jsr</code>-<code>rts</code> combination by including a relatively high number of native
-words.</p>
+words, as well as in-built support for inlining of most words.</p>
 </div>
 </div>
 <div class="sect3">
@@ -5183,8 +5183,11 @@ However, it increases the stability of the program. There is an option for
 stripping it out when compiling user-defined words (see below).</p>
 </div>
 <div class="paragraph">
-<p>Tali Forth does not check for overflow, which in normal operation is too rare
-to justify the computing expense.</p>
+<p>Tali Forth does not explicitly check for overflow, which in normal operation is too rare
+to justify the computing expense.  However, the underlow checks use a signed test which
+triggers both when the stack depth is negative and when the stack exceeds 128 bytes:
+also negative as far as the 65c02 is concerned!
+This means the maximum stack size is 64 words with an implicit overflow test at that depth.</p>
 </div>
 </div>
 <div class="sect3">
@@ -5240,14 +5243,14 @@ Conceptually the header looks like this:</p>
 </div>
 <div class="paragraph">
 <p>In practice headers are usually generated using the <code>#nt_header</code> macro
-as seen in <code>words/headers.asm</code>.
-This ensures that the various parts of the header are defined consistently.
-However, it&#8217;s helpful to understand a little more detail about
-the header structure as you start tinkering with TaliForth internals.</p>
+seen in <code>words/headers.asm</code>.
+This ensures that the various header fields are defined consistently.
+However, it&#8217;s helpful to understand
+the header structure as you start tinkering with TaliForth&#8217;s internals.</p>
 </div>
 <div class="paragraph">
-<p>The first byte of the header, at offset 0, is the <strong>status byte</strong> containing eight flags
-defined in the file <code>definitions.asm</code>:</p>
+<p>The first byte of the header, at offset 0, is the <strong>status byte</strong>.
+It contains eight bit flags defined in the file <code>definitions.asm</code>:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -5274,7 +5277,7 @@ CO
 IM
 </td>
 <td class="hdlist2">
-<p><strong>Immediate.</strong> This Word is executed immediately during definitions of new words.</p>
+<p><strong>Immediate.</strong> This word is executed immediately during definitions of new words.</p>
 </td>
 </tr>
 <tr>
@@ -5293,8 +5296,8 @@ TaliForth automatically flags user words as <strong>NN</strong> when it detects 
 AN
 </td>
 <td class="hdlist2">
-<p><strong>Always Native.</strong> This Word must always be inlined, usually because it depends on the
-return stack state.  Setting both <strong>NN</strong> and <strong>AN</strong> together indicates a Word which can be either
+<p><strong>Always Native.</strong> This word must always be inlined, usually because it depends on the
+return stack state.  Setting both <strong>NN</strong> and <strong>AN</strong> together indicates a word which can be either
 inlined or not with a specific return stack prologue that is removed when inlined.
 This is limited to the words <code>R&gt;</code>, <code>R@</code>, <code>&gt;R</code>, <code>2R&gt;</code>, <code>2R@</code>, and <code>2&gt;R</code>.</p>
 </td>
@@ -5304,7 +5307,7 @@ This is limited to the words <code>R&gt;</code>, <code>R@</code>, <code>&gt;R</c
 HC
 </td>
 <td class="hdlist2">
-<p><strong>Has CFA.</strong> The Word&#8217;s first three bytes are considered the Code Field Area (CFA).
+<p><strong>Has CFA.</strong> The word&#8217;s first three bytes are considered the Code Field Area (CFA).
 The CFA is a <code>jsr</code> to either a known handler like <code>dovar</code> or indirectly to <code>dodefer</code>
 and is followed by the Parameter Field Area (PFA) with any data used by the CFA.
 This is used by words defined with <code>create</code> so that <code>&gt;body</code> returns the correct value.</p>
@@ -5354,7 +5357,7 @@ This is used by words defined with <code>create</code> so that <code>&gt;body</c
 <div class="paragraph">
 <p>The last three flags control the header layout to optimize memory usage.
 For normal <code>:</code> words added to the dictionary we can often halve the header
-from eight to four bytes (excluding the name string).</p>
+from eight to four bytes (not counting the name string).</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -5371,7 +5374,7 @@ from their assembly implementations.
 </table>
 </div>
 <div class="paragraph">
-<p>Here&#8217;s a complete picture of the header:</p>
+<p>Here&#8217;s a full picture of the header:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -5401,8 +5404,8 @@ LC
 <p><strong>Long code.</strong> The length of the word body can be recorded in
 either one or two bytes.  The length is only required
 if the word is inlined, and for <code>DISASM</code>.  If we don&#8217;t care about
-inlining long words we can always use a single byte and report
-a length of 255 (see <code>fixup_long_word</code>).</p>
+inlining long words we can save some complexity by always using one byte
+and just reporting a maximum length of 255 (see <code>fixup_long_word</code>).</p>
 </td>
 </tr>
 <tr>
@@ -6502,18 +6505,27 @@ simulator that comes with Tali (preferred).</p>
 <div class="paragraph">
 <p><code>Ditaa</code> is used to generate the diagrams from text file descriptions and is
 available at <a href="https://ditaa.sourceforge.net/" class="bare">https://ditaa.sourceforge.net/</a> Ditaa is not required if you are not
-going to change any of the diagrams.</p>
-</div>
-<div class="paragraph">
-<p>Ditaa is a java program, so I made a helper script (named just <code>ditaa</code>) to help
-run it.  You&#8217;ll need to replace the path to the jar file for your system.
-For OS X users, <code>brew install ditaa</code> gives you an executable <code>ditaa</code> without the helper script.</p>
+going to change any of the diagrams.
+Ditaa is a java program, so I made a helper script (named just <code>ditaa</code>) to help
+run it.  You&#8217;ll need to replace the path to the jar file for your system.</p>
 </div>
 <div class="listingblock">
 <div class="content">
 <pre>#!/bin/sh
 java -jar /path/to/jarfile/ditaa0_9.jar $@</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For OS X users, <code>brew install ditaa</code> gives you an executable <code>ditaa</code> without the helper script.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><code>asciidoctor</code> and <code>asciidoctor-pdf</code> are used to generate the html and PDF versions
@@ -6660,9 +6672,13 @@ if there is no other alternative.</p>
 it should not be expected to survive subroutines unchanged.</p>
 </li>
 <li>
-<p>Natively coded words generally should have exactly one point of entry&#8201;&#8212;&#8201;the
+<p>Natively coded words generally should have exactly one external point of entry&#8201;&#8212;&#8201;the
 <code>xt_word</code> link&#8201;&#8212;&#8201;and exactly one point of exit at <code>z_word</code>. In may cases,
 this requires a branch to an internal label <code>_done</code> right before <code>z_word</code>.</p>
+</li>
+<li>
+<p>Most words also include an internal <code>w_word</code> entrypoint that skips any underflow test.
+This allows native code to call each other more efficiently.</p>
 </li>
 <li>
 <p>Because of the way native compiling works, the trick of combining
@@ -6766,7 +6782,7 @@ with <code>w_</code> (for "word") and skips data stack underflow checks.</p>
 ; ## "getstate" coded Custom
 xt_getstate:
 w_getstate:     ; no underflow check so w_ entrypoint is the same as xt_
-                jsr w_state
+                jsr w_state ; note we use the internal entrypoint for efficiency
                 jsr w_fetch ; @ is pronounced "fetch" in Forth.
 z_getstate:
                 rts</pre>
@@ -7072,8 +7088,8 @@ followed by a <code>jsr dodoes</code>.</p>
 <div class="sect3">
 <h4 id="_adding_the_header_in_wordsheaders_asm">Adding the Header in words/headers.asm</h4>
 <div class="paragraph">
-<p>Once your word has been entered into one of the words/*.asm files with the appropriate
-comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
+<p>Once your word has been entered into one of the <code>words/*.asm</code> files with the appropriate
+comment block over it and the <code>xt_xxxx</code>, <code>w_xxxx</code> and <code>z_xxxx</code> labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren&#8217;t sure where to put your word, then
@@ -7112,7 +7128,7 @@ For example:</p>
 <div class="listingblock">
 <div class="content">
 <pre>#nt_header m_star_slash, "m*/" ; uses special characters in the name
-#nt_header exit, "exit", AN+CO ; needs special flags, note need for explicit name "exit" to add flags</pre>
+#nt_header exit, "exit", AN+CO ; needs special flags so "exit" must also be added</pre>
 </div>
 </div>
 <div class="hdlist">
