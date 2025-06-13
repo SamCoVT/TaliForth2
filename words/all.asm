@@ -195,15 +195,12 @@ _success:
                 ; Main compile/execute routine
                 jsr interpret
 
-                ; Test for Data Stack underflow. Tali Forth does not check for
-                ; overflow because it is so rare
-                cpx #dsp0
-                beq _stack_ok
-                bcc _stack_ok           ; DSP must always be smaller than DSP0
+                ; Test for Data Stack underflow. Tali Forth doesn't explicitly check for
+                ; overflow because it is so rare but the `bpl` test will trigger a
+                ; wraparound "underflow" error if the stack exceeds 64 words.
+                cpx #dsp0+1
+                bpl underflow_error      ; DSP must always be smaller than DSP0
 
-                jmp underflow_error
-
-_stack_ok:
                 ; Display system prompt if all went well. If we're interpreting,
                 ; this is " ok", if we're compiling, it's " compiled". Note
                 ; space at beginning of the string.
@@ -221,6 +218,69 @@ _print:
 z_cold:
 z_abort:
 z_quit:         ; no RTS required
+
+
+underflow_error:
+                ; Entry for COLD/ABORT/QUIT
+                lda #err_underflow      ; fall through to error
+
+error:
+        ; """Given the error number in a, display the error and call abort. Uses tmp3.
+        ; """
+                pha                     ; save error
+                jsr print_error_n
+                jsr w_cr
+                pla
+                cmp #err_underflow      ; should we display return stack?
+                bne w_abort
+
+                lda #err_returnstack
+                jsr print_error_n
+
+                ; dump return stack from SP...$1FF to help debug source of underflow
+                ; the data stack pointer in X is already corrupted so safe to reuse here
+                tsx
+-
+                inx
+                beq +
+                jsr w_space
+                lda $100,x
+                jsr byte_to_ascii
+                bra -
++
+                jsr w_cr
+
+                bra w_abort            ; no jsr, as we clobber return stack
+
+
+; Underflow tests. We jump to the label with the number of cells (not: bytes)
+; required for the word. This routine flows into the generic error handling
+; code
+; Note that using bpl will also generate an error if the stack is more than 64 items (128 bytes)
+; beyond the comparison point (effectively an overflow).
+; An alternative is to switch bpl to bcs everywhere which allows a slightly larger stack.
+; However in that case dsp0 must be at most $f0 or these tests will fail in unexpected ways.
+; See discussion in https://github.com/SamCoVT/TaliForth2/issues/148
+underflow_1:
+        ; """Make sure we have at least one cell on the Data Stack"""
+                cpx #+dsp0-1
+                bpl underflow_error
+                rts
+underflow_2:
+        ; """Make sure we have at least two cells on the Data Stack"""
+                cpx #+dsp0-3
+                bpl underflow_error
+                rts
+underflow_3:
+        ; """Make sure we have at least three cells on the Data Stack"""
+                cpx #+dsp0-5
+                bpl underflow_error
+                rts
+underflow_4:
+        ; """Make sure we have at least four cells on the Data Stack"""
+                cpx #+dsp0-7
+                bpl underflow_error
+                rts
 
 
 .include "core.asm"

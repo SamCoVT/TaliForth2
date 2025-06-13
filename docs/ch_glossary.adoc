@@ -1,9 +1,3 @@
-Error determining name on line:
-; ## KEY? ( -- char ) "Return true if a character is available"
-
-Error determining name on line:
-; ## KEY? ( -- char ) "Return true if a character is available"
-
 [horizontal]
 `!`:: _ANS core_ ( n addr -- ) "Store TOS in memory"
 https://forth-standard.org/standard/core/Store
@@ -25,7 +19,6 @@ Completely convert number for pictured numerical output.
 https://forth-standard.org/standard/core/Tick
 
 `(`:: _ANS core_ ( -- ) "Discard input up to close paren ( comment )"
-http://forth-standard.org/standard/core/p
 http://forth-standard.org/standard/core/p
 
 `*`:: _ANS core_ ( n n -- n ) "16*16 --> 16 "
@@ -50,7 +43,6 @@ https://forth-standard.org/standard/core/Plus
 https://forth-standard.org/standard/core/PlusStore
 
 `+loop`:: _ANS core_ ( -- ) "Finish loop construct"
-https://forth-standard.org/standard/core/PlusLOOP
 https://forth-standard.org/standard/core/PlusLOOP
 
 `,`:: _ANS core_ ( n -- ) "Allot and store one cell in memory"
@@ -220,14 +212,6 @@ for the original Forth code. We arrive here from NUMBER which has
 made sure that we don't have to deal with a sign and we don't have
 to deal with a dot as a last character that signalizes double -
 this should be a pure number string.
-https://forth-standard.org/standard/core/toNUMBER
-Convert a string to a double number. Logic here is based on the
-routine by Phil Burk of the same name in pForth, see
-https://github.com/philburk/pforth/blob/master/fth/numberio.fth
-for the original Forth code. We arrive here from NUMBER which has
-made sure that we don't have to deal with a sign and we don't have
-to deal with a dot as a last character that signalizes double -
-this should be a pure number string.
 
 `>order`:: _Gforth search_ ( wid -- ) "Add wordlist at beginning of search order"
 https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Word-Lists.html
@@ -243,10 +227,8 @@ https://forth-standard.org/standard/tools/q
 
 `?do`:: _ANS core ext_ (C: -- ) ( limit start -- ) "Conditional loop start"
 https://forth-standard.org/standard/core/qDO
-https://forth-standard.org/standard/core/qDO
 
 `?dup`:: _ANS core_ ( n -- 0 | n n ) "Duplicate TOS non-zero"
-https://forth-standard.org/standard/core/qDUP
 https://forth-standard.org/standard/core/qDUP
 
 `@`:: _ANS core_ ( addr -- n ) "Push cell content from memory to stack"
@@ -266,7 +248,6 @@ immediate, compile-only word.
 
 `\`:: _ANS block ext_ ( -- ) "Ignore rest of line"
 https://forth-standard.org/standard/block/bs
-https://forth-standard.org/standard/block/bs
 
 `]`:: _ANS core_ ( -- ) "Enter the compile state"
 https://forth-standard.org/standard/right-bracket
@@ -282,8 +263,6 @@ actually delete the stuff on the Data Stack.
 `abort"`:: _ANS core_ ( "string" -- ) "If flag TOS is true, ABORT with message"
 https://forth-standard.org/standard/core/ABORTq
 Abort and print a string.
-https://forth-standard.org/standard/core/ABORTq
-Abort and print a string.
 
 `abs`:: _ANS core_ ( n -- u ) "Return absolute value of a number"
 https://forth-standard.org/standard/core/ABS
@@ -295,17 +274,11 @@ Receive a string of at most n1 characters, placing them at
 addr. Return the actual number of characters as n2. Characters
 are echoed as they are received. ACCEPT is called by REFILL in
 modern Forths.
-https://forth-standard.org/standard/core/ACCEPT
-Receive a string of at most n1 characters, placing them at
-addr. Return the actual number of characters as n2. Characters
-are echoed as they are received. ACCEPT is called by REFILL in
-modern Forths.
 
 `action-of`:: _ANS core ext_ ( "name" -- xt ) "Get named deferred word's xt"
 http://forth-standard.org/standard/core/ACTION-OF
 
 `again`:: _ANS core ext_ ( addr -- ) "Code backwards branch to address left by BEGIN"
-https://forth-standard.org/standard/core/AGAIN
 https://forth-standard.org/standard/core/AGAIN
 
 `align`:: _ANS core_ ( -- ) "Make sure CP is aligned on word size"
@@ -349,7 +322,6 @@ The ANS Forth standard sees the base up to 36, so we can cheat and
 ingore the MSB
 
 `begin`:: _ANS core_ ( -- addr ) "Mark entry point for loop"
-https://forth-standard.org/standard/core/BEGIN
 https://forth-standard.org/standard/core/BEGIN
 
 `bell`:: _Tali Forth_ ( -- ) "Emit ASCII BELL"
@@ -426,7 +398,6 @@ https://forth-standard.org/standard/core/CFetch
 
 `case`:: _ANS core ext_ (C: -- 0) ( -- ) "Conditional flow control"
 http://forth-standard.org/standard/core/CASE
-http://forth-standard.org/standard/core/CASE
 
 `cell+`:: _ANS core_ ( u -- u ) "Add cell size in bytes"
 https://forth-standard.org/standard/core/CELLPlus
@@ -437,7 +408,6 @@ Since this is an 8 bit machine with 16 bit cells, we add two bytes.
 https://forth-standard.org/standard/core/CELLS
 
 `char`:: _ANS core_ ( "c" -- u ) "Convert character to ASCII value"
-https://forth-standard.org/standard/core/CHAR
 https://forth-standard.org/standard/core/CHAR
 
 `char+`:: _ANS core_ ( addr -- addr+1 ) "Add the size of a character unit to address"
@@ -566,7 +536,6 @@ https://forth-standard.org/standard/double/DNEGATE
 
 `do`:: _ANS core_ (C: -- ) ( limit start -- )  "Start a loop"
 https://forth-standard.org/standard/core/DO
-https://forth-standard.org/standard/core/DO
 
 `does>`:: _ANS core_ ( -- ) "Add payload when defining new words"
 https://forth-standard.org/standard/core/DOES
@@ -598,7 +567,6 @@ more information.
 `el`:: _Tali Editor_ ( line# -- ) "Erase the given line number"
 `else`:: _ANS core_ (C: orig -- orig' ) ( -- ) "Conditional flow control"
 http://forth-standard.org/standard/core/ELSE
-http://forth-standard.org/standard/core/ELSE
 
 `emit`:: _ANS core_ ( char -- ) "Print character to current output"
 https://forth-standard.org/standard/core/EMIT
@@ -612,11 +580,8 @@ https://forth-standard.org/standard/block/EMPTY-BUFFERS
 
 `endcase`:: _ANS core ext_ (C: case-sys -- ) ( x -- ) "Conditional flow control"
 http://forth-standard.org/standard/core/ENDCASE
-http://forth-standard.org/standard/core/ENDCASE
 
 `endof`:: _ANS core ext_ (C: case-sys1 of-sys1-- case-sys2) ( -- ) "Conditional flow control"
-http://forth-standard.org/standard/core/ENDOF
-This is a dummy entry, the code is shared with ELSE
 http://forth-standard.org/standard/core/ENDOF
 This is a dummy entry, the code is shared with ELSE
 
@@ -638,16 +603,10 @@ to compile high-level Forth words and user-defined words during
 start up and cold boot. In contrast to ACCEPT, we need to, uh,
 accept more than 255 characters here, even though it's a pain in
 the 8-bit.
-https://forth-standard.org/standard/core/EVALUATE
-Set SOURCE-ID to -1, make addr u the input source, set >IN to zero.
-After processing the line, revert to old input source. We use this
-to compile high-level Forth words and user-defined words during
-start up and cold boot. In contrast to ACCEPT, we need to, uh,
-accept more than 255 characters here, even though it's a pain in
-the 8-bit.
 
 `execute`:: _ANS core_ ( xt -- ) "Jump to word based on execution token"
-https://forth-standard.org/standard/core/EXECUTE
+This word is never natively compiled so that the return
+from the xt will always return to the caller of EXECUTE
 https://forth-standard.org/standard/core/EXECUTE
 
 `execute-parsing`:: _Gforth_ ( addr u xt -- ) "Pass a string to a parsing word"
@@ -657,9 +616,6 @@ string as if it were passed on the command line. See the file
 tests/tali.fs for examples.
 
 `exit`:: _ANS core_ ( -- ) "Return control to the calling word immediately"
-https://forth-standard.org/standard/core/EXIT
-If we're in a loop, user should UNLOOP first to clean up
-any loop control. This should be natively compiled.
 https://forth-standard.org/standard/core/EXIT
 If we're in a loop, user should UNLOOP first to clean up
 any loop control. This should be natively compiled.
@@ -731,11 +687,8 @@ https://github.com/philburk/pforth/blob/master/fth/numberio.fth
 `i`:: _ANS core_ ( -- n )  "Copy loop counter to stack"
 https://forth-standard.org/standard/core/I
 See definitions.asm and the Control Flow section of the manual.
-https://forth-standard.org/standard/core/I
-See definitions.asm and the Control Flow section of the manual.
 
 `if`:: _ANS core_ (C: -- orig) (flag -- ) "Conditional flow control"
-http://forth-standard.org/standard/core/IF
 http://forth-standard.org/standard/core/IF
 
 `immediate`:: _ANS core_ ( -- ) "Mark most recent word as IMMEDIATE"
@@ -766,12 +719,9 @@ https://forth-standard.org/standard/core/J
 Copy second loop counter from Return Stack to stack. Note we use
 a fudge factor for loop control; see the Control Flow section of
 the manual for more details.
-https://forth-standard.org/standard/core/J
-Copy second loop counter from Return Stack to stack. Note we use
-a fudge factor for loop control; see the Control Flow section of
-the manual for more details.
 
 `key`:: _ANS core_ ( -- char ) "Get one character from the input"
+`key?`:: _ANS core_ ( -- char ) "Return true if a character is available"
 `l`:: _Tali Editor_ ( -- ) "List the current screen"
 note "l" is used by LIST in the block words
 
@@ -783,10 +733,6 @@ The Gforth version of this word is called LATEST
 http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Anonymous-Definitions.html
 
 `leave`:: _ANS core_ ( -- ) "Leave DO/LOOP construct"
-https://forth-standard.org/standard/core/LEAVE
-Note that this does not work with anything but a DO/LOOP in
-contrast to other versions such as discussed at
-http://blogs.msdn.com/b/ashleyf/archive/2011/02/06/loopty-do-i-loop.aspx
 https://forth-standard.org/standard/core/LEAVE
 Note that this does not work with anything but a DO/LOOP in
 contrast to other versions such as discussed at
@@ -806,9 +752,6 @@ it works by calling literal_runtime by compling JSR LITERAL_RT.
 https://forth-standard.org/standard/block/LOAD
 
 `loop`:: _ANS core_ ( -- ) "Finish loop construct"
-https://forth-standard.org/standard/core/LOOP
-Compile-time part of LOOP. This is specialized to
-increment by one.
 https://forth-standard.org/standard/core/LOOP
 Compile-time part of LOOP. This is specialized to
 increment by one.
@@ -891,7 +834,6 @@ character of the string.
 `o`:: _Tali Editor_ ( line# -- ) "Overwrite the given line"
 `of`:: _ANS core ext_ (C: -- of-sys) (x1 x2 -- |x1) "Conditional flow control"
 http://forth-standard.org/standard/core/OF
-http://forth-standard.org/standard/core/OF
 
 `only`:: _ANS search ext_ ( -- ) "Set earch order to minimum wordlist"
 https://forth-standard.org/standard/search/ONLY
@@ -928,25 +870,8 @@ Find word in input string delimited by character given. Do not
 skip leading delimiters -- this is the main difference to PARSE-NAME.
 PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
 http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE
-https://forth-standard.org/standard/core/PARSE
-Find word in input string delimited by character given. Do not
-skip leading delimiters -- this is the main difference to PARSE-NAME.
-PARSE and PARSE-NAME replace WORD in modern systems. ANS discussion
-http://www.forth200x.org/documents/html3/rationale.html#rat:core:PARSE
 
 `parse-name`:: _ANS core ext_ ( "name" -- addr u ) "Parse the input"
-https://forth-standard.org/standard/core/PARSE-NAME
-Find next word in input string, skipping leading whitespace. This is
-a special form of PARSE and drops through to that word. See PARSE
-for more detail. We use this word internally for the interpreter
-because it is a lot easier to use. Reference implementations at
-http://forth-standard.org/standard/core/PARSE-NAME and
-http://www.forth200x.org/reference-implementations/parse-name.fs
-Roughly, the word is comparable to BL WORD COUNT. -- Note that
-though the ANS standard talks about skipping "spaces", whitespace
-is actually perfectly legal (see for example
-http://forth-standard.org/standard/usage#subsubsection.3.4.1.1).
-Otherwise, PARSE-NAME chokes on tabs.
 https://forth-standard.org/standard/core/PARSE-NAME
 Find next word in input string, skipping leading whitespace. This is
 a special form of PARSE and drops through to that word. See PARSE
@@ -996,7 +921,6 @@ work normally as well
 
 `recurse`:: _ANS core_ ( -- ) "Copy recursive call to word being defined"
 https://forth-standard.org/standard/core/RECURSE
-https://forth-standard.org/standard/core/RECURSE
 
 `refill`:: _ANS core ext_ ( -- f ) "Refill the input buffer"
 https://forth-standard.org/standard/core/REFILL
@@ -1012,22 +936,8 @@ https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html
 and Conklin & Rather p. 156. Note we don't have to care about blocks
 because REFILL is never used on blocks - Tali is able to evaluate the
 entire block as a 1024 byte string.
-https://forth-standard.org/standard/core/REFILL
-Attempt to fill the input buffer from the input source, returning
-a true flag if successful. When the input source is the user input
-device, attempt to receive input into the terminal input buffer. If
-successful, make the result the input buffer, set >IN to zero, and
-return true. Receipt of a line containing no characters is considered
-successful. If there is no input available from the current input
-source, return false. When the input source is a string from EVALUATE,
-return false and perform no other action." See
-https://www.complang.tuwien.ac.at/forth/gforth/Docs-html/The-Input-Stream.html
-and Conklin & Rather p. 156. Note we don't have to care about blocks
-because REFILL is never used on blocks - Tali is able to evaluate the
-entire block as a 1024 byte string.
 
 `repeat`:: _ANS core_ (C: orig dest -- ) ( -- ) "Loop flow control"
-http://forth-standard.org/standard/core/REPEAT
 http://forth-standard.org/standard/core/REPEAT
 
 `root-wordlist`:: _Tali Editor_ ( -- u ) "WID for the Root (minimal) wordlist"
@@ -1101,13 +1011,8 @@ by Ulrich Hoffmann. See http://www.xlerb.de/uho/ansi.seq
 
 `source`:: _ANS core_ ( -- addr u ) "Return location and size of input buffer""
 https://forth-standard.org/standard/core/SOURCE
-https://forth-standard.org/standard/core/SOURCE
 
 `source-id`:: _ANS core ext_ ( -- n ) "Return source identifier"
-https://forth-standard.org/standard/core/SOURCE-ID Identify the
-input source unless it is a block (s. Conklin & Rather p. 156). This
-will give the input source: 0 is keyboard, -1 ($FFFF) is character
-string, and a text file gives the fileid.
 https://forth-standard.org/standard/core/SOURCE-ID Identify the
 input source unless it is a block (s. Conklin & Rather p. 156). This
 will give the input source: 0 is keyboard, -1 ($FFFF) is character
@@ -1135,8 +1040,6 @@ Default is false.
 https://forth-standard.org/standard/core/SWAP
 
 `then`:: _ANS core_ (C: orig -- ) ( -- ) "Conditional flow control"
-http://forth-standard.org/standard/core/THEN
-This is a dummy entry, the code is shared with xt_else
 http://forth-standard.org/standard/core/THEN
 This is a dummy entry, the code is shared with xt_else
 
@@ -1186,10 +1089,8 @@ http://6502.org/source/integers/ummodfix/ummodfix.htm
 
 `unloop`:: _ANS core_ ( -- ) "Drop current loop control block"
 https://forth-standard.org/standard/core/UNLOOP
-https://forth-standard.org/standard/core/UNLOOP
 
 `until`:: _ANS core_ (C: dest -- ) ( -- ) "Loop flow control"
-http://forth-standard.org/standard/core/UNTIL
 http://forth-standard.org/standard/core/UNTIL
 
 `unused`:: _ANS core ext_ ( -- u ) "Return size of space available to Dictionary"
@@ -1213,21 +1114,11 @@ second one so the variable is initialized to zero
 
 `while`:: _ANS core_ ( C: dest -- orig dest ) ( x -- ) "Loop flow control"
 http://forth-standard.org/standard/core/WHILE
-http://forth-standard.org/standard/core/WHILE
 
 `within`:: _ANS core ext_ ( n1 n2 n3 -- ) "Test n1 within range [n2, n3) or outwith [n3, n2)"
 https://forth-standard.org/standard/core/WITHIN
 
 `word`:: _ANS core_ ( char "name " -- caddr ) "Parse input stream"
-https://forth-standard.org/standard/core/WORD
-Obsolete parsing word included for backwards compatibility only.
-Do not use this, use `PARSE` or `PARSE-NAME`. Skips leading delimiters
-and copies word to storage area for a maximum size of 255 bytes.
-Returns the result as a counted string (requires COUNT to convert
-to modern format), and inserts a space after the string. See "Forth
-Programmer's Handbook" 3rd edition p. 159 and
-http://www.forth200x.org/documents/html/rationale.html#rat:core:PARSE
-for discussions of why you shouldn't be using WORD anymore.
 https://forth-standard.org/standard/core/WORD
 Obsolete parsing word included for backwards compatibility only.
 Do not use this, use `PARSE` or `PARSE-NAME`. Skips leading delimiters

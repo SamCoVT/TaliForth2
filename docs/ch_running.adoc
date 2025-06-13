@@ -8,7 +8,7 @@ go and read Leo Brodie's excellent "Starting Forth", available for
 free online, before continuing through this manual.  You can use Tali
 Forth 2 to run the examples given in the book.
 
-You will also want to refer to Tali's <<Glossary>> for the list of words that
+You will also want to refer to Tali's <<Glossary of Forth Words>> for the list of words that
 Tali Forth 2 comes with.  If you are just starting out, you will need to refer
 to this when deciding what words to use or to look up what a particular word does.
 
@@ -32,7 +32,7 @@ boot string like
 
 ----
 Tali Forth 2 for the 65c02
-Version ALPHA 24. December 2018 
+Version ALPHA 24. December 2018
 Copyright 2014-2018 Scot W. Stevenson
 Tali Forth 2 comes with absolutely NO WARRANTY
 Type 'bye' to exit
@@ -46,43 +46,43 @@ words should always work. For this `dump` (((dump))) is a built-in word -- it is
 useful for testing.
 
 === Command-Line History
-                                               
+
 Tali's command line includes a simple, eight-element history function. To
 access the previous entries, press `CONTROL-p`, to go forward to the next
 entry, press `CONTROL-n`.
- 
+
 === Words
 
-The <<Glossary>> contains a list of all the words Tali comes with, where they come from,
+The <<Glossary of Forth Words>> contains a list of all the words Tali comes with, where they come from,
 their stack usage (as a stack comment), and a brief description of what each word does.
 
-Tali Forth comes with the following Forth words out of the 
+Tali Forth comes with the following Forth words out of the
 box:
 
 ----
-drop dup swap ! @ over >r r> r@ nip rot -rot tuck , c@ c! +! 0 1 2 execute 
-emit type . u. u.r .r d. d.r m*/ ud. ud.r ? false true space 2dup ?dup + - 1- 
-1+ 2* 2/ abs dabs and or xor rshift lshift pick char [char] char+ chars cells 
-cell+ here = <> < u< u> > 0= 0<> 0> 0< min max 2drop 2swap 2over 2! 2@ 
-2variable 2constant 2literal 2r@ 2r> 2>r invert negate dnegate c, bounds 
-spaces bl -trailing -leading /string refill accept input>r r>input unused 
-depth key key? allot create does> variable constant value to s>d d>s d- d+ 
-erase blank fill find-name ' ['] name>int int>name name>string >body defer 
-latestxt latestnt parse-name parse execute-parsing source source-id : ; 
-:noname compile, [ ] literal sliteral ." s" s\" postpone immediate 
-compile-only never-native always-native allow-native nc-limit strip-underflow 
-abort abort" do ?do i j loop +loop exit unloop leave recurse quit begin again 
-state evaluate base digit? number >number hex decimal count m* um* * um/mod 
-sm/rem fm/mod / /mod mod */mod */ \ move cmove> cmove pad cleave hexstore 
-within >in <# # #s #> hold sign output input havekey cr page at-xy marker 
-words wordsize aligned align bell dump .s disasm compare search environment? 
-find word ( .( if then else repeat until while case of endof endcase defer@ 
-defer! is action-of useraddr buffer: buffstatus buffblocknum blkbuffer scr 
-blk block-write block-write-vector block-read block-read-vector save-buffers 
-block update buffer empty-buffers flush load thru list block-c65-init 
-block-ramdrive-init definitions wordlist search-wordlist set-current 
-get-current set-order get-order root-wordlist assembler-wordlist 
-editor-wordlist forth-wordlist only also previous >order order forth see ed: 
+drop dup swap ! @ over >r r> r@ nip rot -rot tuck , c@ c! +! 0 1 2 execute
+emit type . u. u.r .r d. d.r m*/ ud. ud.r ? false true space 2dup ?dup + - 1-
+1+ 2* 2/ abs dabs and or xor rshift lshift pick char [char] char+ chars cells
+cell+ here = <> < u< u> > 0= 0<> 0> 0< min max 2drop 2swap 2over 2! 2@
+2variable 2constant 2literal 2r@ 2r> 2>r invert negate dnegate c, bounds
+spaces bl -trailing -leading /string refill accept input>r r>input unused
+depth key key? allot create does> variable constant value to s>d d>s d- d+
+erase blank fill find-name ' ['] name>int int>name name>string >body defer
+latestxt latestnt parse-name parse execute-parsing source source-id : ;
+:noname compile, [ ] literal sliteral ." s" s\" postpone immediate
+compile-only never-native always-native allow-native nc-limit strip-underflow
+abort abort" do ?do i j loop +loop exit unloop leave recurse quit begin again
+state evaluate base digit? number >number hex decimal count m* um* * um/mod
+sm/rem fm/mod / /mod mod */mod */ \ move cmove> cmove pad cleave hexstore
+within >in <# # #s #> hold sign output input havekey cr page at-xy marker
+words wordsize aligned align bell dump .s disasm compare search environment?
+find word ( .( if then else repeat until while case of endof endcase defer@
+defer! is action-of useraddr buffer: buffstatus buffblocknum blkbuffer scr
+blk block-write block-write-vector block-read block-read-vector save-buffers
+block update buffer empty-buffers flush load thru list block-c65-init
+block-ramdrive-init definitions wordlist search-wordlist set-current
+get-current set-order get-order root-wordlist assembler-wordlist
+editor-wordlist forth-wordlist only also previous >order order forth see ed:
 cold bye
 ----
 
@@ -96,7 +96,7 @@ with `drop` and end with `bye`. `bye` is the last word that Tali will find in
 the dictionary. footnote:[If you're going to quit anyway, speed can't be that
 important] The words before `drop` are those that are defined in high-level
 Forth. For more information on individual words, use the `see` command inside
-Tali Forth and refer to the <<Glossary>>.
+Tali Forth and refer to the <<Glossary of Forth Words>>.
 
 TIP: To find out if a given word is available, you can use the sequence
 `s" myword" find-name 0<>` which will return a `true` or `false` flag.
@@ -108,7 +108,7 @@ slight speed advantage during lookup to using lowercase words (because Tali
 doesn't have to lowercase the entered text), so all of the tests for Tali are
 in lowercase.
 
-==== Numbers 
+==== Numbers
 
 If a word is not found in the dictionary, Tali Forth tries to turn it into a
 number using the current `base`.  Only if it can't be turned into a number will
@@ -122,9 +122,9 @@ later, as it makes the code insensitive to the current `base`.
 #100 \ A decimal number (decimal value 100)
 $100 \ A hexadecimal number (decimal value 256)
 ----
-                                               
+
 ==== The ANS Standard
-                                   
+
 Tali Forth is orientated on ANS Forth, the standard defined by the American
 National Standards Institute (ANSI). See
 https://forth-standard.org/standard/alpha for the complete list of ANS Forth
@@ -140,8 +140,8 @@ a complete list of Gforth words.
 
 
 ==== Tali-Specific Words
-                                               
-In addition, there are words that are specific to Tali Forth.  
+
+In addition, there are words that are specific to Tali Forth.
 
 *0 ( +--+ 0 )* - Push the number 0 on the Data Stack. Having this as an actual
 word speeds up processing because the interpreter doesn't have to convert the
@@ -158,13 +158,13 @@ compiled if it is less than or equal to nc-limit in size.
 
 *bell ( +--+ )* - Ring the terminal bell (ASCII 07).
 
-*block-read ( addr blk# +--+ )* - This is a vectored word the user can change to point 
+*block-read ( addr blk# +--+ )* - This is a vectored word the user can change to point
 to their own routine for reading 1K blocks into memory from storage.
 
 *block-read-vector ( +--+ addr )* - This is the address of the vector
 for block-read.  Save the xt of your word here.
 
-*block-write ( addr blk# +--+ )* - This is a vectored word the user can change to point 
+*block-write ( addr blk# +--+ )* - This is a vectored word the user can change to point
 to their own routine for writing 1K blocks from memory to storage.
 
 *block-write-vector ( +--+ addr )* - This is the address of the vector
@@ -185,9 +185,9 @@ for further processing. Use with loops:
         : tokenize ( addr u -- )
             begin
                 cleave
-                cr type  \ <-- processing of single word 
+                cr type  \ <-- processing of single word
             dup 0= until
-            2drop ; 
+            2drop ;
 ----
 
 For a string such as `s" emergency induction port"`, this gives us:
@@ -208,7 +208,7 @@ at run time:
                 cleave
                 ['] variable execute-parsing  \ <-- new function
             dup 0= until
-            2drop ; 
+            2drop ;
 ----
 
 Running `s" tali garrus joker shepard" make-variables` will define those four
@@ -222,7 +222,7 @@ create a version of the `map` higher-order function in Forth.
                 cleave
                 r@ execute  \ <-- must consume ( addr u )
             dup 0= until
-            2drop  r> drop ;  
+            2drop  r> drop ;
 ----
 
 *compile-only ( +--+ )* - Mark last word in dictionary as compile-only.
@@ -232,7 +232,7 @@ and set flag to `true`, otherwise return the offending character and a `false`
 flag.
 
 *ed ( +--+ )* - Start the command-line editor. There is a whole chapter on this father
-down. 
+down.
 
 *hexstore ( addr u addr1 +--+ u2 )* - Store string of numbers in memory. Given a
 string with numbers of the current base seperated by spaces, store the numbers
@@ -266,7 +266,7 @@ name token (nt)* -.
  word is called `latest`.
 
 *nc-limit ( +--+ addr )* - Return the address where the threshold value for native
-compiling native compiling is kept. To check the value of this parameter, use `nc-limit ?`. 
+compiling native compiling is kept. To check the value of this parameter, use `nc-limit ?`.
 The default value is 20.
 
 *never-native ( +--+ )* - Mark most recent word so it is never natively compiled.
@@ -398,7 +398,7 @@ Some things to look out for when using Tali Forth.
 
 ==== Cell Size
 
-Tali has a 16-bit cell size. 
+Tali has a 16-bit cell size.
 
 NOTE: Use `1 cells 8 * .` to get the cell size in bits with any Forth.
 
@@ -407,7 +407,7 @@ with 64 bits. Take this example:
 
 ----
 ( Gforth )      decimal 1000 100 um* hex swap u. u.  ( returns 186a0 0  ok )
-( Tali Forth)   decimal 1000 100 um* hex swap u. u.  ( returns 86a0 1  ok ) 
+( Tali Forth)   decimal 1000 100 um* hex swap u. u.  ( returns 86a0 1  ok )
 ----
 
 Tali has to use the upper cell of a double-celled number to correctly report
@@ -417,7 +417,7 @@ only via a `drop` instruction, this will produce different results.
 There is a similar effect with the Gforth word `bounds`: Because of Tali's 16
 bit address space, it wraps the upper address if we go beyond $FFFF:
 
----- 
+----
 ( Gforth )      hex FFFF 2 bounds  swap u. u.  ( returns 10001 ffff  ok  )
 ( Tali )        hex FFFF 2 bounds  swap u. u.  ( returns     1 ffff  ok )
 ----
@@ -429,7 +429,7 @@ from 00 to 32 (SPACE) inclusive - when the standard talks about "spaces".
 Otherwise, Tali would choke on TABs during compiling, and the `ed` editor
 couldn't be used to edit programs because of the Line Feed characters. This is
 covered in the standard, see the footnote at
-https://forth-standard.org/standard/core/PARSE-NAME by Anton Ertl, referencing 
+https://forth-standard.org/standard/core/PARSE-NAME by Anton Ertl, referencing
 http://forth-standard.org/standard/usage#subsubsection.3.4.1.1 and
 http://forth-standard.org/standard/file#subsection.11.3.5 .
 

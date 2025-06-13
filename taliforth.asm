@@ -783,63 +783,6 @@ _done:
                 rts
 
 
-; Underflow tests. We jump to the label with the number of cells (not: bytes)
-; required for the word. This routine flows into the generic error handling
-; code
-underflow_1:
-        ; """Make sure we have at least one cell on the Data Stack"""
-                cpx #dsp0-1
-                bpl underflow_error
-                rts
-underflow_2:
-        ; """Make sure we have at least two cells on the Data Stack"""
-                cpx #dsp0-3
-                bpl underflow_error
-                rts
-underflow_3:
-        ; """Make sure we have at least three cells on the Data Stack"""
-                cpx #dsp0-5
-                bpl underflow_error
-                rts
-underflow_4:
-        ; """Make sure we have at least four cells on the Data Stack"""
-                cpx #dsp0-7
-                bpl underflow_error
-                rts
-
-underflow_error:
-                ; Entry for COLD/ABORT/QUIT
-                lda #err_underflow      ; fall through to error
-
-error:
-        ; """Given the error number in a, display the error and call abort. Uses tmp3.
-        ; """
-                pha                     ; save error
-                jsr print_error_n
-                jsr w_cr
-                pla
-                cmp #err_underflow      ; should we display return stack?
-                bne _no_underflow
-
-                lda #err_returnstack
-                jsr print_error_n
-
-                ; dump return stack from SP...$1FF to help debug source of underflow
-                ; the data stack pointer in X is already corrupted so safe to reuse here
-                tsx
--
-                inx
-                beq +
-                jsr w_space
-                lda $100,x
-                jsr byte_to_ascii
-                bra -
-+
-                jsr w_cr
-
-_no_underflow:
-                jmp w_abort            ; no jsr, as we clobber return stack
-
 ; =====================================================================
 ; PRINTING ROUTINES
 

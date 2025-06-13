@@ -86,7 +86,7 @@ create actual-results  20 cells allot
 \ helper words to capture output to a buffer
 
 output @ constant 'emit-a
-$fe constant 'bufp
+$7e constant 'bufp      \ zp pointer in the stack floodplain
 
 \ assembly routine to capture output to pointer at 'bufp
 \ sta (bufp) / inc bufp / bne +2 / inc bufp+1 / rts

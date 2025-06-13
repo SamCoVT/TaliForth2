@@ -8,6 +8,26 @@
 ; definitions; platform-specific definitions such as the
 ; memory map are kept in the platform folder.
 
+
+; ZERO PAGE ADDRESSES/VARIABLES
+
+; By default TaliForth reserves the first half of zero page ($0 - zpage_end, inclusive).
+; The top half of zero page is free for kernel/external use (zpage_end+1 to $FF).
+
+; The default TaliForth zero page usage is as follows:
+;   zero page variables: 28 words = 56 bytes ($0000-$0037) - see cold_zp_table
+;   Forth Data Stack: 128 - 56 - 8 = 64 bytes or 32 words ($0038-$0077)
+;   Data Stack floodplain: 8 bytes after stack to protect against underflow ($0078-$007F)
+
+; The maximum size of Tali's data stack is 128 bytes (64 words), after which wraparound
+; underflow checks will trigger (see underflow_error in words/all.asm).
+; An alternate configuration with a maximal stack and no underflow protection
+; might start the data stack at the top of zero page, growing down towards $80:
+;   zpage_end = $ff
+;   dsp0 = $0       ; zpage_end+1, wrapping around
+; Any external variables would then be stored between the end of cold_zp_table and $80
+
+
 ; HARD PHYSICAL ADDRESSES
 
 ; Some of these are somewhat silly for the 65c02, where for example
@@ -15,15 +35,17 @@
 ; these for easier comparisons with Liara Forth's structure and to
 ; help people new to these things.
 
-ram_start = $0000          ; start of installed RAM, must include zpage
-zpage     = ram_start      ; begin of Zero Page ($0000-$00ff)
-stack0    = $0100          ; begin of Return Stack ($0100-$01ff)
+ram_start = $0000           ; start of installed RAM, must include zpage
+zpage     = ram_start       ; begin of Zero Page usage ($0000-$00ff)
+stack0    = $0100           ; begin of Return Stack ($0100-$01ff)
 
-; weak constants can be overridden by the including platform configuration
+; weak constants can be overridden by the included platform configuration
+
 .weak
-zpage_end = $7F            ; end of Zero Page used ($0000-$007f)
-ram_end   = $8000-1        ; end of installed RAM
-hist_buff = ram_end-$03ff  ; begin of history buffers
+zpage_end = $7F             ; last byte (inclusive) of Zero Page reserved for Tali ($0000-$007f)
+                            ; typically Tali's data stack grows down from here, below a small flood plain
+ram_end   = $8000-1         ; end of installed RAM
+hist_buff = ram_end-$03ff   ; begin of history buffers
 .endweak
 
 ; SOFT PHYSICAL ADDRESSES
@@ -35,38 +57,33 @@ hist_buff = ram_end-$03ff  ; begin of history buffers
 ; the page boundry when accessing the RAM System Variables table, which would
 ; cost an extra cycle.
 
-rsp0      = $ff              ; initial Return Stack Pointer (65c02 stack)
-bsize     = $ff              ; size of input/output buffers
+rsp0      = $ff             ; initial Return Stack Pointer (65c02 stack)
+bsize     = $ff             ; size of input/output buffers
 
 .weak
-user0     = zpage            ; TaliForth2 system variables
-buffer0   = stack0+$100      ; input buffer ($0200-$02ff)
-cp0       = buffer0+bsize+1  ; Dictionary starts after last buffer
-                             ; The RAM System Variables and BLOCK buffer are
-                             ; placed right at the beginning of the dictionary.
+user0     = zpage           ; start of TaliForth2 system variables
+buffer0   = stack0+$100     ; input buffer ($0200-$02ff)
+cp0       = buffer0+bsize+1 ; Dictionary starts after last buffer
+                            ; The RAM System Variables and BLOCK buffer are
+                            ; placed right at the beginning of the dictionary.
 .if TALI_OPTION_HISTORY
-cp_end    = hist_buff        ; Last RAM byte available for code
+cp_end    = hist_buff       ; Last RAM byte available for code
 .else
 cp_end    = ram_end
 .endif
-padoffset = $ff              ; offset from CP to PAD (holds number strings)
 
-dsp0      = zpage_end-7    ; initial Data Stack Pointer
+padoffset = $ff             ; offset from CP to PAD (holds number strings)
+
+dsp0      = zpage_end-7     ; initial Data Stack Pointer, used to initialize the X register.
+                            ; The DSP points to the first valid stack entry so points at
+                            ; the first unused byte beyond the data stack when the stack is empty.
+                            ; We subtract seven to leave an eight byte (four word) buffer or "flood plain"
+                            ; between the top of the data stack and unreserved zero page memory which
+                            ; stops small stack underflows from stomping non-Tali memory.
+
 .endweak
 
-
-; ZERO PAGE ADDRESSES/VARIABLES
-
-; TaliForth reserves the first part of zero page ($0 - zpage_end) which is
-; configured by zpage_end and normally 128 bytes.
-; The rest of zero page is free for kernel/external use (zpage_end+1 to $FF)
-
-; TaliForth zeropage usage is as follows:
-;   zero page variables: 30 words = 60 bytes ($0000-$0038) - see cold_zp_table
-;   Forth Data Stack: 128 - 60 - 8 = 60 bytes or 30 words
-;   Data Stack floodplain: 8 bytes after stack (to avoid catastrophic underflow)
-
-; This table defines all of the zero page variables along with their initial
+; The cold_zp_table table defines all of the zero page variables along with their initial
 ; values except the uninitialized temporaries at the end. The most important
 ; variables are defined first since the Data Stack grows towards this area
 ; from dsp0: If there is an overflow, the later, less important variables

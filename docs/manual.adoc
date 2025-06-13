@@ -12,7 +12,7 @@ Sam Colwell; Scot W. Stevenson; Patrick Surry
 Tali Forth 2 is a bare-metal ANS(ish) Forth for the 65c02 8-bit MPU. It aims
 to be, roughly in order of importance, easy to try out (just run the included
 binary), simple (subroutine threading model), specific (for the 65c02 only), and
-standardized (ANS Forth). 
+standardized (ANS Forth).
 
 [dedication]
 = Dedication
@@ -97,7 +97,7 @@ https://github.com/SamCoVT/TaliForth2
 // --------------------------------------------------------
 = Appendix
 
-== Glossary
+== Glossary of Forth Words
 include::ch_glossary.adoc[]
 
 == Reporting Problems
