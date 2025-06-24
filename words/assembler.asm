@@ -235,6 +235,7 @@ xt_asm_back_branch:
                 ; We subtract two more because of the branch instruction itself
                 dea
                 dea
+                sta 0,x
 
 z_asm_back_branch:
                 rts
