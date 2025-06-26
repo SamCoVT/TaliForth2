@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.22">
+<meta name="generator" content="Asciidoctor 2.0.23">
 <meta name="keywords" content="forth, 6502, assembler, programming, 8-bit, vintage, retro">
 <meta name="author" content="Sam Colwell, Scot W. Stevenson, Patrick Surry">
 <title>Manual for Tali Forth 2 for the 65c02</title>
@@ -861,7 +861,7 @@ Tali Forth 2 in the simulator.</p>
 </div>
 <div class="paragraph">
 <p>Note: If running on Windows in a git bash shell, you will need to use winpty,
-eg. <code>winpty make csim</code>.  This is only needed for the git bash shell.  Running
+e.g. <code>winpty make csim</code>.  This is only needed for the git bash shell.  Running
 Tali in c65 from the Windows command prompt or Windows Subsystem for Linux (WSL)
 works fine.</p>
 </div>
@@ -4924,7 +4924,7 @@ Decisions in the Forth Kernel" at
 </div>
 <div class="paragraph">
 <p>Spoiler alert: Tali Forth is a subroutine-threaded (STC) variant with a 16-bit
-cell size and a dictionary that keeps headers and code separate. If you don&#8217;t
+cell size and a dictionary that allows separated headers and code. If you don&#8217;t
 care and just want to use the program, skip ahead.</p>
 </div>
 <div class="sect3">
@@ -4985,7 +4985,7 @@ variants, but uses more space and is slower.</p>
 Forth makes subroutine threading the most attractive solution, so Tali 2 is an
 STC Forth. We try to mitigate the pain caused by the 12 cycle cost of each and
 every <code>jsr</code>-<code>rts</code> combination by including a relatively high number of native
-words.</p>
+words, as well as in-built support for inlining of most words.</p>
 </div>
 </div>
 <div class="sect3">
@@ -5049,12 +5049,13 @@ no checks for overflow because those cases tend to be rare.</p>
 <div class="sect3">
 <h4 id="_dictionary_structure">Dictionary Structure</h4>
 <div class="paragraph">
-<p>Each Forth word consists of the actual code and the header that holds the
-meta-data. The headers are arranged as a simple single-linked list.</p>
+<p>The implementation of each Forth word consists of its actual assembly code
+along with a header that holds meta-data for the word.
+The headers are arranged as a simple single-linked list.</p>
 </div>
 <div class="paragraph">
 <p>In contrast to Tali Forth 1, which kept the header and body of the words
-together, Tali Forth 2 keeps them separate. This lets us play various tricks
+together, Tali Forth 2 allows them to be separated. This lets us play various tricks
 with the code to make it more effective.</p>
 </div>
 </div>
@@ -5182,8 +5183,11 @@ However, it increases the stability of the program. There is an option for
 stripping it out when compiling user-defined words (see below).</p>
 </div>
 <div class="paragraph">
-<p>Tali Forth does not check for overflow, which in normal operation is too rare
-to justify the computing expense.</p>
+<p>Tali Forth does not explicitly check for overflow, which in normal operation is too rare
+to justify the computing expense.  However, the underlow checks use a signed test which
+triggers both when the stack depth is negative and when the stack exceeds 128 bytes:
+also negative as far as the 65c02 is concerned!
+This means the maximum stack size is 64 words with an implicit overflow test at that depth.</p>
 </div>
 </div>
 <div class="sect3">
@@ -5221,44 +5225,59 @@ of the byte below the DSP.</p>
 <h3 id="_dictionary">Dictionary</h3>
 <div class="paragraph">
 <p>Tali Forth follows the traditional model of a Forth dictionary&#8201;&#8212;&#8201;a linked list
-of words terminated with a zero pointer. The headers and code are kept separate
+of words terminated with a zero pointer. The headers and code can be separated
 to allow various tricks in the code.</p>
 </div>
 <div class="sect3">
 <h4 id="_elements_of_the_header">Elements of the Header</h4>
 <div class="paragraph">
-<p>Each header is at least eight bytes long:</p>
+<p>Each word has a <code>name token</code> (nt, <code>nt_word</code> in the code) that points to the
+first byte of its header.  The header can vary in size from four to eight bytes,
+plus the length of the string containing the word&#8217;s name.
+Conceptually the header looks like this:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="pics/header_diagram.png" alt="header diagram">
+<img src="pics/header_simple.png" alt="header simple">
 </div>
 </div>
 <div class="paragraph">
-<p>Each word has a <code>name token</code> (nt, <code>nt_word</code> in the code) that points to the
-first byte of the header. This is the length of the word&#8217;s name string, which
-is limited to 255 characters.</p>
+<p>In practice headers are usually generated using the <code>#nt_header</code> macro
+seen in <code>words/headers.asm</code>.
+This ensures that the various header fields are defined consistently.
+However, it&#8217;s helpful to understand
+the header structure as you start tinkering with TaliForth&#8217;s internals.</p>
 </div>
 <div class="paragraph">
-<p>The second byte in the header (index 1) contains the status flags. It is created by
-the flags defined in the file <code>definitions.asm</code>:</p>
+<p>The first byte of the header, at offset 0, is the <strong>status byte</strong>.
+It contains eight bit flags defined in the file <code>definitions.asm</code>:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/status_flags.png" alt="status flags">
+</div>
+</div>
+<div class="paragraph">
+<p>Five of the flags define metadata for the word,
+while three control the format of the header itself.
+The builtin word <code>see</code> displays all of these flags for any Forth word,
+along with a calculated <strong>UF</strong> flag indicating whether the word includes an (optional) underflow check.</p>
+</div>
+<div class="paragraph">
+<p>The first three metadata flags&#8201;&#8212;&#8201;<strong>HC</strong>, <strong>NN</strong> and <strong>AN</strong>&#8201;&#8212;&#8201;are rarely needed for user words,
+while the last two&#8201;&#8212;&#8201;<strong>CO</strong> and <strong>IM</strong>&#8201;&#8212;&#8201;are useful for words with special compilation semantics:</p>
 </div>
 <div class="hdlist">
 <table>
 <tr>
 <td class="hdlist1">
-CO
+HC
 </td>
 <td class="hdlist2">
-<p><strong>Compile Only.</strong> This word may only be used inside definitions of new words.</p>
-</td>
-</tr>
-<tr>
-<td class="hdlist1">
-IM
-</td>
-<td class="hdlist2">
-<p><strong>Immediate.</strong> This Word is executed immediately during definitions of new words.</p>
+<p><strong>Has CFA.</strong> The word&#8217;s first three bytes are considered the Code Field Area (CFA).
+The CFA is a <code>jsr</code> to either a known handler like <code>dovar</code> or indirectly to <code>dodefer</code>
+and is followed by the Parameter Field Area (PFA) with any data used by the CFA.
+This is used by words defined with <code>create</code> so that <code>&gt;body</code> returns the correct value.</p>
 </td>
 </tr>
 <tr>
@@ -5277,27 +5296,32 @@ TaliForth automatically flags user words as <strong>NN</strong> when it detects 
 AN
 </td>
 <td class="hdlist2">
-<p><strong>Always Native.</strong> This Word must always be inlined, usually because it depends on the
-return stack state.  Setting both <strong>NN</strong> and <strong>AN</strong> together indicates a Word which can be either
-inlined or not with a specific return stack prologue that is removed when inlined.
+<p><strong>Always Native.</strong> This word must always be inlined, usually because it depends on the
+return stack state.  Setting both <strong>NN</strong> and <strong>AN</strong> together indicates a word which can be either
+inlined or not with a specific return stack prologue/epilogue that is removed when inlined.
 This is limited to the words <code>R&gt;</code>, <code>R@</code>, <code>&gt;R</code>, <code>2R&gt;</code>, <code>2R@</code>, and <code>2&gt;R</code>.</p>
 </td>
 </tr>
 <tr>
 <td class="hdlist1">
-HC
+IM
 </td>
 <td class="hdlist2">
-<p><strong>Has CFA.</strong> The Word&#8217;s first three bytes are considered the Code Field Area (CFA).
-The CFA is a <code>jsr</code> to either a known handler like <code>dovar</code> or indirectly to <code>dodefer</code>
-and is followed by the Parameter Field Area (PFA) with any data used by the CFA.
-This is used by words defined with <code>create</code> so that <code>&gt;body</code> returns the correct value.</p>
+<p><strong>Immediate.</strong> This word is executed immediately during definitions of new words.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+CO
+</td>
+<td class="hdlist2">
+<p><strong>Compile Only.</strong> This word may only be used inside definitions of new words.</p>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>The <strong>NN</strong> and <strong>AN</strong> flags are intrepreted together like this:</p>
+<p>The <strong>NN</strong> and <strong>AN</strong> flags are interpreted together like this:</p>
 </div>
 <table class="tableblock frame-all grid-all fit-content">
 <colgroup>
@@ -5336,18 +5360,101 @@ This is used by words defined with <code>create</code> so that <code>&gt;body</c
 </tbody>
 </table>
 <div class="paragraph">
-<p>Note there are currently three bits unused.</p>
+<p>The last three flags&#8201;&#8212;&#8201;<strong>DC</strong>, <strong>LC</strong> and <strong>FP</strong>&#8201;&#8212;&#8201;control the header layout to optimize memory usage,
+often allowing us to halve the header from eight to four bytes (not counting the name string).
+This full picture of the header illustrates how they work:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="pics/header_detail.png" alt="header detail">
+</div>
+</div>
+<div class="hdlist">
+<table>
+<tr>
+<td class="hdlist1">
+DC
+</td>
+<td class="hdlist2">
+<p><strong>Disjoint code.</strong> When DC=1, the word&#8217;s code can be located
+anywhere in memory, with the xt_word value added to the header.
+However when DC=0 the word&#8217;s code immediately follows the header,
+reducing the header size by two bytes.  Most <code>:</code> words
+added to the dictionary use this format, since compiled code
+is added to the dictionary immediately after the header.</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+LC
+</td>
+<td class="hdlist2">
+<p><strong>Long code.</strong> The length of the word body can be recorded in
+either one or two bytes.  The length is only required
+if the word is inlined, and for <code>DISASM</code>.  If we don&#8217;t care about
+inlining long words we can save some complexity by always using one byte
+and just reporting a maximum length of 255 (see <code>fixup_long_word</code>).</p>
+</td>
+</tr>
+<tr>
+<td class="hdlist1">
+FP
+</td>
+<td class="hdlist2">
+<p><strong>Far previous.</strong> Normally we store a two byte <code>nt_prev</code> pointer
+for the previous header in the linked list.
+However, if the previous header is within the preceding 256 bytes,
+we only need to store the LSB and can infer the MSB, saving a byte.
+This is often the case with small <code>:</code> words that are consecutively
+added to the dictionary, and with builtin words where we define
+all headers consecutively.</p>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>The status byte is followed by the <strong>pointer to the next header</strong> in the linked
-list, which makes it the name token of the next word. A 0000 in this position
-signals the end of the linked list, which by convention is the word <code>bye</code> for
-the native code words.</p>
+<p>The length of the header, excluding the name itself, is 4 + 2*DC + LC + FP bytes.
+The specific position of these flags in the status byte makes this easy to calculate in assembly:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>        lda flags       ; start with status flags in the accumulator
+        and #DC+LC+FP   ; mask the three header length bits
+        lsr             ; shift FP to carry flag, so Acc = 2*DC + LC
+        adc #4          ; header length is 4 + 2*DC + LC + FP bytes</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+We could also reorganize the built-in dictionary to save a little more memory
+but currently have preferred readability, keeping word headers disjoint
+from their assembly implementations.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>This is followed by the current word&#8217;s <strong>execution token</strong> (xt, <code>xt_word</code>) that
-points to the start of the actual code. Some words that have the same
-functionality point to the same code block.</p>
+<p>The second byte of the header&#8201;&#8212;&#8201;following the status byte&#8201;&#8212;&#8201;is the <strong>length of the word&#8217;s name string</strong>, which
+is currently limited to 31 characters.</p>
+</div>
+<div class="paragraph">
+<p>The length byte is followed by the <strong>pointer to the previous header</strong> in the linked
+list, i.e. the name token of that word. A 0000 in this position
+signals the beginning of the linked list, which by convention is the word <code>bye</code> for
+the native code words.  If the <code>FP</code> flag is zero we only store the LSB of the previous header,
+and infer the MSB depending on whether its LSB is less than or greater than that of the
+current header.</p>
+</div>
+<div class="paragraph">
+<p>Next is the current word&#8217;s <strong>execution token</strong> (xt, <code>xt_word</code>) which
+points to the start of the actual assembly code. Some words that have the same
+functionality point to the same code block.   If the <code>DC</code> flag is zero we omit
+this pointer and calculate it based on the length of the header.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -5364,11 +5471,12 @@ distinction between the Code Field Area (CFA) and the Parameter Field Area
 </table>
 </div>
 <div class="paragraph">
-<p>The next pointer is for the <strong>end of the code</strong> (<code>z_word</code>) to enable native
+<p>The next field stores the <strong>length of the word&#8217;s code</strong> (<code>z_word</code> - <code>xt_word</code>) as either
+one or two bytes based on the <code>LC</code> flag.  This is used for native
 compilation of the word (if allowed and requested).</p>
 </div>
 <div class="paragraph">
-<p>The <strong>name string</strong> starts at the eighth byte. The string is <em>not</em>
+<p>Finally we have the <strong>name string</strong> at offset between 4 and 8. The string is <em>not</em>
 zero-terminated.  Tali Forth lowercases names as they are copied into the
 dictionary and also lowercases during lookup, so <code>quarian</code> is the same word as
 <code>QUARIAN</code>.  If the name in the dictionary is directly modified, it is important
@@ -5546,7 +5654,7 @@ buffer.</p>
 <p>Tali Forth uses <code>evaluate</code> to load high-level Forth words from the file
 <code>forth_words.fs</code> and, if present, any extra, user-defined words from
 <code>user_words.fs</code>.  The code in these files has all comments removed and all
-whitespace replaced with a single splace between words.  This minimized version
+whitespace replaced with a single space between words.  This minimized version
 is assembled directly into the ROM image as a string that will be evaluated at
 startup.</p>
 </div>
@@ -6399,10 +6507,8 @@ simulator that comes with Tali (preferred).</p>
 <div class="paragraph">
 <p><code>Ditaa</code> is used to generate the diagrams from text file descriptions and is
 available at <a href="https://ditaa.sourceforge.net/" class="bare">https://ditaa.sourceforge.net/</a> Ditaa is not required if you are not
-going to change any of the diagrams.</p>
-</div>
-<div class="paragraph">
-<p>Ditaa is a java program, so I made a helper script (named just <code>ditaa</code>) to help
+going to change any of the diagrams.
+Ditaa is a java program, so I made a helper script (named just <code>ditaa</code>) to help
 run it.  You&#8217;ll need to replace the path to the jar file for your system.</p>
 </div>
 <div class="listingblock">
@@ -6410,6 +6516,18 @@ run it.  You&#8217;ll need to replace the path to the jar file for your system.<
 <pre>#!/bin/sh
 java -jar /path/to/jarfile/ditaa0_9.jar $@</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For OS X users, <code>brew install ditaa</code> gives you an executable <code>ditaa</code> without the helper script.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><code>asciidoctor</code> and <code>asciidoctor-pdf</code> are used to generate the html and PDF versions
@@ -6425,7 +6543,7 @@ sudo gem install asciidoctor-pdf</pre>
 <div class="paragraph">
 <p>These tools have an annoying "feature" of having their version number in the
 executable name.  To work around this, I created symbolic links in my personal
-bin folder (eg. a folder in my path) as shown below.  You will need to adjust
+bin folder (e.g. a folder in my path) as shown below.  You will need to adjust
 with the name of these utilities on your system.</p>
 </div>
 <div class="listingblock">
@@ -6556,9 +6674,13 @@ if there is no other alternative.</p>
 it should not be expected to survive subroutines unchanged.</p>
 </li>
 <li>
-<p>Natively coded words generally should have exactly one point of entry&#8201;&#8212;&#8201;the
+<p>Natively coded words generally should have exactly one external point of entry&#8201;&#8212;&#8201;the
 <code>xt_word</code> link&#8201;&#8212;&#8201;and exactly one point of exit at <code>z_word</code>. In may cases,
 this requires a branch to an internal label <code>_done</code> right before <code>z_word</code>.</p>
+</li>
+<li>
+<p>Most words also include an internal <code>w_word</code> entrypoint that skips any underflow test.
+This allows native code to call each other more efficiently.</p>
 </li>
 <li>
 <p>Because of the way native compiling works, the trick of combining
@@ -6632,13 +6754,13 @@ it is, and then follow the steps outlined below for that word type.</p>
 </div>
 <div class="paragraph">
 <p>Once the word has been converted, a dictionary header needs to be added for it
-in words/headers.asm.  This process is covered in detail at the end of this section.</p>
+in <code>words/headers.asm</code>.  This process is covered in detail at the end of this section.</p>
 </div>
 <div class="sect3">
 <h4 id="_processing_regular_non_immediate_words">Processing Regular (Non-Immediate) Words</h4>
 <div class="paragraph">
 <p>If the definition word you are processing is not immediate (you can check this
-with <code>see</code>, eg. <code>see dup</code> and make sure the IM flag is 0) then it just
+with <code>see</code>, e.g. <code>see dup</code> and make sure the IM flag is 0) then it just
 translates into a JSR to the native code implementing the xt (execution token) of that word.
 Most words have an external entrypoint which begins with <code>xt_</code> followed by the name
 (spelled out, in the case of numbers and symbols) of the word.   Once your
@@ -6662,7 +6784,7 @@ with <code>w_</code> (for "word") and skips data stack underflow checks.</p>
 ; ## "getstate" coded Custom
 xt_getstate:
 w_getstate:     ; no underflow check so w_ entrypoint is the same as xt_
-                jsr w_state
+                jsr w_state ; note we use the internal entrypoint for efficiency
                 jsr w_fetch ; @ is pronounced "fetch" in Forth.
 z_getstate:
                 rts</pre>
@@ -6684,7 +6806,7 @@ parameters in standard Forth format, and a string that has a short description
 of what the word does.  The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.)  See the top of words/headers.asm for more information on the
+Gforth, etc.)  See the top of <code>words/headers.asm</code> for more information on the
 status field, but "coded" is likely to be the right choice until you&#8217;ve
 thoroughly tested your new word.</p>
 </div>
@@ -6693,12 +6815,12 @@ thoroughly tested your new word.</p>
 scope (between two regular labels).  This allows multiple words to all have a
 <code>_done:</code> label, for example, and each word will only branch to its own local
 version of <code>_done:</code> found within its scope.  Any branching within the word
-(eg. for ifs and loops) should be done with local labels.  Labels without an
+(e.g. for ifs and loops) should be done with local labels.  Labels without an
 underscore at the beginning are globally available.</p>
 </div>
 <div class="paragraph">
 <p>The labels xt_xxxx and z_xxxx need to be the entry and exit point, respectively,
-of your word.  The xxxx portion should be your word spelled out (eg. numbers and
+of your word.  The xxxx portion should be your word spelled out (e.g. numbers and
 symbols spelled out with underscores between them).  Although allowed in the
 Forth word, the dash "-" symbol is not allowed in the label (the assembler will
 try to do subtraction), so it is replaced with an underscore anywhere it is
@@ -6718,7 +6840,7 @@ searching for "@" (including the quotes) if you didn&#8217;t know its name.</p>
 <div class="sect3">
 <h4 id="_processing_immediate_words">Processing Immediate Words</h4>
 <div class="paragraph">
-<p>To determine if a word is immediate, use the word <code>see</code> on it (eg. <code>see [char]</code>
+<p>To determine if a word is immediate, use the word <code>see</code> on it (e.g. <code>see [char]</code>
 for the example below).  Processing an immediate word takes a little more
 detective work.  You&#8217;ll need to determine what these words do to the word being
 compiled and then do it yourself in assembly, so that only what is actually
@@ -6809,7 +6931,7 @@ being too long.  The definition in Forth looks like:</p>
 <div class="paragraph">
 <p>This has an <code>IF</code> in it, which we will need to translate into branches and will
 be a good demonstration of using local labels.  This word has stateful behavior
-(eg. it acts differently in INTERPRET mode than it does in COMPILE mode).  While
+(e.g. it acts differently in INTERPRET mode than it does in COMPILE mode).  While
 we could translate the "state @" portion at the beginning into JSRs to xt_state
 and xt_fetch, it will be much faster to look in the state variable directly in
 assembly.  You can find all of the names of internal Tali variables in
@@ -6877,8 +6999,8 @@ run the code for the <code>else</code> section, we use a BRA to a _done label.</
 translated into JSRs.</p>
 </div>
 <div class="paragraph">
-<p>The <code>immediate</code> on the end is handled in the header in headers.asm by adding IM
-to the status flags.  See the top of headers.asm for a description of all of the
+<p>The <code>immediate</code> on the end is handled in the header in <code>words/headers.asm</code> by adding IM
+to the status flags.  See the top of <code>words/headers.asm</code> for a description of all of the
 header fields.</p>
 </div>
 </div>
@@ -6966,56 +7088,50 @@ followed by a <code>jsr dodoes</code>.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_adding_the_header_in_headers_asm">Adding the Header in headers.asm</h4>
+<h4 id="_adding_the_header_in_wordsheaders_asm">Adding the Header in words/headers.asm</h4>
 <div class="paragraph">
-<p>Once your word has been entered into one of the words/*.asm files with the appropriate
-comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
+<p>Once your word has been entered into one of the <code>words/*.asm</code> files with the appropriate
+comment block over it and the <code>xt_xxxx</code>, <code>w_xxxx</code> and <code>z_xxxx</code> labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren&#8217;t sure where to put your word, then
-put it near the top of the file just under the header for <code>drop</code>.</p>
-</div>
-<div class="paragraph">
-<p>Each header is simply a declaration of bytes and words that provides some basic
-information that Tali needs to use the word, as well as the addresses of the
-beginning and ending (not including the rts at the end) of your word.  That&#8217;s
-why you need the xt_xxxx and z_xxxx labels in your word (where xxxx is the
-spelled-out version of your word&#8217;s name).</p>
-</div>
-<div class="paragraph">
-<p>Before we dicuss adding a word, let&#8217;s go over the form a dictionary header.  The
-fields we will be filling in are described right at the top of headers.asm for
-reference. We&#8217;ll look at an easy to locate word, <code>drop</code>, which is used to
-remove the top item on the stack. It&#8217;s right near the top of the list.  We&#8217;ll also
-show the word <code>dup</code>, which is the next word is the dictionary.
-The headers for these two words currently look like:</p>
+put it near the end of the file just before the header for <code>drop</code>:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>nt_drop:
-        .byte 4, 0
-        .word nt_dup, xt_drop, z_drop
-        .text "drop"
-
-nt_dup:
-        .byte 3, 0
-        .word nt_swap, xt_dup, z_dup
-        .text "dup"</pre>
+<pre>#nt_header drop                 ; DROP is always the first native word in the Dictionary</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The first component of a dictionary header is the label, which comes in the form
-nt_xxxx where xxxx is the spelled out version of your word&#8217;s name.  The xxxx
-should match whatever you used in your xt_xxxx and z_xxxx labels.</p>
+<p>Each header simply provides some basic information that Tali needs to use the word,
+as well as the where the code for the word starts and ends (excluding the final <code>rts</code>).
+That&#8217;s why you need the <code>xt_xxxx</code> and <code>z_xxxx</code> labels in your word (where <code>xxxx</code> is the
+spelled-out version of your word&#8217;s name).</p>
 </div>
 <div class="paragraph">
-<p>The next two fields are byte fields, so we create them with the 64tass assembler
-<code>.byte</code> directive.  The first field is the length of the name, in characters, as
-it will be typed in Tali.  The second field is the status of the word, where
-each bit has a special meaning.  If there is nothing special about your word,
-you will just put 0 here.  If your word needs some of the status flags, you add
-them together (with +) here to form the status byte.  The table below gives the
-constants you will use and a brief description of when to use them.</p>
+<p>Before we discuss adding a word, let&#8217;s go over the form a dictionary header.
+The fields we&#8217;ll be defining are described in words/headers.asm
+with more detail in <a href="#_elements_of_the_header">Elements of the Header</a>.
+In most cases we can simply use the <code>#nt_header</code> macro:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>#nt_header label[, "name"[,flags]]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Here <code>label</code> is the <code>xxxx</code> in <code>xt_xxxx</code> and <code>z_xxxx</code>;
+"name" is the actual string to use for the word&#8217;s name if different <code>"xxxx"</code>
+(usually if it contains special characters other than <code>[_a-z0-9]</code>);
+and <code>flags</code> is any combination of required flags from <code>CO, IM, AN, NN, HC</code>
+as detailed in <a href="#_elements_of_the_header">Elements of the Header</a>.
+For example:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>#nt_header m_star_slash, "m*/" ; uses special characters in the name
+#nt_header exit, "exit", AN+CO ; needs special flags so "exit" must also be added</pre>
+</div>
 </div>
 <div class="hdlist">
 <table>
@@ -7085,37 +7201,20 @@ your own words in assembly.</p>
 </div>
 <div class="paragraph">
 <p>If you created a short word made out of just JSRs, and
-you wanted it to be an immediate, compile-only word, you might put <code>IM+CO</code> for this field.</p>
+you wanted it to be an immediate, compile-only word, you might add the <code>IM+CO</code> flags.</p>
 </div>
 <div class="paragraph">
-<p>The next line contains three addresses, so the 64tass <code>.word</code> directive is used
-here.  The first address is the nt_xxxx of the next word in the word list (with 0
-used for the very last word in the word list).  The
-words are listed in dictionary order, so this will normally be the nt_xxxx of
-the word just below (there may be some anonymous labels used if the next word is
-conditionally assembled).  The second address is the xt (execution token), or
-entry point, of your new word.  This will be your xt_xxxx label for your word.
-The third address is the end of your routine, just before the RTS instruction.
-You will use your z_xxxx label here.  The xt_xxxx and z_xxxx are used as the
-bounds of your word if it ends up being natively compiled.</p>
-</div>
-<div class="paragraph">
-<p>In the sample headers above, you can see that <code>drop</code> links to <code>dup</code> as the next
-word, and <code>dup</code> links to <code>swap</code> (not shown) as the next word.  When you go to
-add your own word, you will need to adjust these linkages.</p>
-</div>
-<div class="paragraph">
-<p>The last line is the actual name of the word, as it will be typed in forth, in
-lowercase.  It uses the 64tass <code>.text</code> directive and 64tass allows literal
-strings, so you can just put the name of your word in double-quotes.  If your
-word has a double-quote in it, look up <code>nt_s_quote</code> in the headers to see how
-this is handled.</p>
+<p>The  macro automatically chains words together in the dictionary using
+the <code>prev_nt</code> compiler variable.
+If you&#8217;re adding the last word in a new wordlist you should capture
+the current head of the dictionary (the latest NT header)
+by assigning from this variable, e.g. <code>dictionary_start = prev_nt</code>.
+You can then start a new wordlist by resetting <code>prev_nt := 0</code>.</p>
 </div>
 <div class="paragraph">
 <p>Although Tali is not case-sensitive, all words in the dictionary headers <strong>must be
-in lowercase</strong> or Tali will not be able to find them.  The length of this string
-also needs to match the length given as the first byte, or Tali will not be able
-to find this word.</p>
+in lowercase</strong> or Tali will not be able to find them.
+Names should be at most 31 characters.</p>
 </div>
 <div class="paragraph">
 <p>As an example, we&#8217;ll add the words <code>star</code> and <code>is</code> from the previous examples.
@@ -7125,37 +7224,25 @@ requires one of the status flags (<code>is</code>).</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>nt_drop:
-        .byte 4, 0
-        .word nt_star_word, xt_drop, z_drop
-        .text "drop"
-
-nt_star_word:
-        .byte 4, 0
-        .word nt_is, xt_star_word, z_star_word
-        .text "star"
-
-nt_is:
-        .byte 2, IM
-        .word nt_dup, xt_is, z_is
-        .text "is"
-nt_dup:
-        .byte 3, 0
-        .word nt_swap, xt_dup, z_dup
-        .text "dup"</pre>
+<pre>...
+#nt_header dup
+#nt_header is, "is", IM
+#nt_header star_word, "*"
+#nt_header drop                 ; DROP is always the first native word in the Dictionary</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The first thing to note is the updated linked list of words.  In order to put
-the new words between <code>drop</code> and <code>dup</code>, we make <code>drop</code> link to <code>star</code>, which then
-links to <code>is</code>, and that links back to <code>dup</code>.  If you use the <code>words</code> command, you will
-find the new words near the beginning of the list.</p>
+<p>The first thing to note is the updated linked list of words.
+By adding our new headers between <code>dup</code> and <code>drop</code>
+they are automatically inserted into the linked word list ` &#8230;&#8203; &#8594; dup &#8594; is &#8594; * -&#8594; drop`.
+If you use the <code>words</code> command, you will find the new words near the beginning of the list.</p>
 </div>
 <div class="paragraph">
-<p>The second thing to note is the status byte of each word.  If the word doesn&#8217;t
-need any special status, then just use 0.  Neither of our added words contain
-the JMP instruction (branches are OK, but JMP is not), so neither is required to
-carry the NN (Never Native) flag.  The word <code>is</code>, in it&#8217;s original Forth form,
+<p>The second thing to note are the flags for each word.
+If the word doesn&#8217;t need any special status, we can ignore the flags argument.
+Neither of our added words contain the JMP instruction (branches are OK, but JMP is not),
+so neither needs the NN (Never Native) flag.
+The word <code>is</code>, in its original Forth form,
 was marked as an immediate word, and we do that by putting the IM flag on it
 here in the dictionary header.</p>
 </div>
@@ -10639,7 +10726,7 @@ under <a href="https://www.ubuntu.com/">Ubuntu</a> Linux 16.04 LTS.</p>
 <div id="footer">
 <div id="footer-text">
 Version 1.1<br>
-Last updated 2025-06-10 10:24:45 -0400
+Last updated 2025-06-16 17:48:39 -0400
 </div>
 </div>
 </body>

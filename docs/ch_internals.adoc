@@ -133,13 +133,18 @@ image::pics/status_flags.png[]
 
 Five of the flags define metadata for the word,
 while three control the format of the header itself.
-The metadata flags are:
+The builtin word `see` displays all of these flags for any Forth word,
+along with a calculated *UF* flag indicating whether the word includes an (optional) underflow check.
+
+The first three metadata flags -- *HC*, *NN* and *AN* -- are rarely needed for user words,
+while the last two -- *CO* and *IM* -- are useful for words with special compilation semantics:
 
 [horizontal]
-CO::
-  *Compile Only.* This word may only be used inside definitions of new words.
-IM::
-  *Immediate.* This word is executed immediately during definitions of new words.
+HC::
+  *Has CFA.* The word's first three bytes are considered the Code Field Area (CFA).
+  The CFA is a `jsr` to either a known handler like `dovar` or indirectly to `dodefer`
+  and is followed by the Parameter Field Area (PFA) with any data used by the CFA.
+  This is used by words defined with `create` so that `>body` returns the correct value.
 NN::
   *Never Native.* This Word is never inlined. This is usually because the word needs
   the caller's return address for processing, or because the word
@@ -148,13 +153,12 @@ NN::
 AN::
   *Always Native.* This word must always be inlined, usually because it depends on the
   return stack state.  Setting both *NN* and *AN* together indicates a word which can be either
-  inlined or not with a specific return stack prologue that is removed when inlined.
+  inlined or not with a specific return stack prologue/epilogue that is removed when inlined.
   This is limited to the words `R>`, `R@`, `>R`, `2R>`, `2R@`, and `2>R`.
-HC::
-  *Has CFA.* The word's first three bytes are considered the Code Field Area (CFA).
-  The CFA is a `jsr` to either a known handler like `dovar` or indirectly to `dodefer`
-  and is followed by the Parameter Field Area (PFA) with any data used by the CFA.
-  This is used by words defined with `create` so that `>body` returns the correct value.
+IM::
+  *Immediate.* This word is executed immediately during definitions of new words.
+CO::
+  *Compile Only.* This word may only be used inside definitions of new words.
 
 The *NN* and *AN* flags are interpreted together like this:
 
@@ -169,15 +173,9 @@ The *NN* and *AN* flags are interpreted together like this:
 
 |===
 
-The last three flags control the header layout to optimize memory usage.
-For normal `:` words added to the dictionary we can often halve the header
-from eight to four bytes (not counting the name string).
-
-NOTE: We could also reorganize the built-in dictionary to save a little more memory
-but currently have preferred readability, keeping word headers disjoint
-from their assembly implementations.
-
-Here's a full picture of the header:
+The last three flags -- *DC*, *LC* and *FP* -- control the header layout to optimize memory usage,
+often allowing us to halve the header from eight to four bytes (not counting the name string).
+This full picture of the header illustrates how they work:
 
 image::pics/header_detail.png[]
 
@@ -213,6 +211,10 @@ The specific position of these flags in the status byte makes this easy to calcu
         lsr             ; shift FP to carry flag, so Acc = 2*DC + LC
         adc #4          ; header length is 4 + 2*DC + LC + FP bytes
 ----
+
+NOTE: We could also reorganize the built-in dictionary to save a little more memory
+but currently have preferred readability, keeping word headers disjoint
+from their assembly implementations.
 
 The second byte of the header -- following the status byte -- is the **length of the word's name string**, which
 is currently limited to 31 characters.
