@@ -226,9 +226,10 @@ z_compare:      rts
 
 
 
-; ## MINUS_LEADING ( addr1 u1 -- addr2 u2 ) "Remove leading spaces"
+; ## MINUS_LEADING ( addr1 u1 -- addr2 u2 ) "Remove leading whitespace"
 ; ## "-leading"  auto  Tali String
-        ; """Remove leading whitespace. This is the reverse of -TRAILING
+        ; """Remove leading whitespace. This is the reverse of -TRAILING except
+        ; that it removes any whitespace, not just BL
         ; """
 
 xt_minus_leading:
@@ -246,8 +247,7 @@ _loop:
                 bcc _done
 
                 ; It's whitespace, move one down
-                jsr w_one              ; ( addr u 1 )
-                jsr w_slash_string     ; ( addr+ u-1 )
+                jsr slash_string_1      ; ( addr+1 u-1 )
 
                 bra _loop
 _done:
@@ -259,65 +259,45 @@ z_minus_leading:
 ; ## MINUS_TRAILING ( addr u1 -- addr u2 ) "Remove trailing spaces"
 ; ## "-trailing"  auto  ANS string
         ; """https://forth-standard.org/standard/string/MinusTRAILING
-        ; Remove trailing spaces
+        ; Remove trailing spaces.  Note this ANSI word only removes ASCII $20
+        ; not other whitespace like -LEADING.
         ; """
 
 xt_minus_trailing:
                 jsr underflow_2
 w_minus_trailing:
-                ; if length entry is zero, return a zero and leave the
-                ; address part untouched
+                ; if length is zero we're done
                 lda 0,x         ; LSB of n
                 ora 1,x         ; MSB of n
                 beq _done
 
-                ; Compute address of last char in tmp1 as
-                ; addr + u1 - 1
-
-                ; addr + u1
-                clc
-                lda 2,x         ; LSB of addr
-                adc 0,x
-                sta tmp1
-                lda 3,x         ; MSB of addr
-                adc 1,x
-                sta tmp1+1
-
-                ; - 1
-                lda tmp1
-                bne +
-                dec tmp1+1
-+
-                dec tmp1
+                ; Compute address past last character: addr + u1
+                jsr w_two_dup
+                jsr w_plus
+                ; ( addr u addr' )
 
 _loop:
-                ; While spaces are found, move tmp1 backwards and
-                ; decrease the count on the data stack.
-                lda (tmp1)
-                cmp #AscSP
-                bne _done
+                ; Move back to point at last character
+                jsr w_one_minus
 
-                ; Move back one address.
-                lda tmp1
-                bne +
-                dec tmp1+1
-+
-                dec tmp1
+                ; While spaces are found,
+                ; decrease the count on the data stack and repeat
+                lda (0,x)
+                cmp #AscSP
+                bne _drop_done
 
                 ; Decrement count by one.
-                lda 0,x
+                lda 2,x
                 bne +
-                dec 1,x
+                dec 3,x
 +
-                dec 0,x
-
-                ; Check if there are any characters left.
-                lda 0,x
-                ora 1,x
-                beq _done       ; Count has reached zero - we're done!
-
-                bra _loop
-
+                dea
+                sta 2,x
+                ora 3,x         ; If count reaches zero - we're also done!
+                bne _loop
+_drop_done:
+                inx             ; drop the end-of-string pointer
+                inx
 _done:
 z_minus_trailing:
                 rts
@@ -519,6 +499,19 @@ w_slash_string:
                 inx
 
 z_slash_string: rts
+
+; for internal use we often need to remove a single character
+slash_string_1:       ; ( addr u -- addr+1 u-1)
+                inc 2,x
+                bne +
+                inc 3,x
++
+                lda 0,x
+                bne +
+                dec 1,x
++
+                dec 0,x
+rts
 
 
 

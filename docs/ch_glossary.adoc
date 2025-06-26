@@ -52,15 +52,17 @@ Store TOS at current place in memory.
 `-`:: _ANS core_ ( n n -- n ) "Subtract TOS from NOS"
 https://forth-standard.org/standard/core/Minus
 
-`-leading`:: _Tali String_ ( addr1 u1 -- addr2 u2 ) "Remove leading spaces"
-Remove leading whitespace. This is the reverse of -TRAILING
+`-leading`:: _Tali String_ ( addr1 u1 -- addr2 u2 ) "Remove leading whitespace"
+Remove leading whitespace. This is the reverse of -TRAILING except
+that it removes any whitespace, not just BL
 
 `-rot`:: _Gforth_ ( a b c -- c a b ) "Rotate upwards"
 http://www.complang.tuwien.ac.at/forth/gforth/Docs-html/Data-stack.html
 
 `-trailing`:: _ANS string_ ( addr u1 -- addr u2 ) "Remove trailing spaces"
 https://forth-standard.org/standard/string/MinusTRAILING
-Remove trailing spaces
+Remove trailing spaces.  Note this ANSI word only removes ASCII $20
+not other whitespace like -LEADING.
 
 `.`:: _ANS core_ ( u -- ) "Print TOS"
 https://forth-standard.org/standard/core/d

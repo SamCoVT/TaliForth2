@@ -6652,30 +6652,25 @@ w_type:
                 sta tmp1
                 lda 3,x
                 sta tmp1+1
-_loop:
-                ; done if length is zero
-                lda 0,x
-                ora 1,x
-                beq _done
 
-                ; Send the current character
-                lda (tmp1)
+                lda 0,x         ; partial page to do?
+                beq +
+_page:
+                ldy #0
+-
+                lda (tmp1),y
                 jsr emit_a      ; avoids stack foolery
-
-                ; Move the address along (in tmp1)
-                inc tmp1
-                bne +
-                inc tmp1+1
-+
-                ; Reduce the count (on the data stack)
-                lda 0,x
-                bne +
-                dec 1,x
-+
+                iny
                 dec 0,x
+                bne -
++
+                lda 1,x         ; See if we are done
+                beq _cleanup
+                dec 1,x         ; Not done - do another page
+                bra _page
 
-                bra _loop
-_done:
+_cleanup:
+                ; clean up the stack
                 inx
                 inx
                 inx
