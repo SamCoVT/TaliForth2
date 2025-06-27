@@ -286,7 +286,7 @@ _show_header:
 
                 ; Show flag values from the status byte along with
                 ; any calculated (synthetic) flag values
-                lda (2, x)              ; grab status flags @ NT
+                lda (2,x)               ; grab status flags @ NT
                 dex                     ; make some space
                 dex                     ; ( nt xt flags )
                 sta 0,x                 ; stash status flag byte
