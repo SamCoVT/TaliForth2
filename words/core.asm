@@ -4526,12 +4526,7 @@ w_r_fetch:
 
                 pla                     ; LSB
                 ply                     ; MSB
-                inc a
-                sta tmp1                ; LSB
-                bne +
-                iny
-+
-                sty tmp1+1              ; MSB
+                jsr rts_to_jmp
 
                 ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
@@ -4553,6 +4548,16 @@ w_r_fetch:
 z_r_fetch:      jmp (tmp1)
 
 
+rts_to_jmp:
+        ; given an rts address in YA, increment and store in tmp1
+        ; preparing for a later jmp (tmp1)
+                inc a
+                sta tmp1                ; LSB
+                bne +
+                iny
++
+                sty tmp1+1              ; MSB
+                rts
 
 
 ; ## R_FROM ( -- n )(R: n --) "Move top of Return Stack to TOS"
@@ -4571,12 +4576,7 @@ w_r_from:
 
                 pla                     ; LSB
                 ply                     ; MSB
-                inc a
-                sta tmp1                ; LSB
-                bne +
-                iny
-+
-                sty tmp1+1              ; MSB
+                jsr rts_to_jmp
 
                 ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
@@ -6208,12 +6208,7 @@ w_to_r:
 
                 pla                     ; LSB
                 ply                     ; MSB
-                inc a
-                sta tmp1                ; LSB
-                bne +
-                iny
-+
-                sty tmp1+1              ; MSB
+                jsr rts_to_jmp
 
                 ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
@@ -6393,33 +6388,35 @@ w_two_r_fetch:
 
                 pla                     ; LSB
                 ply                     ; MSB
-                inc a
-                sta tmp1                ; LSB
-                bne +
-                iny
-+
-                sty tmp1+1              ; MSB
+                jsr rts_to_jmp
 
                 ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
                 ; copy four bytes from return stack to the data stack
 
-                txa             ; arrange for Y = SP; X -= 4
-                tsx
-                phx             ; 65c02 has no TXY, so do it the hard way
-                ply
-                sec
-                sbc #4
-                tax
+                dex             ; make space on the data stack
+                dex
+                dex
+                dex
 
-                lda $101,y
-                sta 0,x
-                lda $102,y
-                sta 1,x
-                lda $103,y
-                sta 2,x
-                lda $104,y
-                sta 3,x
+                ; rather than actually copying from the CPU stack it's quicker
+                ; to pull the values we want, and then restore the SP to unpull them
+                phx             ; put DSP on the stack
+                tsx
+                txa             ; save SP -> X -> A
+                plx             ; restore DSP
+
+                ply             ; copy four elements
+                sty 0,x
+                ply
+                sty 1,x
+                ply
+                sty 2,x
+                ply
+                sty 3,x
+                tax
+                txs             ; restore SP
+                plx             ; pull original DSP again
 
                 ; --- CUT FOR NATIVE COMPILE ---
 
@@ -6444,12 +6441,7 @@ w_two_r_from:
 
                 pla
                 ply                     ; MSB
-                inc a
-                sta tmp1                ; LSB
-                bne +
-                iny
-+
-                sty tmp1+1              ; MSB
+                jsr rts_to_jmp
 
                 ; --- START FOR NATIVE COMPILE (via ST flag) ---
 
@@ -6603,12 +6595,7 @@ w_two_to_r:
 
                 pla                     ; LSB
                 ply                     ; MSB
-                inc a
-                sta tmp1                ; LSB
-                bne +
-                iny
-+
-                sty tmp1+1              ; MSB
+                jsr rts_to_jmp
 
                 ; --- START FOR NATIVE COMPILE (via ST flag) ---
 

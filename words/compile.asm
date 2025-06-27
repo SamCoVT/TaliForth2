@@ -110,7 +110,7 @@ compile_comma_common:
                 cmp #ST
                 bne _check_uf
 
-_strip_sz = 10  ; skip the standard 10 byte header which saves return address + 1 to tmp1
+_strip_sz = 5  ; skip the standard 5 byte header which saves return address + 1 to tmp1
 
                 ; Start later: xt += sz
                 clc
