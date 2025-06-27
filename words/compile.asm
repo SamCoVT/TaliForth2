@@ -390,6 +390,10 @@ cmpl_0branch_tos:
                 lda #<zero_branch_runtime
                 jsr cmpl_subroutine             ; call the 0branch runtime
 
+                ; we're adding an absolute address, so flag this word as never-native (NN)
+                lda #%00010000                  ; unset bit 4 to for NN
+                trb status
+
                 jmp w_comma                    ; add the payload and return
 
 _inline:

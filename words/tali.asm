@@ -213,7 +213,6 @@ w_find_name:
                 ora 1,x
                 beq _fail_done
 
-_nonempty:
                 ; Truncate names longer than the max allowed (31).
                 dex
                 dex

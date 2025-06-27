@@ -187,9 +187,9 @@ _x9:
                 ; for $x9, bit 4 set means 3 bytes, clear means 2
                 and #$10
                 beq _two
-_three:         iny
-_two:           iny
-_one:           rts
+                iny             ; leave Y=3
+_two:           iny             ; leave Y=2
+_one:           rts             ; leave Y=1
 
 
 ; ==========================================================
@@ -207,7 +207,6 @@ _loop:
                 iny
                 cpy #z_push_a_tos - push_a_tos
                 bne _loop
-_done:
 z_asm_push_a:
                 rts
 

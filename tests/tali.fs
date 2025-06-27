@@ -168,6 +168,14 @@ T{ latestxt int>name wordsize ->  3 }T
 T{ ' five int>name wordsize -> 16 }t
 T{ five -> 42 }T
 
+\ Test inlined zero_branch call (issue #158)
+
+0 nc-limit !      \ force zero_branch call with absolute address
+: test1 0 if then ;
+16 nc-limit !
+: test2 test1 5 ; \ test1 should be NN and leave 5 on stack
+T{ test2 -> 5 }T
+
 \ Test large words, relocatable and not
 here
 : lorem ." Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." ;
