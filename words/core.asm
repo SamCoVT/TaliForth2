@@ -3880,7 +3880,7 @@ z_number_sign_s:
 xt_of:
 w_of:
                 ; Check if value is equal to this case.
-                ; Postpone over (eg. compile a jsr to it)
+                ; Postpone over (e.g. compile a jsr to it)
                 ldy #>w_over
                 lda #<w_over
                 jsr cmpl_subroutine
@@ -3893,7 +3893,7 @@ w_of:
                 jsr w_if
 
                 ; If it's true, consume the original value.
-                ; Postpone DROP (eg. compile a jsr to it)
+                ; Postpone DROP (e.g. compile a jsr to it)
                 ldy #>w_drop
                 lda #<w_drop
                 jsr cmpl_subroutine
@@ -4937,7 +4937,7 @@ _refill_ok:
                 inx
 
                 ; For refill success, jump back up to the empty check, just in
-                ; case refill gave us an empty buffer (eg. empty/blank line of
+                ; case refill gave us an empty buffer (e.g. empty/blank line of
                 ; input)
                 bra _savechars_loop
 

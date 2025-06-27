@@ -1,0 +1,13 @@
+nt_word --> +----------------+
+            | Status flags   |
+            +----------------+
+            | Name length    |
+            +----------------+
+            | Prev header    | -> nt_prev_word
+            +----------------+
+            | Start of code  | -> xt_word
+            +----------------+
+            | Length of code | -> z_word - xt_word
+            +----------------+
+            | Name string    |  Ascii bytes, unterminated.
+            +----------------+

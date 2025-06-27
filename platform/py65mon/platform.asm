@@ -8,7 +8,7 @@
 
         ; 65C02 processor (Tali will not compile on older 6502)
         .cpu "65c02"
-        ; No special text encoding (eg. ASCII)
+        ; No special text encoding (e.g. ASCII)
         .enc "none"
 
 TALI_ARCH := "py65mon"
@@ -16,7 +16,7 @@ TALI_ARCH := "py65mon"
 ; Set the address for the end of RAM
 ; In simulators or all-RAM systems, this will generally be at $7FFF
 ; This address is for 32K of RAM
-; The code for Tali will generally live above this address (eg. in ROM)
+; The code for Tali will generally live above this address (e.g. in ROM)
 ram_end = $7fff
 
         ; Set the origin for Tali Forth 2 in ROM (or RAM if loading it)
@@ -49,7 +49,7 @@ TALI_OPTIONAL_WORDS := [ "ed", "editor", "ramdrive", "block", "environment?", "a
 ;     If both the assembler and dissasembler are removed, the tables
 ;     (used for both assembling and disassembling) will be removed
 ;     for additional memory savings. (extra ~1.6K)
-; "wordlist" is for the optional SEARCH-ORDER words (eg. wordlists)
+; "wordlist" is for the optional SEARCH-ORDER words (e.g. wordlists)
 ;     Note: Without "wordlist", you will not be able to use any words from
 ;     the EDITOR or ASSEMBLER wordlists (they should probably be disabled
 ;     by also removing "editor" and "assembler"), and all new words will

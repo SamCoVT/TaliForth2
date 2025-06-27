@@ -62,7 +62,7 @@ clean:
 	$(RM) *.bin *.prg
 	make -C c65 clean
 
-taliforth-%.bin: platform/%/platform.asm $(COMMON_SOURCES)
+taliforth-%.bin: platform/%/platform.asm platform/%/platform_words.asm platform/%/platform_forth.asc $(COMMON_SOURCES)
 	64tass --nostart \
 	--list=docs/$*-listing.txt \
 	--vice-labels \
@@ -70,7 +70,7 @@ taliforth-%.bin: platform/%/platform.asm $(COMMON_SOURCES)
 	--output $@ \
 	$<
 
-taliforth-%.prg: platform/%/platform.asm $(COMMON_SOURCES)
+taliforth-%.prg: platform/%/platform.asm platform/%/platform_words.asm platform/%/platform_forth.asc $(COMMON_SOURCES)
 	64tass --cbm-prg \
 	--list=docs/$*-listing.txt \
 	--labels=docs/$*-labelmap.txt \
@@ -80,6 +80,18 @@ taliforth-%.prg: platform/%/platform.asm $(COMMON_SOURCES)
 # Convert the high-level Forth words to ASCII files that Ophis can include
 %.asc: forth_code/%.fs
 	$(PYTHON) forth_code/forth_to_ophisbin.py -i $< > $@
+
+# This will only process the file if it exists.
+# The || true on the end causes make to always think this command succeeds.
+platform/%/platform_forth.asc: platform/%/platform_forth.fs
+	test -f $< && $(PYTHON) forth_code/forth_to_ophisbin.py -i $< > $@ || true
+
+# Allow platform_forth.fs and platform_words.asm to be missing.
+platform/%/platform_forth.fs:
+	@echo No platform_forth.fs for this platform.
+platform/%/platform_words.asm:
+	@echo No platform_words.asm for this platform.
+
 
 # Automatically update the wordlist which also gives us the status of the words
 # We need for the binary to be generated first or else we won't be able to find

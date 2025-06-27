@@ -15,7 +15,7 @@
 
         ; 65C02 processor (Tali will not compile on older 6502)
         .cpu "65c02"
-        ; No special text encoding (eg. ASCII)
+        ; No special text encoding (e.g. ASCII)
         .enc "none"
 
 ram_end = $8000-1

@@ -525,7 +525,7 @@ xt_sliteral:
                 jsr underflow_2
 w_sliteral:
                 ; We can't assume that ( addr u ) of the current string is in
-                ; a stable area (eg. already in the dictionary.)
+                ; a stable area (e.g. already in the dictionary.)
                 ; We'll compile the length and string data into the dictionary
                 ; using move along with runtime code that stacks the new ( addr' u )
                 ;

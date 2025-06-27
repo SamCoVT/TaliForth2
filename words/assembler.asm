@@ -233,8 +233,8 @@ xt_asm_back_branch:
                 jsr w_minus            ; ( offset )
 
                 ; We subtract two more because of the branch instruction itself
-                dea
-                dea
+                dec 0,x
+                dec 0,x
 
 z_asm_back_branch:
                 rts

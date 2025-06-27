@@ -48,7 +48,7 @@
 ;       NN - Never Native Compile (must always be called by JSR)
 ;       HC - Has CFA (words created by CREATE and DOES> only)
 ;
-;       The NN and AN flags are intrepreted together like this:
+;       The NN and AN flags are interpreted together like this:
 ;
 ;            NN  AN
 ;           +---+---+

@@ -1,0 +1,31 @@
+nt_prev --> +-----------------+  |
+            :                 :  |
+            :              {d}:  |
+            +-----------------+  | within 256 prior bytes if FP is 0
+                  ...            |
+                                 |
+nt_word --> +-----------------+  V
+            |  Status flags   |   Header format is controlled
+            |    (1 byte)     |   by the FP, DC, and LC flags
+            +-----------------+
+            |   Name length   |   Bits 0..4 are name length (max 31),
+    ^       |    (1 byte)     |   with bits 5..7 reserved (all 0)
+    |       +-----------------+
+    +------ |     Prev NT     |   FP selects either (0) only lsb of nt_prev
+            | (1 or 2 bytes)  |   or (1) both lsb/msb of nt_prev
+            +-----------------+
+    +------ |  Start of code  |   DC selects either (0) code follows header
+    |       | (0 or 2 bytes)  |   or (1) two byte xt_word value
+    v       +-----------------+
+            |   Code length   |   LC selects code length, either
+            | (1 or 2 bytes)  |   (0) one byte or (1) two bytes
+            +-----------------+
+            |   Name string   |   Name stored as 7 bit lower case ascii
+            | (1 to 31 bytes) |   string with no terminator
+ nt_end --> +-----------------+
+                    ...     No gap when DC is 0
+xt_word --> +-----------------+
+            |   Word body     |
+            |  (65c02 code)   |
+            |             {d} |
+ z_word --> +-----------------+

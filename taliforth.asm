@@ -38,8 +38,18 @@ forth:
 .include "definitions.asm"      ; Top-level definitions, memory map
                                 ; included here to put relocatable tables after native words
 
+
+; Bring in the words written in forth (as a string that gets run at startup).
+; The user can override these using their platform file.
+.weak
+
 ; High-level Forth words, see forth_code/README.md
 forth_words_start:
+
+; Don't include these files if the user has made a forth_words_start label in their
+; platform file.
+.if forth_words_start == *
+
 .if ! TALI_OPTION_TERSE         ; omit startup strings if terse
 .binary "forth_words.asc"
 .endif
@@ -49,6 +59,12 @@ forth_words_end:
 user_words_start:
 .binary "user_words.asc"
 user_words_end:
+
+; End of .if forth_words_start == *
+.endif
+
+.endweak
+
 
 .include "words/headers.asm"          ; Headers of native words
 .include "stringtable.asm"          ; Strings, including error messages

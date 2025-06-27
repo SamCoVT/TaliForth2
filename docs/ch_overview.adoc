@@ -8,7 +8,7 @@ Decisions in the Forth Kernel" at
 http://www.bradrodriguez.com/papers/moving1.htm by Brad Rodriguez.
 
 Spoiler alert: Tali Forth is a subroutine-threaded (STC) variant with a 16-bit
-cell size and a dictionary that keeps headers and code separate. If you don't
+cell size and a dictionary that allows separated headers and code. If you don't
 care and just want to use the program, skip ahead.
 
 ==== Characteristics of the 65c02
@@ -18,7 +18,7 @@ processor. The 65c02 only has one full register, the accumulator A, as well as
 two secondary registers X and Y. All are 8-bit wide. There are 256 bytes that
 are more easily addressable on the Zero Page. A single hardware stack is used
 for subroutine jumps. The address bus is 16 bits wide for a maximum of 64 KiB of
-RAM and ROM. 
+RAM and ROM.
 
 For the default setup, we assume 32 KiB of each, but allow this to be changed so
 people can adapt Tali to their own hardware.
@@ -50,7 +50,7 @@ Our lack of registers and the goal of creating a simple and easy to understand
 Forth makes subroutine threading the most attractive solution, so Tali 2 is an
 STC Forth. We try to mitigate the pain caused by the 12 cycle cost of each and
 every `jsr`-`rts` combination by including a relatively high number of native
-words.
+words, as well as in-built support for inlining of most words.
 
 
 ==== Register Use
@@ -62,7 +62,7 @@ registers:
 .The classic Forth registers
 [%autowidth]
 |===
-| Register | Name 
+| Register | Name
 
 | W   | Working Register
 | IP  | Interpreter Pointer
@@ -91,11 +91,12 @@ no checks for overflow because those cases tend to be rare.
 
 ==== Dictionary Structure
 
-Each Forth word consists of the actual code and the header that holds the
-meta-data. The headers are arranged as a simple single-linked list.
+The implementation of each Forth word consists of its actual assembly code
+along with a header that holds meta-data for the word.
+The headers are arranged as a simple single-linked list.
 
 In contrast to Tali Forth 1, which kept the header and body of the words
-together, Tali Forth 2 keeps them separate. This lets us play various tricks
+together, Tali Forth 2 allows them to be separated. This lets us play various tricks
 with the code to make it more effective.
 
 === Deeper down the rabbit hole

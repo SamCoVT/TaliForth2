@@ -68,6 +68,9 @@ T{ capture-output see cword restore-output s"  NN 1 " search -rot 2drop -> true 
 \ Testing pseudo-instructions
 T{ here  0a lda.# push-a rts  execute -> 0a }T
 
+\ Testing <B for correct displacement
+T{ here 2 lda.# --> dec.a <B bne push-a rts execute -> 0 }T
+
 \ Testing a two-byte instruction for correct operand handling
 T{ 12 s" 12 lda.#" correct-operand? -> true }T
 

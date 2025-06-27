@@ -41,7 +41,7 @@ F008 constant cycles
 \ To test a word, put any arguments it needs on the stack, use tick
 \ (') on the word to get it's execution token (xt) and then put
 \ cycle_test, then any stack cleanup.
-\ eg. 5 ' dup cycle_test 2drop
+\ e.g. 5 ' dup cycle_test 2drop
 : cycle_test ( xt -- )
     [ ' cycle_test_runtime 4 + ] literal ! cycle_test_runtime ;
 

@@ -125,12 +125,13 @@ err_wordlist     = 11
 err_blockwords   = 12
 err_returnstack  = 13
 err_toolong      = 14
+err_usersigint   = 15
 
 error_table:
-        .word es_allot, es_badsource, es_compileonly, es_defer  ;  0-3
-        .word es_divzero, es_noname, es_refill, es_state        ;  4-7
-        .word es_syntax, es_underflow, es_negallot, es_wordlist ;  8-11
-        .word es_blockwords, es_returnstack, es_toolong         ; 12-14
+        .word es_allot, es_badsource, es_compileonly, es_defer          ;  0-3
+        .word es_divzero, es_noname, es_refill, es_state                ;  4-7
+        .word es_syntax, es_underflow, es_negallot, es_wordlist         ;  8-11
+        .word es_blockwords, es_returnstack, es_toolong, es_usersigint  ; 12-15
 
 .if ! TALI_OPTION_TERSE
 es_allot:       .shift "ALLOT using all available memory"
@@ -148,6 +149,7 @@ es_wordlist:    .shift "No wordlists available"
 es_blockwords:  .shift "Please assign vectors BLOCK-READ-VECTOR and BLOCK-WRITE-VECTOR"
 es_returnstack: .shift "Return stack:"
 es_toolong:     .shift "Name too long (max 31)"
+es_usersigint:  .shift "User interrupt"
 .else
 es_allot:       .shift "EALLT"
 es_badsource:   .shift "EBSRC"
@@ -164,6 +166,7 @@ es_wordlist:    .shift "EWLST"
 es_blockwords:  .shift "EBLKW"
 es_returnstack: .shift "RS"
 es_toolong:     .shift "E2LNG"
+es_usersigint:  .shift "EINTR"
 .endif
 
 

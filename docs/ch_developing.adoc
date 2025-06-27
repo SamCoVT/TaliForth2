@@ -16,7 +16,6 @@ To recompile the documentation for Tali Forth 2, you will need the following too
 `Ditaa` is used to generate the diagrams from text file descriptions and is
 available at https://ditaa.sourceforge.net/ Ditaa is not required if you are not
 going to change any of the diagrams.
-
 Ditaa is a java program, so I made a helper script (named just `ditaa`) to help
 run it.  You'll need to replace the path to the jar file for your system.
 
@@ -24,6 +23,8 @@ run it.  You'll need to replace the path to the jar file for your system.
 #!/bin/sh
 java -jar /path/to/jarfile/ditaa0_9.jar $@
 ----
+
+NOTE: For OS X users, `brew install ditaa` gives you an executable `ditaa` without the helper script.
 
 `asciidoctor` and `asciidoctor-pdf` are used to generate the html and PDF versions
 of this manual.  These are rubygems are are installed by first installing ruby
@@ -36,7 +37,7 @@ sudo gem install asciidoctor-pdf
 
 These tools have an annoying "feature" of having their version number in the
 executable name.  To work around this, I created symbolic links in my personal
-bin folder (eg. a folder in my path) as shown below.  You will need to adjust
+bin folder (e.g. a folder in my path) as shown below.  You will need to adjust
 with the name of these utilities on your system.
 
 ----
@@ -138,9 +139,12 @@ installed). This also updates the file listings in the `docs` folder.
 * The Y register, however, is free to be changed by subroutines. This also means
   it should not be expected to survive subroutines unchanged.
 
-* Natively coded words generally should have exactly one point of entry -- the
+* Natively coded words generally should have exactly one external point of entry -- the
   `xt_word` link -- and exactly one point of exit at `z_word`. In may cases,
   this requires a branch to an internal label `_done` right before `z_word`.
+
+* Most words also include an internal `w_word` entrypoint that skips any underflow test.
+  This allows native code to call each other more efficiently.
 
 * Because of the way native compiling works, the trick of combining
   `jsr`-`rts` pairs to a single `jmp` instruction (usually) doesn't work.
@@ -191,12 +195,12 @@ with examples.  Take each word in the definition, determine which type of word
 it is, and then follow the steps outlined below for that word type.
 
 Once the word has been converted, a dictionary header needs to be added for it
-in words/headers.asm.  This process is covered in detail at the end of this section.
+in `words/headers.asm`.  This process is covered in detail at the end of this section.
 
 ==== Processing Regular (Non-Immediate) Words
 
 If the definition word you are processing is not immediate (you can check this
-with `see`, eg. `see dup` and make sure the IM flag is 0) then it just
+with `see`, e.g. `see dup` and make sure the IM flag is 0) then it just
 translates into a JSR to the native code implementing the xt (execution token) of that word.
 Most words have an external entrypoint which begins with `xt_` followed by the name
 (spelled out, in the case of numbers and symbols) of the word.   Once your
@@ -214,7 +218,7 @@ Translates into:
 ; ## "getstate" coded Custom
 xt_getstate:
 w_getstate:     ; no underflow check so w_ entrypoint is the same as xt_
-                jsr w_state
+                jsr w_state ; note we use the internal entrypoint for efficiency
                 jsr w_fetch ; @ is pronounced "fetch" in Forth.
 z_getstate:
                 rts
@@ -234,7 +238,7 @@ parameters in standard Forth format, and a string that has a short description
 of what the word does.  The second line has a string showing the name as it
 would be typed in Forth (useful for words with symbols in them), the current
 testing status (coded, tested, auto), and where the word comes from (ANS,
-Gforth, etc.)  See the top of words/headers.asm for more information on the
+Gforth, etc.)  See the top of `words/headers.asm` for more information on the
 status field, but "coded" is likely to be the right choice until you've
 thoroughly tested your new word.
 
@@ -242,11 +246,11 @@ Local labels begin with an underscore "_" and are only visible within the same
 scope (between two regular labels).  This allows multiple words to all have a
 `_done:` label, for example, and each word will only branch to its own local
 version of `_done:` found within its scope.  Any branching within the word
-(eg. for ifs and loops) should be done with local labels.  Labels without an
+(e.g. for ifs and loops) should be done with local labels.  Labels without an
 underscore at the beginning are globally available.
 
 The labels xt_xxxx and z_xxxx need to be the entry and exit point, respectively,
-of your word.  The xxxx portion should be your word spelled out (eg. numbers and
+of your word.  The xxxx portion should be your word spelled out (e.g. numbers and
 symbols spelled out with underscores between them).  Although allowed in the
 Forth word, the dash "-" symbol is not allowed in the label (the assembler will
 try to do subtraction), so it is replaced with an underscore anywhere it is
@@ -263,7 +267,7 @@ searching for "@" (including the quotes) if you didn't know its name.
 
 ==== Processing Immediate Words
 
-To determine if a word is immediate, use the word `see` on it (eg. `see [char]`
+To determine if a word is immediate, use the word `see` on it (e.g. `see [char]`
 for the example below).  Processing an immediate word takes a little more
 detective work.  You'll need to determine what these words do to the word being
 compiled and then do it yourself in assembly, so that only what is actually
@@ -340,7 +344,7 @@ being too long.  The definition in Forth looks like:
 
 This has an `IF` in it, which we will need to translate into branches and will
 be a good demonstration of using local labels.  This word has stateful behavior
-(eg. it acts differently in INTERPRET mode than it does in COMPILE mode).  While
+(e.g. it acts differently in INTERPRET mode than it does in COMPILE mode).  While
 we could translate the "state @" portion at the beginning into JSRs to xt_state
 and xt_fetch, it will be much faster to look in the state variable directly in
 assembly.  You can find all of the names of internal Tali variables in
@@ -401,8 +405,8 @@ run the code for the `else` section, we use a BRA to a _done label.
 The `else` section of the `if` just has two regular words, so they are just
 translated into JSRs.
 
-The `immediate` on the end is handled in the header in headers.asm by adding IM
-to the status flags.  See the top of headers.asm for a description of all of the
+The `immediate` on the end is handled in the header in `words/headers.asm` by adding IM
+to the status flags.  See the top of `words/headers.asm` for a description of all of the
 header fields.
 
 ==== Processing DOES>
@@ -475,51 +479,44 @@ All of the other words other than `does>` in this definition are regular words,
 so they just turn into JSRs.  The word `does>` turns into a `jsr does_runtime`
 followed by a `jsr dodoes`.
 
-==== Adding the Header in headers.asm
+==== Adding the Header in words/headers.asm
 
-Once your word has been entered into one of the words/*.asm files with the appropriate
-comment block over it and the xt_xxxx, w_xxxx and z_xxxx labels for the entry and exit
+Once your word has been entered into one of the `words/*.asm` files with the appropriate
+comment block over it and the `xt_xxxx`, `w_xxxx` and `z_xxxx` labels for the entry and exit
 points, it is time to add the dictionary header for your word to link it into
 one of the existing wordlists.  The words here are not in alphabetical order and
 are loosely grouped by function.  If you aren't sure where to put your word, then
-put it near the top of the file just under the header for `drop`.
+put it near the end of the file just before the header for `drop`:
 
-Each header is simply a declaration of bytes and words that provides some basic
-information that Tali needs to use the word, as well as the addresses of the
-beginning and ending (not including the rts at the end) of your word.  That's
-why you need the xt_xxxx and z_xxxx labels in your word (where xxxx is the
+----
+#nt_header drop                 ; DROP is always the first native word in the Dictionary
+----
+
+Each header simply provides some basic information that Tali needs to use the word,
+as well as the where the code for the word starts and ends (excluding the final `rts`).
+That's why you need the `xt_xxxx` and `z_xxxx` labels in your word (where `xxxx` is the
 spelled-out version of your word's name).
 
-Before we dicuss adding a word, let's go over the form a dictionary header.  The
-fields we will be filling in are described right at the top of headers.asm for
-reference. We'll look at an easy to locate word, `drop`, which is used to
-remove the top item on the stack. It's right near the top of the list.  We'll also
-show the word `dup`, which is the next word is the dictionary.
-The headers for these two words currently look like:
+Before we discuss adding a word, let's go over the form a dictionary header.
+The fields we'll be defining are described in words/headers.asm
+with more detail in <<Elements of the Header>>.
+In most cases we can simply use the `#nt_header` macro:
 
 ----
-nt_drop:
-        .byte 4, 0
-        .word nt_dup, xt_drop, z_drop
-        .text "drop"
-
-nt_dup:
-        .byte 3, 0
-        .word nt_swap, xt_dup, z_dup
-        .text "dup"
+#nt_header label[, "name"[,flags]]
 ----
 
-The first component of a dictionary header is the label, which comes in the form
-nt_xxxx where xxxx is the spelled out version of your word's name.  The xxxx
-should match whatever you used in your xt_xxxx and z_xxxx labels.
+Here `label` is the `xxxx` in `xt_xxxx` and `z_xxxx`;
+"name" is the actual string to use for the word's name if different `"xxxx"`
+(usually if it contains special characters other than `[_a-z0-9]`);
+and `flags` is any combination of required flags from `CO, IM, AN, NN, HC`
+as detailed in <<Elements of the Header>>.
+For example:
 
-The next two fields are byte fields, so we create them with the 64tass assembler
-`.byte` directive.  The first field is the length of the name, in characters, as
-it will be typed in Tali.  The second field is the status of the word, where
-each bit has a special meaning.  If there is nothing special about your word,
-you will just put 0 here.  If your word needs some of the status flags, you add
-them together (with +) here to form the status byte.  The table below gives the
-constants you will use and a brief description of when to use them.
+----
+#nt_header m_star_slash, "m*/" ; uses special characters in the name
+#nt_header exit, "exit", AN+CO ; needs special flags so "exit" must also be added
+----
 
 [horizontal]
 CO:: Compile Only.  Add this if your word should only be allowed when compiling
@@ -544,33 +541,18 @@ This is used for words like R>, R@ and >R but you're unlikely to need this for
 your own words in assembly.
 
 If you created a short word made out of just JSRs, and
-you wanted it to be an immediate, compile-only word, you might put `IM+CO` for this field.
+you wanted it to be an immediate, compile-only word, you might add the `IM+CO` flags.
 
-The next line contains three addresses, so the 64tass `.word` directive is used
-here.  The first address is the nt_xxxx of the next word in the word list (with 0
-used for the very last word in the word list).  The
-words are listed in dictionary order, so this will normally be the nt_xxxx of
-the word just below (there may be some anonymous labels used if the next word is
-conditionally assembled).  The second address is the xt (execution token), or
-entry point, of your new word.  This will be your xt_xxxx label for your word.
-The third address is the end of your routine, just before the RTS instruction.
-You will use your z_xxxx label here.  The xt_xxxx and z_xxxx are used as the
-bounds of your word if it ends up being natively compiled.
-
-In the sample headers above, you can see that `drop` links to `dup` as the next
-word, and `dup` links to `swap` (not shown) as the next word.  When you go to
-add your own word, you will need to adjust these linkages.
-
-The last line is the actual name of the word, as it will be typed in forth, in
-lowercase.  It uses the 64tass `.text` directive and 64tass allows literal
-strings, so you can just put the name of your word in double-quotes.  If your
-word has a double-quote in it, look up `nt_s_quote` in the headers to see how
-this is handled.
+The  macro automatically chains words together in the dictionary using
+the `prev_nt` compiler variable.
+If you're adding the last word in a new wordlist you should capture
+the current head of the dictionary (the latest NT header)
+by assigning from this variable, e.g. `dictionary_start = prev_nt`.
+You can then start a new wordlist by resetting `prev_nt := 0`.
 
 Although Tali is not case-sensitive, all words in the dictionary headers *must be
-in lowercase* or Tali will not be able to find them.  The length of this string
-also needs to match the length given as the first byte, or Tali will not be able
-to find this word.
+in lowercase* or Tali will not be able to find them.
+Names should be at most 31 characters.
 
 As an example, we'll add the words `star` and `is` from the previous examples.
 Technically, `is` is already in the dictionary, but this example will show
@@ -578,37 +560,26 @@ you how to create the header for a regular word (`star`) and for one that
 requires one of the status flags (`is`).
 
 ----
-nt_drop:
-        .byte 4, 0
-        .word nt_star_word, xt_drop, z_drop
-        .text "drop"
-
-nt_star_word:
-        .byte 4, 0
-        .word nt_is, xt_star_word, z_star_word
-        .text "star"
-
-nt_is:
-        .byte 2, IM
-        .word nt_dup, xt_is, z_is
-        .text "is"
-nt_dup:
-        .byte 3, 0
-        .word nt_swap, xt_dup, z_dup
-        .text "dup"
+...
+#nt_header dup
+#nt_header is, "is", IM
+#nt_header star_word, "*"
+#nt_header drop                 ; DROP is always the first native word in the Dictionary
 ----
 
-The first thing to note is the updated linked list of words.  In order to put
-the new words between `drop` and `dup`, we make `drop` link to `star`, which then
-links to `is`, and that links back to `dup`.  If you use the `words` command, you will
-find the new words near the beginning of the list.
+The first thing to note is the updated linked list of words.
+By adding our new headers between `dup` and `drop`
+they are automatically inserted into the linked word list ` ... -> dup -> is -> * --> drop`.
+If you use the `words` command, you will find the new words near the beginning of the list.
 
-The second thing to note is the status byte of each word.  If the word doesn't
-need any special status, then just use 0.  Neither of our added words contain
-the JMP instruction (branches are OK, but JMP is not), so neither is required to
-carry the NN (Never Native) flag.  The word `is`, in it's original Forth form,
+The second thing to note are the flags for each word.
+If the word doesn't need any special status, we can ignore the flags argument.
+Neither of our added words contain the JMP instruction (branches are OK, but JMP is not),
+so neither needs the NN (Never Native) flag.
+The word `is`, in its original Forth form,
 was marked as an immediate word, and we do that by putting the IM flag on it
 here in the dictionary header.
+
 
 === Code Cheat Sheets
 
