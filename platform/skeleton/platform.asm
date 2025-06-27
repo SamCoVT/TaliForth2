@@ -80,25 +80,24 @@ kernel_init:
         ; have no use for interrupts. If you are going to include
         ; them in your system in any way, you're going to have to
         ; do it from scratch.
-        sei             ; Disable interrupts
+                sei             ; Disable interrupts
 
         ; We've successfully set everything up, so print the kernel
         ; string
-        ldx #0
--       lda s_kernel_id,x
-        beq _done
-        jsr kernel_putc
-        inx
-        bra -
+                ldx #0
+-               lda s_kernel_id,x
+                beq _done
+                jsr kernel_putc
+                inx
+                bra -
 _done:
-        jmp forth
-        
+                jmp forth
 
 kernel_bye:
         ; """Forth shutdown called from BYE
         ; If you have a monitor or OS to go back to, put the code
         ; to do that here."""
-        brk
+                brk
 
 
 kernel_putc:
@@ -107,8 +106,8 @@ kernel_putc:
         ; Note this routine must preserve X and Y.
         ; If your code is more complex, wrap it with PHX, PHY ... PLY, PHX
         ; """
-        sta $F001 ; $F001 is used in many simulators for character output.
-        rts
+                sta $F001 ; $F001 is used in many simulators for character output.
+                rts
 
 kernel_getc:
         ; """Get a single character from the keyboard.
@@ -149,14 +148,14 @@ kernel_kbhit:
 
 ; Now we've got all of Tali's native code.  This requires about 24Kb
 ; with all options, or as little as 12Kb for a minimal build.
-; In the default configuraiton, we've filled ROM from $8000
+; In the default configuration, we've filled ROM from $8000
 ; to about $dfff, leaving about 8Kb.
 
 
 
 ; Leave the following string as the last entry in the kernel routine so it
 ; is easier to see where the kernel ends in hex dumps. This string is
-; displayed after a successful boot
+; displayed after a successful boot.
 
 s_kernel_id:
         .text "Tali Forth 2 default kernel for c65 (01. Jun 2024)", AscLF, 0
