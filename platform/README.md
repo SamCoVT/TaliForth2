@@ -248,31 +248,6 @@ interrupt running code and return to the prompt. For example, the 6502's
 NMI input could be used with a simple push-button that vectors to code that
 jumps to `error` as described above.
 
-### Supporting User Interrupt (e.g. Ctrl-C to break)
-
-If your platform has support for hardware interrupts, you can easily
-support the ability for a user to stop running (runaway?) code and return to
-the input prompt.
-
-For platforms that have an interrupt-driven serial console, this can be
-implemented by checking to see if an input character read in the interrupt
-service routine is the "break" key (e.g. Ctrl-C). If so, instead of
-buffering the input character and returning from the interrupt, set A to
-error code `err_usersigint` (see `stringtable.asm`) and jump to Taliforth's
-`error` entry point. After printing the "User interrupt" message, Taliforth
-will jump to `ABORT` which resets the Forth data stack and the return stack.
-
-Before jumping to `error` you should re-enable interrupts (since no RTI
-instruction will be executed), and flush your input buffer so that characters
-buffered before the break key was detected will not be processed as new
-input when Taliforth next awaits user input.
-
-Any other mechanism that can respond to a hardware input via an interrupt
-service routine could be used in a similar manner to allow a user to
-interrupt running code and return to the prompt. For example, the 6502's
-NMI input could be used with a simple push-button that vectors to code that
-jumps to `error` as described above.
-
 ## Contributing
 
 To submit your configuration file, pick a name for your platform folder that is
