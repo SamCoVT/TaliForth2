@@ -65,6 +65,18 @@ kernel_bye:
 ; Put the guts of Tali Forth 2 here.
 .include "../../taliforth.asm" ; zero page variables, definitions
 
+; =====================================================================
+; Include any forth words written in forth.  Your forth code goes into
+; the platform_forth.fs file.  The Makefile will turn that into
+; platform_forth.asc, which is the same code but with all comments
+; removed and all whitespace reduced to single space (to reduce size).
+; It's this reduced-size version of the code that we bring in here.
+; Note that Make normally deletes this .asc file after the build
+; process completes.
+user_words_start:
+.binary "platform_forth.asc"
+user_words_end:
+
 ; Leave the following string as the last entry in the kernel routine so it
 ; is easier to see where the kernel ends in hex dumps. This string is
 ; displayed after a successful boot
