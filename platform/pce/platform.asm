@@ -7,25 +7,7 @@
         .enc "none"
 
 ; PCE-specific opcodes that are NOT in the 65c02
-tam     .macro
-        .byte $53, \1
-        .endm
-
-tma     .macro
-        .byte $43, \1
-        .endm
-
-setd    .macro
-        .byte $f4
-        .endm
-
-csh     .macro
-        .byte $d4
-        .endm
-
-csl     .macro
-        .byte $54
-        .endm
+.include "platform_opcodes.asm"
 
 ; --- 1. Memory Layout ---
 ; PCE Work RAM is at $2000-$3FFF
