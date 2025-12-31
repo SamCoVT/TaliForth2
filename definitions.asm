@@ -35,12 +35,16 @@
 ; these for easier comparisons with Liara Forth's structure and to
 ; help people new to these things.
 
+; NOTE: Wrapped in a .weak block to allow platforms with non-standard 
+; memory layouts (like the PC Engine / TurboGrafx-16) to override 
+; ram_start and stack0 in their respective platform configurations.
+
+.weak
 ram_start = $0000           ; start of installed RAM, must include zpage
 stack0    = $0100           ; begin of Return Stack ($0100-$01ff)
 
 ; weak constants can be overridden by the included platform configuration
 
-.weak
 zpage     = ram_start       ; begin of Zero Page usage ($0000-$00ff)
 zpage_end = $7F             ; last byte (inclusive) of Zero Page reserved for Tali ($0000-$007f)
                             ; typically Tali's data stack grows down from here, below a small flood plain
