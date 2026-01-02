@@ -6,21 +6,21 @@ xt_d_minus:
 w_d_minus:
                 sec
 
-                lda 6,x         ; LSB of lower word
-                sbc 2,x
-                sta 6,x
+                lda zpage+6,x         ; LSB of lower word
+                sbc zpage+2,x
+                sta zpage+6,x
 
-                lda 7,x         ; MSB of lower word
-                sbc 3,x
-                sta 7,x
+                lda zpage+7,x         ; MSB of lower word
+                sbc zpage+3,x
+                sta zpage+7,x
 
-                lda 4,x         ; LSB of upper word
-                sbc 0,x
-                sta 4,x
+                lda zpage+4,x         ; LSB of upper word
+                sbc zpage+0,x
+                sta zpage+4,x
 
-                lda 5,x         ; MSB of upper word
-                sbc 1,x
-                sta 5,x
+                lda zpage+5,x         ; MSB of upper word
+                sbc zpage+1,x
+                sta zpage+5,x
 
                 inx
                 inx
@@ -37,21 +37,21 @@ xt_d_plus:
                 jsr underflow_4 ; two double numbers
 w_d_plus:
                 clc
-                lda 2,x         ; LSB of lower word
-                adc 6,x
-                sta 6,x
+                lda zpage+2,x         ; LSB of lower word
+                adc zpage+6,x
+                sta zpage+6,x
 
-                lda 3,x         ; MSB of lower word
-                adc 7,x
-                sta 7,x
+                lda zpage+3,x         ; MSB of lower word
+                adc zpage+7,x
+                sta zpage+7,x
 
-                lda 0,x         ; LSB of upper word
-                adc 4,x
-                sta 4,x
+                lda zpage+0,x         ; LSB of upper word
+                adc zpage+4,x
+                sta zpage+4,x
 
-                lda 1,x         ; MSB of upper word
-                adc 5,x
-                sta 5,x
+                lda zpage+1,x         ; MSB of upper word
+                adc zpage+5,x
+                sta zpage+5,x
 
                 inx
                 inx
@@ -85,7 +85,7 @@ z_d_to_s:       rts
 xt_dabs:
                 jsr underflow_2 ; double number
 w_dabs:
-                lda 1,x         ; MSB of high cell
+                lda zpage+1,x         ; MSB of high cell
                 bpl _done       ; positive, we get off light
 
                 ; negative, calculate 0 - d
@@ -93,20 +93,20 @@ w_dabs:
                 sec
 
                 tya
-                sbc 2,x         ; LSB of low cell
-                sta 2,x
+                sbc zpage+2,x         ; LSB of low cell
+                sta zpage+2,x
 
                 tya
-                sbc 3,x         ; MSB of low cell
-                sta 3,x
+                sbc zpage+3,x         ; MSB of low cell
+                sta zpage+3,x
 
                 tya
-                sbc 0,x         ; LSB of high cell
-                sta 0,x
+                sbc zpage+0,x         ; LSB of high cell
+                sta zpage+0,x
 
                 tya
-                sbc 1,x         ; MSB of high cell
-                sta 1,x
+                sbc zpage+1,x         ; MSB of high cell
+                sta zpage+1,x
 _done:
 z_dabs:         rts
 
@@ -122,20 +122,20 @@ w_dnegate:
                 sec
 
                 tya
-                sbc 2,x         ; LSB of low cell
-                sta 2,x
+                sbc zpage+2,x         ; LSB of low cell
+                sta zpage+2,x
 
                 tya
-                sbc 3,x         ; MSB of low cell
-                sta 3,x
+                sbc zpage+3,x         ; MSB of low cell
+                sta zpage+3,x
 
                 tya
-                sbc 0,x         ; LSB of high cell
-                sta 0,x
+                sbc zpage+0,x         ; LSB of high cell
+                sta zpage+0,x
 
                 tya
-                sbc 1,x         ; MSB of high cell
-                sta 1,x
+                sbc zpage+1,x         ; MSB of high cell
+                sta zpage+1,x
 
 z_dnegate:      rts
 
@@ -209,9 +209,9 @@ w_m_star_slash:
                 ; but we'll do something slightly different to avoid R:
                 ; we want |d1| |n1| |n2| along with the sign bit from dhi^n1^n2
 
-                lda 1,x
-                eor 3,x
-                eor 5,x
+                lda zpage+1,x
+                eor zpage+3,x
+                eor zpage+5,x
                 pha                     ; stash the sign bit on the return stack
 
                 jsr w_abs               ; ( d1 n1 |n2| )
@@ -224,8 +224,8 @@ w_m_star_slash:
                 ; SWAP R@ UM* ROT R> UM* ROT 0 D+ R@ UM/MOD ROT ROT R> UM/MOD
                 ; but we have |n2| and |n1| on the data stack
                 jsr w_swap
-                lda 4,x                 ; pick |n1|
-                ldy 5,x
+                lda zpage+4,x                 ; pick |n1|
+                ldy zpage+5,x
                 jsr push_ya_tos
 
                 jsr w_um_star           ; ( |n2| |n1| |dhi| d|dlo*n1| ) uses tmp1-3
@@ -237,21 +237,21 @@ w_m_star_slash:
                 jsr w_d_plus            ; ( |n2| t|uvw| )
 
                 ; pick |n2| from under the triple result
-                lda 6,x
-                ldy 7,x
+                lda zpage+6,x
+                ldy zpage+7,x
                 jsr push_ya_tos         ; ( |n2| |uvw| |n2| )
 
                 ; do the triple division in two double steps (uses tmpdsp)
                 jsr w_um_slash_mod      ; ( |n2| |w| r qhi )
-                lda 0,x                 ; swap qhi with |n2|
-                ldy 6,x
-                sty 0,x
-                sta 6,x
+                lda zpage+0,x                 ; swap qhi with |n2|
+                ldy zpage+6,x
+                sty zpage+0,x
+                sta zpage+6,x
 
-                lda 1,x                 ; leaving ( qhi |w| r |n2| )
-                ldy 7,x
-                sty 1,x
-                sta 7,x
+                lda zpage+1,x                 ; leaving ( qhi |w| r |n2| )
+                ldy zpage+7,x
+                sty zpage+1,x
+                sta zpage+7,x
 
                 jsr w_um_slash_mod      ; ( qhi r' qlo )
 

@@ -34,7 +34,7 @@ w_dot_s:
                 ; We keep a copy of the number of the things on the stack
                 ; to use as a counter later down. This assumes that there
                 ; are less than 255 elements on the stack
-                lda 0,x
+                lda zpage+0,x
                 pha
 
                 ; print unsigned number without the trailing space
@@ -67,11 +67,11 @@ _loop:
                 dex
 
                 lda (tmp3)
-                sta 1,x
+                sta zpage+1,x
                 dec tmp3
 
                 lda (tmp3)
-                sta 0,x
+                sta zpage+0,x
                 dec tmp3
                 phy
 
@@ -126,19 +126,19 @@ _row:
 .if TALI_OPTION_MAX_COLS >= 74
 
                 ; track current address in tmp2
-                lda 3,x
+                lda zpage+3,x
                 sta tmp2+1
-                lda 2,x
+                lda zpage+2,x
                 sta tmp2
 
                 jsr w_cr
 
                 ; set Y to number of characters for this row
                 ldy #16                 ; max 16
-                lda 1,x                 ; if u > 256 keep 16
+                lda zpage+1,x                 ; if u > 256 keep 16
                 bne +
 
-                lda 0,x                 ; if u = 0 we're done
+                lda zpage+0,x                 ; if u = 0 we're done
                 beq _done
 
                 cmp #16                 ; if u < 16 do what's left
@@ -216,22 +216,22 @@ _nextbyte:
 
                 jsr w_cr
 
-                lda 2,x                 ; copy addr to tmp1 for y-indexing
+                lda zpage+2,x                 ; copy addr to tmp1 for y-indexing
                 and #$f8                ; mask off low bits to start from multiple of 8
                 sta tmp2
-                lda 3,x
+                lda zpage+3,x
                 sta tmp2+1
 
-                lda 2,x
+                lda zpage+2,x
                 and #7
                 sta tmp1                ; index of first byte this row
 
                 clc
-                adc 0,x
+                adc zpage+0,x
                 cmp #8
                 bcs _max
 
-                ldy 1,x
+                ldy zpage+1,x
                 beq +
 _max:
                 lda #8
@@ -242,8 +242,8 @@ _max:
                 sta tmp1+1              ; index of last byte this row
 
                 ; show current address
-                lda 3,x
-                ldy 2,x
+                lda zpage+3,x
+                ldy zpage+2,x
                 jsr word_to_ascii
                 jsr w_space
 
@@ -290,8 +290,8 @@ _next:
                 dex
                 lda tmp1+1
                 sbc tmp1                ; C=1 from asl
-                stz 1,x
-                sta 0,x
+                stz zpage+1,x
+                sta zpage+0,x
                 jsr w_slash_string
 
 .endif
@@ -340,8 +340,8 @@ w_see:
 
                 ; If we got back a zero we don't know that word and so we quit
                 ; with an error
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne +
 
                 lda #err_noname
@@ -376,13 +376,13 @@ w_see:
                 jsr print_string_n
                 jsr w_over
                 ; calculate header length from status flag byte
-                lda (0,x)               ; fetch status byte
+                lda (zpage+0,x)               ; fetch status byte
                 and #DC+LC+FP           ; mask length bits
                 lsr                     ; shift FP to carry flag, A = 2*DC + LC
                 adc #4                  ; header length is 4 bytes + 2*DC + LC + FP
                 tay
 _show_header:
-                lda (0,x)
+                lda (zpage+0,x)
                 jsr byte_to_ascii
                 jsr w_space
                 jsr w_one_plus
@@ -394,7 +394,7 @@ _show_header:
 
                 ; Show flag values from the status byte along with
                 ; any calculated (synthetic) flag values
-                lda (2,x)               ; grab physical status flags @ NT
+                lda (zpage+2,x)               ; grab physical status flags @ NT
                 pha                     ; save a copy of flags for later
                 jsr push_a_tos          ; ( nt xt flags ) leaving MSB of flags for synthetic flags
 
@@ -405,11 +405,11 @@ _show_header:
                 beq +                   ; C=1 when ST set
                 clc
 +
-                ror 1,x                 ; add to flag byte
+                ror zpage+1,x                 ; add to flag byte
 
                 jsr w_over
                 jsr has_uf_check        ; C=1 when UF set
-                ror 1,x                 ; add to flag byte
+                ror zpage+1,x                 ; add to flag byte
 
                 lda #N_FLAGS            ; count off status byte flags
                 sta tmptos
@@ -417,7 +417,7 @@ _show_header:
 -
                 cmp #8                  ; discard any unused high bits
                 beq +
-                asl 0,x
+                asl zpage+0,x
                 ina
                 bra -
 +
@@ -443,10 +443,10 @@ _show_flags:
 
                 dec tmptos
                 bmi _synthetic          ; more core status flags?
-                asl 0,x                 ; shift next flag bit into carry
+                asl zpage+0,x                 ; shift next flag bit into carry
                 bra +
 _synthetic:
-                asl 1,x                 ; show synthetic flags after core ones
+                asl zpage+1,x                 ; show synthetic flags after core ones
 +
                 lda #'0'                ; convert C=0/1 into '0' or '1'
                 adc #0
@@ -486,9 +486,9 @@ _done:
                 jsr print_string_n  ; print "CFA: 3  PFA: "
 
                 sec
-                lda 0,x                 ; reduce to u-3
+                lda zpage+0,x                 ; reduce to u-3
                 sbc #3
-                sta 0,x                 ; assume u < 256
+                sta zpage+0,x                 ; assume u < 256
 +
                 jsr w_u_dot             ; print u (or u-3 for PFA)
 
@@ -505,8 +505,8 @@ _done:
 .if "disassembler" in TALI_OPTIONAL_WORDS
                 beq +
                 lda #3
-                sta 0,x                 ; for CFA words, just show three bytes
-                stz 1,x
+                sta zpage+0,x                 ; for CFA words, just show three bytes
+                stz zpage+1,x
 +
                 jsr w_disasm
 .endif
@@ -574,13 +574,13 @@ _loop:
                 ; line
                 pla
                 clc
-                adc 0,x
+                adc zpage+0,x
                 cmp #TALI_OPTION_MAX_COLS    ; typically 80
                 bcc +
 
                 jsr w_cr
 
-                lda 0,x                 ; After newline, reset to length of this word.
+                lda zpage+0,x                 ; After newline, reset to length of this word.
 +
                 ina                     ; don't forget the space between words
                 pha
@@ -589,16 +589,16 @@ _loop:
                 lda #AscSP
                 jsr emit_a
 
-                lda 0,x
+                lda zpage+0,x
                 sta tmp1
-                lda 1,x
+                lda zpage+1,x
                 sta tmp1+1
                 jsr nt_to_nt
                 beq _next_list          ; did we reach the end of the list?
                 lda tmp1
-                sta 0,x
+                sta zpage+0,x
                 lda tmp1+1
-                sta 1,x
+                sta zpage+1,x
 
                 bra _loop
 _next_list:

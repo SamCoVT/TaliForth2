@@ -80,15 +80,15 @@ w_compile_comma:
                 ; ( xt nt|0 )
 
                 ; Does this xt even have a valid (non-zero) nt?
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
 
                 ; Without an NT we don't know flags or size so must compile as a JSR
-                beq cmpl_call_nos
+                beq cmpl_call_nos       ; No nt so unknown size; must compile as a JSR
 
 compile_comma_common:
                 ; Otherwise investigate the NT to decide how to proceed
-                lda (0,x)               ; stash status flags byte
+                lda (zpage+0,x)               ; stash status flags byte
                 sta tmp3
 
                 ; The target word we're compiling looks like this:
@@ -187,16 +187,16 @@ cmpl_by_limit2:
                 ; Eventually returns C=0 if inline, C=1 if call
 
                 ldy #nc_limit_offset+1
-                lda 1,x                 ; MSB of word size
+                lda zpage+1,x                 ; MSB of word size
                 cmp (up),y              ; user-defined limit MSB
                 bcc cmpl_inline_drop    ; borrow (C=0) means size < limit
                 bne cmpl_call_3os       ; else non-zero means size > limit
 
                 dey                     ; MSB equal so check LSB
                 lda (up),y              ; user-defined limit LSB
-                cmp 0,x
+                cmp zpage+0,x
                 bcs cmpl_inline_drop    ; not bigger, we can inline!
-
++
                 ; else fall through and compile as call
 cmpl_call_3os:
                 ; compile call from ( xt ? ? -- ), return C=1
@@ -236,7 +236,7 @@ has_uf_check:
                 ; ( addr -- )
 
                 ; Does addr point at a JSR?
-                lda (0,x)               ; fetch byte @ addr
+                lda (zpage+0,x)               ; fetch byte @ addr
                 cmp #OpJSR
                 bne _not_uf             ; not a JSR
 
@@ -244,11 +244,11 @@ has_uf_check:
                 ; We can check 0 <= addr - underflow_1 <= underflow_4 - underflow_1 < 256
                 jsr w_one_plus
                 jsr w_fetch             ; get JSR address to TOS
-                lda 0,x                 ; LSB of jsr address
+                lda zpage+0,x                 ; LSB of jsr address
                 sec
                 sbc #<underflow_1
                 tay                     ; stash LSB of result and finish subtraction
-                lda 1,x                 ; MSB of jsr address
+                lda zpage+1,x                 ; MSB of jsr address
                 sbc #>underflow_1
                 bne _not_uf             ; MSB of result must be zero
 
@@ -292,12 +292,12 @@ cmpl_jump_later:
                 dex
                 dex
                 lda cp+1
-                sta 1,x
+                sta zpage+1,x
                 lda cp
                 inc a
-                sta 0,x
+                sta zpage+0,x
                 bne cmpl_jump_ya
-                inc 1,x
+                inc zpage+1,x
                 bra cmpl_jump_ya
 
 xt_again:
@@ -305,8 +305,8 @@ xt_again:
 w_again:
 cmpl_jump_tos:
                 ; compile a jump to the address at TOS, consuming it
-                lda 0,x         ; set up for cmpl_jump_ya
-                ldy 1,x
+                lda zpage+0,x         ; set up for cmpl_jump_ya
+                ldy zpage+1,x
                 inx
                 inx
 cmpl_jump_ya:
@@ -403,7 +403,7 @@ _inline:
                 ; offset is a signed byte if LSB bit 7 is 0 and MSB is 0 or bit 7 is 1 and MSB is #ff
                 inx             ; pre-drop offset and use wraparound indexing to preserve flags
                 inx
-                lda $ff,x
+                lda zpage+$ff,x
                 tay             ; Y=MSB of offset
                 lda $fe,x       ; A=LSB, setting N flag to bit 7
                 bmi _minus

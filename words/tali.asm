@@ -47,17 +47,17 @@ xt_bounds:
                 jsr underflow_2
 w_bounds:
                 clc
-                lda 0,x                 ; LSB u
-                ldy 2,x                 ; LSB addr
-                adc 2,x
-                sta 2,x                 ; LSB addr+u
-                sty 0,x
+                lda zpage+0,x                 ; LSB u
+                ldy zpage+2,x                 ; LSB addr
+                adc zpage+2,x
+                sta zpage+2,x                 ; LSB addr+u
+                sty zpage+0,x
 
-                lda 1,x                 ; MSB u
-                ldy 3,x                 ; MSB addr
-                adc 3,x
-                sta 3,x                 ; MSB addr+u
-                sty 1,x
+                lda zpage+1,x                 ; MSB u
+                ldy zpage+3,x                 ; MSB addr
+                adc zpage+3,x
+                sta zpage+3,x                 ; MSB addr+u
+                sty zpage+1,x
 
 z_bounds:       rts
 
@@ -88,14 +88,14 @@ w_cleave:
                 ; Make a copy and strip non-whitespace from the tail
                 ; which we'll keep on top of the stack, swapping at the end
 
-                stz 4,x                 ; length of head
-                stz 5,x
+                stz zpage+4,x                 ; length of head
+                stz zpage+5,x
 _loop:
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _done
 
-                lda (2,x)               ; get first character
+                lda (zpage+2,x)               ; get first character
                 cmp #AscSP+1            ; is_whitespace: ascii 0-32 => C=0
                 bcc _done               ; stop on whitespace
 
@@ -103,9 +103,9 @@ _loop:
                 jsr slash_string_1      ; ( addr+1 u-1 )
 
                 ; and increment length of head
-                inc 4,x
+                inc zpage+4,x
                 bne +
-                inc 5,x
+                inc zpage+5,x
 +
                 bra _loop
 _done:
@@ -135,19 +135,19 @@ w_digit_question:
                 ; flag on the stack
                 dex
                 dex
-                stz 0,x                 ; default flag is failure
-                stz 1,x
-                stz 3,x                 ; paranoid
+                stz zpage+0,x                 ; default flag is failure
+                stz zpage+1,x
+                stz zpage+3,x                 ; paranoid
 
                 ; Check the character, now in the LSB of NOS.
-                lda 2,x
+                lda zpage+2,x
                 jsr ascii_to_digit
                 bcs _done               ; failure flag already set
 
                 ; Found a legal number for current base
-                sta 2,x                 ; put number in NOS
-                dec 0,x                 ; set success flag
-                dec 1,x
+                sta zpage+2,x                 ; put number in NOS
+                dec zpage+0,x                 ; set success flag
+                dec zpage+1,x
 _done:
 z_digit_question:
                 rts
@@ -171,14 +171,14 @@ w_execute_parsing:
                 jsr w_input_to_r       ; save normal input for later
                 jsr w_not_rot          ; -ROT ( xt addr u )
 
-                lda 0,x                 ; TOS is new ciblen
+                lda zpage+0,x                 ; TOS is new ciblen
                 sta ciblen
-                lda 1,x
+                lda zpage+1,x
                 sta ciblen+1
 
-                lda 2,x                 ; NOS is new cib
+                lda zpage+2,x                 ; NOS is new cib
                 sta cib
-                lda 3,x
+                lda zpage+3,x
                 sta cib+1
 
                 stz toin                ; Set >IN to zero
@@ -210,8 +210,8 @@ xt_find_name:
                 jsr underflow_2
 w_find_name:
                 ; check for special case of an empty string (length zero)
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _fail_done
 
                 ; Truncate names longer than the max allowed (31).
@@ -256,15 +256,15 @@ _success:
                 ; The strings match. Put correct nt NOS, because we'll drop
                 ; TOS before we leave
                 lda tmp1
-                sta 2,x
+                sta zpage+2,x
                 lda tmp1+1
-                sta 3,x
+                sta zpage+3,x
 
                 bra _done
 
 _fail_done:
-                stz 2,x         ; failure flag
-                stz 3,x
+                stz zpage+2,x         ; failure flag
+                stz zpage+3,x
 _done:
                 inx
                 inx
@@ -298,8 +298,8 @@ w_hexstore:
 
 _loop:
                 ; Loop until string is totally consumed
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _done
 
                 jsr w_cleave           ; ( addr1 u1 addr3 u3 ) ( R: addr2 addr2 )
@@ -313,8 +313,8 @@ _loop:
 
                 ; If u4 is not zero, we have leftover chars and have to do
                 ; things differently
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _have_chars_left
 
                 ; Normal case, this number is all done
@@ -487,9 +487,9 @@ _wordlist_loop:
 _done:
                 ; Write stashed nt (found or 0) to TOS
                 lda tmp1
-                sta 0,x
+                sta zpage+0,x
                 lda tmp1+1
-                sta 1,x
+                sta zpage+1,x
 
 z_int_to_name:  rts
 
@@ -533,15 +533,15 @@ z_latestxt:     rts
 xt_name_to_int:
                 jsr underflow_1
 w_name_to_int:
-                lda 0,x                 ; copy nt to tmp1
+                lda zpage+0,x                 ; copy nt to tmp1
                 sta tmp1
-                lda 1,x
+                lda zpage+1,x
                 sta tmp1+1
 
                 jsr nt_to_xt            ; get xt to Y/A
 
-                sta 0,x
-                sty 1,x
+                sta zpage+0,x
+                sty zpage+1,x
 z_name_to_int:  rts
 
 
@@ -556,26 +556,26 @@ w_name_to_string:
                 dex             ; make space for length
                 dex
 
-                lda (2,x)       ; grab status flags for header length
+                lda (zpage+2,x)       ; grab status flags for header length
                 and #DC+LC+FP   ; mask length bits
                 lsr
                 adc #4-1        ; calculate header length less one
                 tay             ; stash temporarily
 
-                inc 2,x         ; nt+1 has the name length
+                inc zpage+2,x         ; nt+1 has the name length
                 bne +
-                inc 3,x
+                inc zpage+3,x
 +
-                lda (2,x)       ; fetch name length byte
+                lda (zpage+2,x)       ; fetch name length byte
 
-                sta 0,x         ; namelen is always <256
-                stz 1,x
+                sta zpage+0,x         ; namelen is always <256
+                stz zpage+1,x
 
                 tya
-                adc 2,x         ; note C=0 from adc above
-                sta 2,x         ; LSB of nameptr = nt+1 + hdrlen-1
+                adc zpage+2,x         ; note C=0 from adc above
+                sta zpage+2,x         ; LSB of nameptr = nt+1 + hdrlen-1
                 bcc +
-                inc 3,x         ; MSB of nameptr
+                inc zpage+3,x         ; MSB of nameptr
 +
                 ; ( addr n )
 z_name_to_string:
@@ -614,21 +614,21 @@ z_never_native:
 xt_not_rot:
                 jsr underflow_3
 w_not_rot:
-                ldy 1,x         ; MSB first
-                lda 3,x
-                sta 1,x
+                ldy zpage+1,x         ; MSB first
+                lda zpage+3,x
+                sta zpage+1,x
 
-                lda 5,x
-                sta 3,x
-                sty 5,x
+                lda zpage+5,x
+                sta zpage+3,x
+                sty zpage+5,x
 
-                ldy 0,x         ; LSB second
-                lda 2,x
-                sta 0,x
+                ldy zpage+0,x         ; LSB second
+                lda zpage+2,x
+                sta zpage+0,x
 
-                lda 4,x
-                sta 2,x
-                sty 4,x
+                lda zpage+4,x
+                sta zpage+2,x
+                sty zpage+4,x
 
 z_not_rot:      rts
 
@@ -670,7 +670,7 @@ w_number:
                 jsr w_two_dup
 
                 ; Look at the first character.
-                lda (2,x)
+                lda (zpage+2,x)
 
                 cmp #'#'                ; decimal?
                 bne _check_hex
@@ -694,33 +694,33 @@ _check_char:
                 bne _check_minus
                 ; Character constants should have a length of 3
                 ; and another single quote in position 3.
-                lda 0,x         ; Get the length
+                lda zpage+0,x         ; Get the length
                 cmp #3
                 bne _not_a_char
-                lda 1,x
+                lda zpage+1,x
                 bne _not_a_char ; No compare needed to check for non-zero.
                 ; Compute location of last character
                 ; We know the string is 3 characters long, so last char
                 ; is known to be at offset +2.
-                lda 2,x         ; LSB of address
+                lda zpage+2,x         ; LSB of address
                 clc
                 adc #2          ; length of string
                 sta tmptos
-                lda 3,x
+                lda zpage+3,x
                 adc #0          ; only need carry
                 sta tmptos+1
                 lda (tmptos)
                 cmp #"'"
                 bne _not_a_char
                 ; The char we want is between the single quotes.
-                inc 2,x
+                inc zpage+2,x
                 bne +
-                inc 3,x
+                inc zpage+3,x
 +
                 ; Grab the character and replace the string with just the char.
-                lda (2,x)
-                sta 2,x
-                stz 3,x
+                lda (zpage+2,x)
+                sta zpage+2,x
+                stz zpage+3,x
 
                 jmp _drop_original_string ; Single flag will drop the TOS for us.
 _not_a_char:
@@ -731,14 +731,14 @@ _not_a_char:
 
 _base_changed:
                 sta base        ; Switch to the new base
-                inc 2,x         ; start one character later
+                inc zpage+2,x         ; start one character later
                 bne +
-                inc 3,x
+                inc zpage+3,x
 +
-                dec 0,x         ; decrease string length by one
+                dec zpage+0,x         ; decrease string length by one
 
 
-                lda (2,x)       ; Load the first char again
+                lda (zpage+2,x)       ; Load the first char again
 _check_minus:
                 ; If the first character is a minus, strip it off and set
                 ; the flag
@@ -748,20 +748,20 @@ _check_minus:
                 ; It's a minus
                 lda #$80
                 sta tmpdsp      ; set the sign bit
-                inc 2,x         ; start one character later
+                inc zpage+2,x         ; start one character later
                 bne +
-                inc 3,x
+                inc zpage+3,x
 +
-                dec 0,x         ; decrease string length by one
+                dec zpage+0,x         ; decrease string length by one
 
 _check_dot:
                 ; If the last character is a dot, strip it off and set a
                 ; flag. We can use tmptos as a temporary variable
-                lda 2,x         ; LSB of address
+                lda zpage+2,x         ; LSB of address
                 clc
-                adc 0,x         ; length of string
+                adc zpage+0,x         ; length of string
                 sta tmptos
-                lda 3,x
+                lda zpage+3,x
                 adc #0          ; only need carry
                 sta tmptos+1
 
@@ -780,7 +780,7 @@ _check_dot:
                 ; We have a dot, which means this is a double number. Flag
                 ; the fact and reduce string length by one
                 inc tmpdsp
-                dec 0,x
+                dec zpage+0,x
 
 _main:
                 ; Set up stack for subroutine jump to >NUMBER, which means
@@ -790,24 +790,24 @@ _main:
                 dex
                 dex
 
-                lda 4,x         ; LSB of length
-                sta 0,x
-                stz 1,x         ; MSB, max length 255 chars
+                lda zpage+4,x         ; LSB of length
+                sta zpage+0,x
+                stz zpage+1,x         ; MSB, max length 255 chars
 
-                lda 6,x         ; LSB of address
-                sta 2,x
-                lda 7,x         ; MSB of address
-                sta 3,x
+                lda zpage+6,x         ; LSB of address
+                sta zpage+2,x
+                lda zpage+7,x         ; MSB of address
+                sta zpage+3,x
 
-                stz 4,x         ; clear space for ud
-                stz 5,x
-                stz 6,x
-                stz 7,x
+                stz zpage+4,x         ; clear space for ud
+                stz zpage+5,x
+                stz zpage+6,x
+                stz zpage+7,x
 
                 jsr w_to_number        ; (ud addr u -- ud addr u )
 
                 ; test length of returned string, which should be zero
-                lda 0,x
+                lda zpage+0,x
                 beq _all_converted
 
 _number_error:
@@ -895,8 +895,8 @@ w_one:
                 dex
                 dex
                 lda #1
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
 
 z_editor_wordlist:
 z_one:
@@ -976,7 +976,7 @@ z_r_to_input: 	rts
 xt_split:
                 jsr underflow_3
 w_split:
-                ldy 0,x                 ; save and drop character to match
+                ldy zpage+0,x                 ; save and drop character to match
                 sty tmpdsp
                 inx
                 inx
@@ -985,14 +985,14 @@ w_split:
                 ; We'll work with head at the top of the stack
                 ; so we can use /string, swapping at the end
 
-                stz 4,x                 ; length of head
-                stz 5,x
+                stz zpage+4,x                 ; length of head
+                stz zpage+5,x
 _loop:
-                lda 0,x                 ; empty tail?
-                ora 1,x
+                lda zpage+0,x                 ; empty tail?
+                ora zpage+1,x
                 beq _done
 
-                lda (2,x)               ; get first character in tail
+                lda (zpage+2,x)               ; get first character in tail
                 tay
 
                 ; either way, drop character from tail
@@ -1002,9 +1002,9 @@ _loop:
                 beq _done               ; found!
 
                 ; didn't match, so extend head
-                inc 4,x
+                inc zpage+4,x
                 bne +
-                inc 5,x
+                inc zpage+5,x
 +
                 bra _loop
 _done:
@@ -1040,8 +1040,8 @@ w_two:
                 dex
                 dex
                 lda #2
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
 
 z_assembler_wordlist:
 z_two:          rts
@@ -1065,31 +1065,31 @@ xt_wordsize:
                 jsr underflow_1
 w_wordsize:
                 ; Use header status flags to calculate offset to code size
-                lda (0,x)       ; fetch status flag byte
+                lda (zpage+0,x)       ; fetch status flag byte
                 pha             ; stash the flags for later LC check
                 and #DC+FP      ; mask length bits excluding LC
                 lsr             ; preserve DC flag with FP in carry
                 adc #3          ; offset to code size is 3 + 0-3
 
-                adc 0,x         ; add offset to nt, carry clear from offset calc
-                sta 0,x         ; LSB of size byte(s) address
+                adc zpage+0,x         ; add offset to nt, carry clear from offset calc
+                sta zpage+0,x         ; LSB of size byte(s) address
                 bcc +
-                inc 1,x         ; MSB
+                inc zpage+1,x         ; MSB
 +
-                lda (0,x)       ; get LSB of body size
+                lda (zpage+0,x)       ; get LSB of body size
                 tay             ; hold that thought
                 pla             ; check if there's a MSB
                 and #LC         ; extra byte if LC is set
                 beq _small      ; otherwise it's zero
 
-                inc 0,x         ; increment ptr
+                inc zpage+0,x         ; increment ptr
                 bne +
-                inc 1,x
+                inc zpage+1,x
 +
-                lda (0,x)       ; grab MSB
+                lda (zpage+0,x)       ; grab MSB
 
-_small:         sty 0,x         ; Y has LSB
-                sta 1,x         ; A has either MSB we fetched or 0 if there wasn't one
+_small:         sty zpage+0,x         ; Y has LSB
+                sta zpage+1,x         ; A has either MSB we fetched or 0 if there wasn't one
 
 z_wordsize:     rts
 
@@ -1110,8 +1110,8 @@ w_forth_wordlist:
 w_zero:
                 dex             ; push
                 dex
-                stz 0,x
-                stz 1,x
+                stz zpage+0,x
+                stz zpage+1,x
 z_case:
 z_false:
 z_forth_wordlist:

@@ -138,10 +138,10 @@ push_inline_pictured_y:
                 and #%11        ; mask length bits
                 asl             ; times two gives picture length
                 tay             ; save picture length in Y
-                sty $ff,x       ; save as temp to subtract from DS
+                sty zpage+$ff,x       ; save as temp to subtract from DS
                 txa
                 sec
-                sbc $ff,x       ; extend data stack by a byte for each picture bit
+                sbc zpage+$ff,x       ; extend data stack by a byte for each picture bit
                 tax             ; update data stack pointer
 
                 phx             ; save final stack pointer
@@ -153,7 +153,7 @@ _loop:
 
                 asl tmptos      ; fetch next picture bit to carry
                 bcs _copy       ; a one bit means copy a value
-                stz 0,x         ; otherwise add a zero byte
+                stz zpage+0,x         ; otherwise add a zero byte
                 bra _loop
 _copy:
                 inc tmp1        ; inc data pointer to next param byte
@@ -161,7 +161,7 @@ _copy:
                 inc tmp1+1
 +
                 lda (tmp1)      ; copy a payload byte to the stack
-                sta 0,x
+                sta zpage+0,x
                 bra _loop
 
 _done:
@@ -181,16 +181,16 @@ _done:
                 bne +
                 iny
         +
-                sta 2,x
-                sty 3,x
+                sta zpage+2,x
+                sty zpage+3,x
 
                 ; advance past string data by adding string length in TOS
                 clc
                 lda tmp1
-                adc 0,x
+                adc zpage+0,x
                 sta tmp1
                 lda tmp1+1
-                adc 1,x
+                adc zpage+1,x
                 sta tmp1+1
 
 _not_string:

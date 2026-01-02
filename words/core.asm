@@ -28,8 +28,8 @@ z_abort_quote:  rts
 abort_quote_runtime:
         ; """Runtime aspect of ABORT_QUOTE"""
                 ; We arrive here with ( f addr u )
-                lda 4,x
-                ora 5,x
+                lda zpage+4,x
+                ora zpage+5,x
                 beq _done       ; if FALSE, we're done
 
                 ; We're true, so print string and ABORT. We follow Gforth
@@ -55,18 +55,18 @@ _done:
 xt_abs:
                 jsr underflow_1
 w_abs:
-                lda 1,x
+                lda zpage+1,x
                 bpl _done       ; positive number, easy money!
 
                 ; negative: calculate 0 - n
                 sec
                 lda #0
-                sbc 0,x         ; LSB
-                sta 0,x
+                sbc zpage+0,x         ; LSB
+                sta zpage+0,x
 
                 lda #0          ; MSB
-                sbc 1,x
-                sta 1,x
+                sbc zpage+1,x
+                sta zpage+1,x
 
 _done:
 z_abs:          rts
@@ -84,25 +84,25 @@ xt_accept:
                 jsr underflow_2
 w_accept:
                 ; Abort if we were asked to receive 0 chars
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _not_zero
 
                 inx
                 inx
-                stz 0,x
-                stz 1,x
+                stz zpage+0,x
+                stz zpage+1,x
 
                 jmp accept_done
 
 _not_zero:
-                lda 0,x         ; number of chars to get in tmp2 ...
+                lda zpage+0,x         ; number of chars to get in tmp2 ...
                 sta tmp2
                 stz tmp2+1      ; ... but we only accept max 255 chars
 
-                lda 2,x         ; address of buffer is NOS, to tmp1
+                lda zpage+2,x         ; address of buffer is NOS, to tmp1
                 sta tmp1
-                lda 3,x
+                lda zpage+3,x
                 sta tmp1+1
 
                 inx
@@ -169,8 +169,8 @@ _eol:
 
 _buffer_full:
                 ; REFILL updates ciblen and toin, we don't need to do it here
-                sty 0,x         ; Y contains number of chars accepted already
-                stz 1,x         ; we only accept 256 chars
+                sty zpage+0,x         ; Y contains number of chars accepted already
+                stz zpage+1,x         ; we only accept 256 chars
 
                 jmp accept_done
 
@@ -459,17 +459,17 @@ w_allot:
                 ; Releasing memory is going to be a very rare operation,
                 ; so we check for it at the beginning and try to make
                 ; the most common case as fast as possible
-                lda 1,x
+                lda zpage+1,x
                 bmi _release
 
                 ; Common case: We are reserving memory, not releasing it
                 clc
                 lda cp
-                adc 0,x
+                adc zpage+0,x
                 sta cp
 
                 lda cp+1
-                adc 1,x
+                adc zpage+1,x
                 sta cp+1
 
                 ; Wait, did we just grant more space than we have? This is
@@ -543,9 +543,9 @@ _release:
 
 _nega_done:
                 ; Save new CP, which is NOS
-                lda 2,x
+                lda zpage+2,x
                 sta cp
-                lda 3,x
+                lda zpage+3,x
                 sta cp+1
 
                 inx
@@ -564,13 +564,13 @@ z_allot:
 xt_and:
                 jsr underflow_2
 w_and:
-                lda 0,x
-                and 2,x
-                sta 2,x
+                lda zpage+0,x
+                and zpage+2,x
+                sta zpage+2,x
 
-                lda 1,x
-                and 3,x
-                sta 3,x
+                lda zpage+1,x
+                and zpage+3,x
+                sta zpage+3,x
 
                 inx
                 inx
@@ -699,8 +699,8 @@ w_bl:
                 dex
                 dex
                 lda #AscSP
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
 
 z_bl:           rts
 
@@ -755,7 +755,7 @@ z_buffer_colon: rts
 xt_c_comma:
                 jsr underflow_1
 w_c_comma:
-                lda 0,x
+                lda zpage+0,x
                 jsr cmpl_a
 
                 inx
@@ -771,9 +771,9 @@ z_c_comma:      rts
 xt_c_fetch:
                 jsr underflow_1
 w_c_fetch:
-                lda (0,x)
-                sta 0,x
-                stz 1,x         ; Ignore LSB
+                lda (zpage+0,x)
+                sta zpage+0,x
+                stz zpage+1,x         ; Ignore LSB
 
 z_c_fetch:      rts
 
@@ -785,8 +785,8 @@ z_c_fetch:      rts
 xt_c_store:
                 jsr underflow_2
 w_c_store:
-                lda 2,x
-                sta (0,x)
+                lda zpage+2,x
+                sta (zpage+0,x)
 
                 inx
                 inx
@@ -815,13 +815,13 @@ z_c_store:      rts
 xt_cell_plus:
                 jsr underflow_1
 w_cell_plus:
-                inc 0,x
+                inc zpage+0,x
                 bne +
-                inc 1,x
+                inc zpage+1,x
 +
-                inc 0,x
+                inc zpage+0,x
                 bne _done
-                inc 1,x
+                inc zpage+1,x
 _done:
 z_cell_plus:    rts
 
@@ -846,8 +846,8 @@ w_char:
                 jsr w_parse_name
 
                 ; if we got back a zero, we have a problem
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _not_empty
 
                 lda #err_noname
@@ -856,9 +856,9 @@ w_char:
 _not_empty:
                 inx             ; drop number of characters, leave addr
                 inx
-                lda (0,x)       ; get character (equivalent to C@)
-                sta 0,x
-                stz 1,x         ; MSB is always zero
+                lda (zpage+0,x)       ; get character (equivalent to C@)
+                sta zpage+0,x
+                stz zpage+1,x         ; MSB is always zero
 
 z_char:         rts
 
@@ -979,8 +979,8 @@ z_colon_noname:        rts
 xt_comma:
                 jsr underflow_1
 w_comma:
-                lda 0,x
-                ldy 1,x
+                lda zpage+0,x
+                ldy zpage+1,x
                 inx
                 inx
                 jsr cmpl_word_ya
@@ -1086,19 +1086,19 @@ z_value:
 xt_count:
                 jsr underflow_1
 w_count:
-                lda (0,x)       ; Get number of characters (255 max)
+                lda (zpage+0,x)       ; Get number of characters (255 max)
                 tay
 
                 ; move start address up by one
-                inc 0,x         ; LSB
+                inc zpage+0,x         ; LSB
                 bne +
-                inc 1,x         ; MSB
+                inc zpage+1,x         ; MSB
 
                 ; save number of characters to stack
 +               dex
                 dex
-                sty 0,x         ; LSB
-                stz 1,x         ; MSB, always zero
+                sty zpage+0,x         ; LSB
+                stz zpage+1,x         ; MSB, always zero
 
 z_count:        rts
 
@@ -1151,10 +1151,10 @@ create_common:
                 ; We want a length between 1 and 31.  We could allow 1-32
                 ; and store length-1 but it doesn't seem worth the hassle.
                 ; Complain and quit if it's empty.  Shorten it if too long.
-                lda 1,x
+                lda zpage+1,x
                 bne _too_long
 
-                lda 0,x
+                lda zpage+0,x
                 bne +
 
                 lda #err_noname
@@ -1166,8 +1166,8 @@ create_common:
 _too_long:
                 ; The name is too long - silently shorten to 31 chars
                 lda #31
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
 +
                 ; Check to see if this name already exists.
                 jsr w_two_dup           ; ( cfa pfa addr u addr u )
@@ -1177,7 +1177,7 @@ _too_long:
                 inx
 
                 lda $fe,x
-                ora $ff,x
+                ora zpage+$ff,x
                 beq _new_name           ; We haven't seen this one before.
 
                 ; This name already exists.  See if we are supposed to print
@@ -1271,7 +1271,7 @@ _process_name:
 
                 ; ( cfa pfa addr u )
 
-                ldy 7,x                 ; check MSB of CFA
+                ldy zpage+7,x                 ; check MSB of CFA
                 beq +                   ; 0 means no CFA, don't set HC
 
                 ora #HC                 ; all words with CFA have HC set
@@ -1283,7 +1283,7 @@ _process_name:
                 lsr                     ; FP -> C tells us 1 or 2 byte last nt
 
                 ; HEADER BYTE 1: length of name
-                lda 0,x
+                lda zpage+0,x
                 jsr cmpl_a
 
                 ; HEADER BYTE 2 or 2,3: last nt
@@ -1299,7 +1299,7 @@ _process_name:
                 ; Interlude: Point start of dictionary (DP) at our new header (old CP)
                 ; and update the CURRENT wordlist with the new DP
                 ; unless it's a ":" word with no CFA which ";" will add to dictionary later
-                lda 7,x                 ; has cfa?
+                lda zpage+7,x                 ; has cfa?
                 beq +
 
                 lda tmp1
@@ -1315,9 +1315,9 @@ _process_name:
                 ; If there's no CFA this is zero since we have no code yet,
                 ; otherwise it's three bytes for the subroutine call we'll compile below
                 ; along with the size of the parameter field area (PFA) from tmpdsp
-                lda 7,x                 ; has CFA?
+                lda zpage+7,x                 ; has CFA?
                 beq +                   ; leave A=0
-                lda 4,x                 ; get the PFA size (LSB only, includes +3 for JSR)
+                lda zpage+4,x                 ; get the PFA size (LSB only, includes +3 for JSR)
 +
                 jsr cmpl_a
 
@@ -1325,11 +1325,11 @@ _process_name:
                 ; We have ( cfa pfa addr u ) and will compile bytes
                 ; by hand so we can translate to lowercase
 
-                ldy 0,x                 ; Y = name length
+                ldy zpage+0,x                 ; Y = name length
                 inx                     ; drop name length
                 inx                     ; ( cfa addr )
 _name_loop:
-                lda (0,x)               ; get next character of name
+                lda (zpage+0,x)               ; get next character of name
 
                 ; Make sure it goes into the dictionary in lower case.
                 cmp #'Z'+1
@@ -1343,10 +1343,10 @@ _name_loop:
                 dey
                 beq _end
 
-                inc 0,x                 ; increment string address
+                inc zpage+0,x                 ; increment string address
                 bne _name_loop
 
-                inc 1,x
+                inc zpage+1,x
                 bra _name_loop
 
 _end:
@@ -1359,7 +1359,7 @@ _end:
                 ; current xt of this word, which for CREATE is a subroutine call
                 ; to push_pfa.  Other words use different subroutines or omit the CFA.
 
-                ldy 1,x                 ; check MSB
+                ldy zpage+1,x                 ; check MSB
                 beq +
                 jmp cmpl_call_tos       ; Add the CFA jsr
 +
@@ -1450,8 +1450,8 @@ w_depth:
 
                 dex
                 dex
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
 
 z_depth:        rts
 
@@ -1541,11 +1541,11 @@ question_do_runtime:
         ; do_runtime for the background on this design
         ; """
                 ; if TOS == NOS we skip the loop and drop the limits
-                lda 0,x
-                cmp 2,x
+                lda zpage+0,x
+                cmp zpage+2,x
                 bne _begin
-                lda 1,x
-                cmp 3,x
+                lda zpage+1,x
+                cmp zpage+3,x
                 bne _begin
                 inx                     ; drop loop limits and skip
                 inx
@@ -1602,18 +1602,18 @@ do_runtime:
 
                 sec
                 lda #0
-                sbc 2,x             ; LSB of limit
+                sbc zpage+2,x             ; LSB of limit
                 sta loopfufa,y      ; write to loop control block
                 lda #$80
-                sbc 3,x             ; MSB of limit
+                sbc zpage+3,x             ; MSB of limit
                 sta loopfufa+1,y
 
                 ; Second step: index is FUFA plus original index
                 clc
-                lda 0,x             ; LSB of original index
+                lda zpage+0,x             ; LSB of original index
                 adc loopfufa,y
                 sta loopidx0        ; write LSB to cache not LCB
-                lda 1,x             ; MSB of orginal index
+                lda zpage+1,x             ; MSB of orginal index
                 adc loopfufa+1,y
                 sta loopindex+1,y
 
@@ -1808,10 +1808,10 @@ w_dup:
                 dex
                 dex
 
-                lda 2,x         ; LSB
-                sta 0,x
-                lda 3,x         ; MSB
-                sta 1,x
+                lda zpage+2,x         ; LSB
+                sta zpage+0,x
+                lda zpage+3,x         ; MSB
+                sta zpage+1,x
 
 z_dup:          rts
 
@@ -1875,7 +1875,7 @@ z_then:         rts
 xt_emit:
                 jsr underflow_1
 w_emit:
-                lda 0,x
+                lda zpage+0,x
                 inx
                 inx
 
@@ -1909,8 +1909,8 @@ w_endcase:
                 ; 0 that CASE put on the stack at the beginning.
 _endcase_loop:
                 ; Check for 0 on the stack.
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _done
 
                 jsr w_then
@@ -1993,19 +1993,19 @@ _table_loop:
 
                 ; Get address of string to check from table
                 lda env_table_single,y
-                sta 0,x
+                sta zpage+0,x
                 iny
                 lda env_table_single,y
-                sta 1,x                 ; ( addr u addr u addr-s )
+                sta zpage+1,x                 ; ( addr u addr u addr-s )
                 iny
 
                 ; Calculate length using difference from next pointer
                 dex
                 dex
                 lda env_table_single,y
-                sta 0,x
+                sta zpage+0,x
                 lda env_table_single+1,y
-                sta 1,x
+                sta zpage+1,x
                 jsr w_over
                 jsr w_minus            ; ( addr u addr u addr-s u-s )
 
@@ -2019,7 +2019,7 @@ _table_loop:
                 ; If we found a match (flag is zero -- COMPARE is weird
                 ; that way), fall through to return the result
                 lda $fe,x
-                ora $ff,x
+                ora zpage+$ff,x
                 bne _table_loop         ; Not a match, so try next string
 
                 ; We arrive here with ( addr u ) after finding a match
@@ -2032,9 +2032,9 @@ _table_loop:
 
                 ; Single-cell result
                 lda env_results_single,y
-                sta 2,x
+                sta zpage+2,x
                 lda env_results_single+1,y
-                sta 3,x                 ; ( res u )
+                sta zpage+3,x                 ; ( res u )
 
                 bra _set_flag
 
@@ -2055,13 +2055,13 @@ _double_result:
                 tay
 
                 lda env_results_double,y
-                sta 2,x
+                sta zpage+2,x
                 lda env_results_double+1,y
-                sta 3,x                 ; ( res u ? )
+                sta zpage+3,x                 ; ( res u ? )
                 lda env_results_double+2,y
-                sta 4,x
+                sta zpage+4,x
                 lda env_results_double+3,y
-                sta 5,x                 ; ( res res ? )
+                sta zpage+5,x                 ; ( res res ? )
 
                 ; fall through to _set_flag
 _set_flag:
@@ -2079,8 +2079,8 @@ _table_done:
 _done:
                 ; Set the flag to either ffff or 0000 leaving
                 ; ( res true ) or ( dres dres true ) or just ( false )
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_environment_q:
                 rts
@@ -2129,18 +2129,18 @@ xt_equal:
 w_equal:
                 ldy #0                  ; default not-equal (false)
 
-                lda 0,x                 ; LSB
-                cmp 2,x
+                lda zpage+0,x                 ; LSB
+                cmp zpage+2,x
                 bne _not_equal
 
-                lda 1,x                 ; MSB
-                cmp 3,x
+                lda zpage+1,x                 ; MSB
+                cmp zpage+3,x
                 bne _not_equal
 
                 dey                     ; equal, set to true
 
-_not_equal:     sty 2,x
-                sty 3,x
+_not_equal:     sty zpage+2,x
+                sty zpage+3,x
 
                 inx
                 inx
@@ -2186,19 +2186,19 @@ xt_fill:
                 jsr underflow_3
 w_fill:
                 ; We use tmp1 to hold the address
-                lda 4,x         ; LSB
+                lda zpage+4,x         ; LSB
                 sta tmp1
-                lda 5,x
+                lda zpage+5,x
                 sta tmp1+1
 
                 ; We use tmp2 to hold the counter
-                lda 2,x
+                lda zpage+2,x
                 sta tmp2
-                lda 3,x
+                lda zpage+3,x
                 sta tmp2+1
 
                 ; We use Y to hold the character
-                lda 0,x
+                lda zpage+0,x
                 tay
 _loop:
                 ; Unfortunately, we also need to make sure that we don't
@@ -2296,15 +2296,15 @@ z_exit:                         ; never reached
 xt_fetch:
                 jsr underflow_1
 w_fetch:
-                lda (0,x)               ; LSB
+                lda (zpage+0,x)               ; LSB
                 tay
-                inc 0,x
+                inc zpage+0,x
                 bne +
-                inc 1,x
+                inc zpage+1,x
 +
-                lda (0,x)               ; MSB
-                sta 1,x
-                sty 0,x
+                lda (zpage+0,x)               ; MSB
+                sta zpage+1,x
+                sty zpage+0,x
 
 z_fetch:        rts
 
@@ -2334,8 +2334,8 @@ w_find:
 
                 ; ( caddr nt | 0 )
 
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _done               ; Not found, just return ( caddr 0 )
 
                 ; We arrive here with ( caddr nt ). Now we have to
@@ -2343,7 +2343,7 @@ w_find:
 
                 ; First check the status flag @ nt
                 ldy #1                  ; assume immediate, returning 1
-                lda (0,x)              ; check status flag byte
+                lda (zpage+0,x)              ; check status flag byte
                 and #IM                 ; is IM set?
                 bne +
                 ldy #$ff                ; not immediate, return -1
@@ -2356,11 +2356,11 @@ w_find:
                 ; ( xt caddr )
                 pla                     ; result 1 or -1
 
-                sta 0,x
+                sta zpage+0,x
                 bmi +                   ; for -1 we store $ff twice
                 dec a                   ; for 1 we store 1 and then 0
 +
-                sta 1,x
+                sta zpage+1,x
 _done:
 z_find:         rts
 
@@ -2384,7 +2384,7 @@ xt_fm_slash_mod:
 w_fm_slash_mod:
                 ; if sign of n1 is negative, negate both n1 and d
                 stz tmp2        ; default: n is positive
-                lda 1,x         ; MSB of n1
+                lda zpage+1,x         ; MSB of n1
                 bpl _check_d
 
                 inc tmp2        ; set flag to negative for n1
@@ -2396,17 +2396,17 @@ w_fm_slash_mod:
                 dex
 _check_d:
                 ; If d is negative, add n1 to high cell of d
-                lda 3,x         ; MSB of high word of d
+                lda zpage+3,x         ; MSB of high word of d
                 bpl _multiply
 
                 clc
-                lda 0,x         ; LSB of n1
-                adc 2,x         ; LSB of dh
-                sta 2,x
+                lda zpage+0,x         ; LSB of n1
+                adc zpage+2,x         ; LSB of dh
+                sta zpage+2,x
 
-                lda 1,x         ; MSB of n1
-                adc 3,x         ; MSB of dh
-                sta 3,x
+                lda zpage+1,x         ; MSB of n1
+                adc zpage+3,x         ; MSB of dh
+                sta zpage+3,x
 
 _multiply:
                 jsr w_um_slash_mod     ; ( d n1 -- rem n2 )
@@ -2454,8 +2454,8 @@ w_evaluate:
 
                 ; If u is zero (which can happen a lot for the user-defined
                 ; words), just leave again
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne evaluate_got_work
 
                 inx
@@ -2500,14 +2500,14 @@ _nozero:
                 stz toin+1
 
                 ; move TOS and NOS to input buffers
-                lda 0,x
+                lda zpage+0,x
                 sta ciblen
-                lda 1,x
+                lda zpage+1,x
                 sta ciblen+1
 
-                lda 2,x
+                lda zpage+2,x
                 sta cib
-                lda 3,x
+                lda zpage+3,x
                 sta cib+1
 
                 inx             ; A clean stack is a clean mind
@@ -2554,8 +2554,8 @@ _false:
 
                 inx
                 inx
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_greater_than: rts
 
@@ -2576,9 +2576,9 @@ w_asm_arrow:
                 dex
                 dex
                 lda cp
-                sta 0,x
+                sta zpage+0,x
                 lda cp+1
-                sta 1,x
+                sta zpage+1,x
 
 z_here:
 z_begin:
@@ -2619,7 +2619,7 @@ w_hold:
 +
                 dec tohold
 
-                lda 0,x
+                lda zpage+0,x
                 sta (tohold)
                 inx
                 inx
@@ -2649,10 +2649,10 @@ w_i:
                 sec
                 lda loopidx0        ; cached LSB of loopindex
                 sbc loopfufa,y
-                sta 0,x
+                sta zpage+0,x
                 lda loopindex+1,y
                 sbc loopfufa+1,y
-                sta 1,x
+                sta zpage+1,x
 
 z_i:            rts
 
@@ -2691,12 +2691,12 @@ xt_invert:
                 jsr underflow_1
 w_invert:
                 lda #$FF
-                eor 0,x         ; LSB
-                sta 0,x
+                eor zpage+0,x         ; LSB
+                sta zpage+0,x
 
                 lda #$FF
-                eor 1,x         ; MSB
-                sta 1,x
+                eor zpage+1,x         ; MSB
+                sta zpage+1,x
 
 z_invert:       rts
 
@@ -2755,10 +2755,10 @@ w_j:
                 sec
                 lda loopindex,y
                 sbc loopfufa,y
-                sta 0,x
+                sta zpage+0,x
                 lda loopindex+1,y
                 sbc loopfufa+1,y
-                sta 1,x
+                sta zpage+1,x
 z_j:            rts
 
 
@@ -2799,8 +2799,8 @@ w_keyq:
 +
                 dex
                 dex
-                sty 0,x         ; store either $0000 or $ffff
-                sty 1,x
+                sty zpage+0,x         ; store either $0000 or $ffff
+                sty zpage+1,x
 
 z_keyq:         rts
 
@@ -2883,9 +2883,9 @@ xt_less_number_sign:
 w_less_number_sign:
                 jsr w_pad      ; ( addr )
 
-                lda 0,x
+                lda zpage+0,x
                 sta tohold
-                lda 1,x
+                lda zpage+1,x
                 sta tohold+1
 
                 inx
@@ -2917,8 +2917,8 @@ _false:
 
                 inx
                 inx
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_less_than:    rts
 
@@ -2940,7 +2940,7 @@ xt_literal:
 
 
 w_literal:
-                lda 1,x                         ; is it a byte value?
+                lda zpage+1,x                         ; is it a byte value?
                 bne literal_as_word
 
                 ; we could also check 0,x and compile w_zero to save another byte
@@ -2992,13 +2992,13 @@ literal_compile_cmpl_byte:
                 ldy #256-template_push_word_tos_size+1
                 dec cp+1                        ; rewind one page to CP-256
 
-                lda 1,x
+                lda zpage+1,x
                 beq +                           ; skip MSB if it's zero
                 sta (cp),y                      ; poke MSB into `ldy #<MSB>`
 +
                 iny                             ; Either way, the LSB is two bytes further along
                 iny
-                lda 0,x
+                lda zpage+0,x
                 sta (cp),y                      ; poke LSB into `lda #<LSB>`
                 inc cp+1                        ; reset HERE
 
@@ -3097,9 +3097,9 @@ _next:
                 bne _next
 _noleave:
                 ; restore loopleave in case we were nested
-                lda 0,x
+                lda zpage+0,x
                 sta loopleave
-                lda 1,x
+                lda zpage+1,x
                 sta loopleave+1
 
                 ; Clean up the loop params by appending unloop
@@ -3113,7 +3113,7 @@ _noleave:
                 ; points at ?DO's "skip the loop" jmp address,
                 ; wanting to skip past this whole mess to CP=HERE,
                 ; or has MSB=0 from DO which we can just ignore
-                lda 1,x                 ; MSB=0 means DO so nothing to do
+                lda zpage+1,x                 ; MSB=0 means DO so nothing to do
                 beq +
                 jsr w_here
                 jsr w_swap
@@ -3170,7 +3170,7 @@ plus_loop_runtime:
         ; """
 
                 clc
-                lda 0,x                 ; LSB of step
+                lda zpage+0,x                 ; LSB of step
                 adc loopidx0
                 sta loopidx0
 
@@ -3207,15 +3207,15 @@ xt_lshift:
                 jsr underflow_2
 w_lshift:
                 ; max shift 16 times
-                lda 0,x
+                lda zpage+0,x
                 and #%00001111
                 beq _done
 
                 tay
 
 _loop:
-                asl 2,x
-                rol 3,x
+                asl zpage+2,x
+                rol zpage+3,x
                 dey
                 bne _loop
 
@@ -3241,8 +3241,8 @@ xt_m_star:
                 jsr underflow_2
 w_m_star:
                 ; figure out the sign
-                lda 1,x         ; MSB of n1
-                eor 3,x         ; MSB of n2
+                lda zpage+1,x         ; MSB of n1
+                eor zpage+3,x         ; MSB of n2
 
                 ; UM* uses all kinds of temporary variables so we don't
                 ; risk a conflict but just take the cycle hit and push
@@ -3420,11 +3420,11 @@ xt_max:
                 jsr underflow_2
 w_max:
                 ; Compare LSB. We do this first to set the carry flag
-                lda 0,x         ; LSB of TOS
-                cmp 2,x         ; LSB of NOS, this sets the carry
+                lda zpage+0,x         ; LSB of TOS
+                cmp zpage+2,x         ; LSB of NOS, this sets the carry
 
-                lda 1,x         ; MSB of TOS
-                sbc 3,x         ; MSB of NOS
+                lda zpage+1,x         ; MSB of TOS
+                sbc zpage+3,x         ; MSB of NOS
                 bvc _no_overflow
 
                 ; handle overflow, because we use signed numbers
@@ -3435,10 +3435,10 @@ _no_overflow:
                 bmi _keep_nos
 
                 ; move TOS to NOS
-                lda 0,x
-                sta 2,x
-                lda 1,x
-                sta 3,x
+                lda zpage+0,x
+                sta zpage+2,x
+                lda zpage+1,x
+                sta zpage+3,x
 
 _keep_nos:
                 inx
@@ -3460,11 +3460,11 @@ xt_min:
                 jsr underflow_2
 w_min:
                 ; compare LSB. We do this first to set the carry flag
-                lda 0,x         ; LSB of TOS
-                cmp 2,x         ; LSB of NOS, this sets carry
+                lda zpage+0,x         ; LSB of TOS
+                cmp zpage+2,x         ; LSB of NOS, this sets carry
 
-                lda 1,x         ; MSB of TOS
-                sbc 3,x         ; MSB of NOS
+                lda zpage+1,x         ; MSB of TOS
+                sbc zpage+3,x         ; MSB of NOS
                 bvc _no_overflow
 
                 ; handle overflow because we use signed numbers
@@ -3475,10 +3475,10 @@ _no_overflow:
                 bpl _keep_nos
 
                 ; move TOS to NOS
-                lda 0,x
-                sta 2,x
-                lda 1,x
-                sta 3,x
+                lda zpage+0,x
+                sta zpage+2,x
+                lda zpage+1,x
+                sta zpage+3,x
 
 _keep_nos:
                 inx
@@ -3495,13 +3495,13 @@ xt_minus:
                 jsr underflow_2
 w_minus:
                 sec
-                lda 2,x         ; LSB
-                sbc 0,x
-                sta 2,x
+                lda zpage+2,x         ; LSB
+                sbc zpage+0,x
+                sta zpage+2,x
 
-                lda 3,x         ; MSB
-                sbc 1,x
-                sta 3,x
+                lda zpage+3,x         ; MSB
+                sbc zpage+1,x
+                sta zpage+3,x
 
                 inx
                 inx
@@ -3544,8 +3544,8 @@ xt_move:
                 jsr underflow_3
 w_move:
                 ; compare MSB first
-                lda 3,x                 ; MSB of addr2
-                cmp 5,x                 ; MSB of addr1
+                lda zpage+3,x                 ; MSB of addr2
+                cmp zpage+5,x                 ; MSB of addr1
                 beq _lsb                ; wasn't helpful, move to LSB
                 bcs _to_move_up         ; we want CMOVE>
 
@@ -3553,8 +3553,8 @@ w_move:
 
 _lsb:
                 ; MSB were equal, so do the whole thing over with LSB
-                lda 2,x                 ; LSB of addr2
-                cmp 4,x                 ; LSB of addr1
+                lda zpage+2,x                 ; LSB of addr2
+                cmp zpage+4,x                 ; LSB of addr1
                 beq _equal              ; LSB is equal as well
                 bcs _to_move_up         ; we want CMOVE>
 
@@ -3581,12 +3581,12 @@ xt_negate:
 w_negate:
         	lda #0
                 sec
-                sbc 0,x         ; LSB
-                sta 0,x
+                sbc zpage+0,x         ; LSB
+                sta zpage+0,x
 
                 lda #0
-                sbc 1,x         ; MSB
-                sta 1,x
+                sbc zpage+1,x         ; MSB
+                sta zpage+1,x
 
 z_negate:       rts
 
@@ -3598,10 +3598,10 @@ z_negate:       rts
 xt_nip:
                 jsr underflow_2
 w_nip:
-                lda 0,x         ; LSB
-                sta 2,x
-                lda 1,x         ; MSB
-                sta 3,x
+                lda zpage+0,x         ; LSB
+                sta zpage+2,x
+                lda zpage+1,x         ; MSB
+                sta zpage+3,x
 
                 inx
                 inx
@@ -3623,21 +3623,21 @@ xt_not_equals:
 w_not_equals:
                 ldy #$ff                 ; default not-equal (true)
 
-                lda 0,x                 ; LSB
-                cmp 2,x
+                lda zpage+0,x                 ; LSB
+                cmp zpage+2,x
                 bne _done
 
                 ; LSB is equal
-                lda 1,x                 ; MSB
-                cmp 3,x
+                lda zpage+1,x                 ; MSB
+                cmp zpage+3,x
                 bne _done
 
                 iny                     ; actually equal (false)
 _done:
                 inx
                 inx
-                sty 0,x
-                sty 1,x
+                sty zpage+0,x
+                sty zpage+1,x
 
 z_not_equals:   rts
 
@@ -3678,15 +3678,15 @@ w_number_sign:
 
                 dex                     ; inline w_zero
                 dex
-                stz 0,x
-                stz 1,x
+                stz zpage+0,x
+                stz zpage+1,x
 
                 ; use msb of base as a flag to loop twice
                 ; (we assume below base <= 36 so this is safe)
                 inc base+1
 
-                lda 2,x                 ; if msw is 0 we can skip the first pass
-                ora 3,x
+                lda zpage+2,x                 ; if msw is 0 we can skip the first pass
+                ora zpage+3,x
                 beq _skip               ; enter with ( v 0 0 -rot -- 0 v 0 )
 
 _loop:
@@ -3694,8 +3694,8 @@ _loop:
                 dex                     ; inline `base @`
                 dex
                 lda base                ; base <= 36
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
                 jsr w_um_slash_mod      ; ( v u 0 base -- v ru qu )
 _skip:          jsr w_not_rot           ; ( qu v ru )
                 lsr base+1              ; 1 => 0 + C=1 => 0 + C=0
@@ -3709,11 +3709,11 @@ _skip:          jsr w_not_rot           ; ( qu v ru )
                 ; Convert the number that is left over to an ASCII character.
                 ; We use a string lookup for speed (assumes base <= 36).
 
-                lda 0,x
+                lda zpage+0,x
                 tay
                 lda alpha36,y           ; upper case 0-9A-Z
-                sta 0,x
-                stz 1,x                 ; paranoid; now ( ud char )
+                sta zpage+0,x
+                stz zpage+1,x                 ; paranoid; now ( ud char )
 
                 jsr w_hold
 
@@ -3737,23 +3737,23 @@ xt_number_sign_greater:
 w_number_sign_greater:
                 ; The start address lives in tohold
                 lda tohold
-                sta 0,x         ; LSB of tohold
-                sta 2,x
+                sta zpage+0,x         ; LSB of tohold
+                sta zpage+2,x
                 lda tohold+1
-                sta 1,x         ; MSB of addr
-                sta 3,x         ; ( addr addr )
+                sta zpage+1,x         ; MSB of addr
+                sta zpage+3,x         ; ( addr addr )
 
                 ; The length of the string is pad - addr
                 jsr w_pad      ; ( addr addr pad )
 
                 sec
-                lda 0,x         ; LSB of pad address
-                sbc 2,x
-                sta 2,x
+                lda zpage+0,x         ; LSB of pad address
+                sbc zpage+2,x
+                sta zpage+2,x
 
-                lda 1,x         ; MSB, which should always be zero
-                sbc 3,x
-                sta 3,x         ; ( addr u pad )
+                lda zpage+1,x         ; MSB, which should always be zero
+                sbc zpage+3,x
+                sta zpage+3,x         ; ( addr u pad )
 
                 inx
                 inx
@@ -3781,10 +3781,10 @@ _loop:
                 jsr w_number_sign
 
                 ; stop when double-celled number in TOS is zero:
-                lda 0,x
-                ora 1,x
-                ora 2,x
-                ora 3,x
+                lda zpage+0,x
+                ora zpage+1,x
+                ora zpage+2,x
+                ora zpage+3,x
                 bne _loop
 
 z_number_sign_s:
@@ -3814,12 +3814,12 @@ of_runtime:
                 ; ( x x -- ) if equal or ( x y -- x ) if not equal with A=true/false
                 ldy #0                  ; default not-equal (false)
 
-                lda 0,x                 ; LSB
-                cmp 2,x
+                lda zpage+0,x                 ; LSB
+                cmp zpage+2,x
                 bne _neq
 
-                lda 1,x                 ; MSB
-                cmp 3,x
+                lda zpage+1,x                 ; MSB
+                cmp zpage+3,x
                 bne _neq
 
                 dey                     ; equal, flag as true
@@ -3840,11 +3840,11 @@ of_runtime_size = * - of_runtime
 xt_one_minus:
                 jsr underflow_1
 w_one_minus:
-                lda 0,x
+                lda zpage+0,x
                 bne +
-                dec 1,x
+                dec zpage+1,x
 +
-                dec 0,x
+                dec zpage+0,x
 
 z_one_minus:    rts
 
@@ -3862,9 +3862,9 @@ xt_one_plus:
                 jsr underflow_1
 w_char_plus:
 w_one_plus:
-                inc 0,x
+                inc zpage+0,x
                 bne _done
-                inc 1,x
+                inc zpage+1,x
 
 _done:
 z_char_plus:
@@ -3878,13 +3878,13 @@ z_one_plus:     rts
 xt_or:
                 jsr underflow_2
 w_or:
-                lda 0,x
-                ora 2,x
-                sta 2,x
+                lda zpage+0,x
+                ora zpage+2,x
+                sta zpage+2,x
 
-                lda 1,x
-                ora 3,x
-                sta 3,x
+                lda zpage+1,x
+                ora zpage+3,x
+                sta zpage+3,x
 
                 inx
                 inx
@@ -3902,10 +3902,10 @@ w_over:
                 dex
                 dex
 
-                lda 4,x         ; LSB
-                sta 0,x
-                lda 5,x         ; MSB
-                sta 1,x
+                lda zpage+4,x         ; LSB
+                sta zpage+0,x
+                lda zpage+5,x         ; MSB
+                sta zpage+1,x
 
 z_over:         rts
 
@@ -3927,11 +3927,11 @@ w_pad:
                 lda cp
                 clc
                 adc #padoffset  ; assumes padoffset one byte in size
-                sta 0,x
+                sta zpage+0,x
 
                 lda cp+1
                 adc #0          ; only need carry
-                sta 1,x
+                sta zpage+1,x
 
 z_pad:          rts
 
@@ -4071,8 +4071,8 @@ _empty_line:
                 dex
                 dex
 
-                stz 0,x                 ; TOS is zero
-                stz 1,x
+                stz zpage+0,x                 ; TOS is zero
+                stz zpage+1,x
 
                 jmp z_parse_name        ; skip over PARSE
 
@@ -4145,14 +4145,14 @@ _abort_parse:
                 ; Sorry, this line is over
                 dex
                 dex
-                stz 0,x
-                stz 1,x
+                stz zpage+0,x
+                stz zpage+1,x
 
                 bra _done
 _go_parse:
                 ; We actually have work to do. Save the delimiter in
                 ; tmptos.
-                lda 0,x
+                lda zpage+0,x
                 sta tmptos
 
                 ; We can now prepare the Data Stack for the return value
@@ -4170,13 +4170,13 @@ _go_parse:
                 adc toin        ; LSB
                 sta tmp1
                 sta tmp2
-                sta 2,x
+                sta zpage+2,x
 
                 lda cib+1
                 adc toin+1      ; MSB
                 sta tmp1+1
                 sta tmp2+1
-                sta 3,x
+                sta zpage+3,x
 
                 ; Calculate the address where the input buffer ends plus 1, so
                 ; we can compare it with TOIN, which is an index
@@ -4243,11 +4243,11 @@ _eol:
                 lda tmp2
                 sec
                 sbc tmp1
-                sta 0,x
+                sta zpage+0,x
 
                 lda tmp2+1
                 sbc tmp1+1
-                sta 1,x
+                sta zpage+1,x
 
                 ; The new offset is tmp2-cib
                 lda tmp2
@@ -4288,15 +4288,15 @@ w_pick:
                 ; something out, but it wouldn't work with underflow stripping
                 ; Since using PICK is considered poor form anyway, we just
                 ; leave it as it is
-                asl 0,x         ; we assume u < 128 (stack is small)
+                asl zpage+0,x         ; we assume u < 128 (stack is small)
                 txa
-                adc 0,x
+                adc zpage+0,x
                 tay
 
                 lda 0002,y
-                sta 0,x
+                sta zpage+0,x
                 lda 0003,y
-                sta 1,x
+                sta zpage+1,x
 
 z_pick:         rts
 
@@ -4309,13 +4309,13 @@ xt_plus:
                 jsr underflow_2
 w_plus:
                 clc
-                lda 0,x         ; LSB
-                adc 2,x
-                sta 2,x
+                lda zpage+0,x         ; LSB
+                adc zpage+2,x
+                sta zpage+2,x
 
-                lda 1,x         ; MSB. No CLC, conserve carry bit
-                adc 3,x
-                sta 3,x
+                lda zpage+1,x         ; MSB. No CLC, conserve carry bit
+                adc zpage+3,x
+                sta zpage+3,x
 
                 inx
                 inx
@@ -4331,17 +4331,17 @@ xt_plus_store:
                 jsr underflow_2
 w_plus_store:
                 clc
-                lda (0,x)       ; fetch LSB at addr
-                adc 2,x
-                sta (0,x)
+                lda (zpage+0,x)       ; fetch LSB at addr
+                adc zpage+2,x
+                sta (zpage+0,x)
 
-                inc 0,x         ; addr++
+                inc zpage+0,x         ; addr++
                 bne +
-                inc 1,x
+                inc zpage+1,x
 +
-                lda (0,x)       ; fetch MSB
-                adc 3,x
-                sta (0,x)
+                lda (zpage+0,x)       ; fetch MSB
+                adc zpage+3,x
+                sta (zpage+0,x)
 
                 inx
                 inx
@@ -4370,8 +4370,8 @@ w_postpone:
                 jsr w_parse_name               ; ( -- addr n )
 
                 ; if there was no word provided, complain and quit
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne +
 
                 lda #err_noname
@@ -4386,7 +4386,7 @@ w_postpone:
 
 +
                 ; Grab status flag byte from NT
-                lda (0,x)
+                lda (zpage+0,x)
                 and #IM                         ; check Immediate status flag
                 beq _not_immediate
 
@@ -4417,17 +4417,17 @@ xt_question_dup:
                 jsr underflow_1
 w_question_dup:
                 ; Check if TOS is zero
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _done
 
                 ; not zero, duplicate
                 dex
                 dex
-                lda 2,x
-                sta 0,x
-                lda 3,x
-                sta 1,x
+                lda zpage+2,x
+                sta zpage+0,x
+                lda zpage+3,x
+                sta zpage+1,x
 _done:
 z_question_dup: rts
 
@@ -4458,9 +4458,9 @@ w_r_fetch:
                 dex
 
                 ply             ; LSB
-                sty 0,x
+                sty zpage+0,x
                 pla             ; MSB
-                sta 1,x
+                sta zpage+1,x
 
                 ; now we have to put that value back
                 pha
@@ -4509,9 +4509,9 @@ w_r_from:
                 ; now we can access the actual data
 
                 pla             ; LSB
-                sta 0,x
+                sta zpage+0,x
                 pla             ; MSB
-                sta 1,x
+                sta zpage+1,x
 
                 ; --- CUT FOR NATIVE COMPILE ---
 
@@ -4588,24 +4588,24 @@ w_refill:
                 dex
 
                 lda cib                 ; address of CIB is NOS
-                sta 2,x
+                sta zpage+2,x
                 lda cib+1
-                sta 3,x
+                sta zpage+3,x
 
                 stz ciblen              ; go in with empty buffer
                 stz ciblen+1
 
                 lda #bsize              ; max number of chars is TOS
-                sta 0,x
-                stz 1,x                 ; cheat: We only accept max 255
+                sta zpage+0,x
+                stz zpage+1,x                 ; cheat: We only accept max 255
 
                 jsr w_accept           ; ( addr n1 -- n2)
 
                 ; ACCEPT returns the number of characters accepted, which
                 ; belong in CIBLEN
-                lda 0,x
+                lda zpage+0,x
                 sta ciblen
-                lda 1,x
+                lda zpage+1,x
                 sta ciblen+1            ; though we only accept 255 chars
 
                 ; make >IN point to beginning of buffer
@@ -4613,8 +4613,8 @@ w_refill:
                 stz toin+1
 
                 lda #$FF                ; overwrite with TRUE flag
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
                 bra _done
 
@@ -4628,8 +4628,8 @@ _src_not_kbd:
                 ; Simply return FALSE flag as per specification
                 dex
                 dex
-                stz 0,x
-                stz 1,x
+                stz zpage+0,x
+                stz zpage+1,x
 
                 bra z_refill
 
@@ -4686,19 +4686,19 @@ z_right_bracket:
 xt_rot:
                 jsr underflow_3
 w_rot:
-                ldy 5,x         ; MSB first
-                lda 3,x
-                sta 5,x
-                lda 1,x
-                sta 3,x
-                sty 1,x
+                ldy zpage+5,x         ; MSB first
+                lda zpage+3,x
+                sta zpage+5,x
+                lda zpage+1,x
+                sta zpage+3,x
+                sty zpage+1,x
 
-                ldy 4,x         ; LSB next
-                lda 2,x
-                sta 4,x
-                lda 0,x
-                sta 2,x
-                sty 0,x
+                ldy zpage+4,x         ; LSB next
+                lda zpage+2,x
+                sta zpage+4,x
+                lda zpage+0,x
+                sta zpage+2,x
+                sty zpage+0,x
 
 z_rot:          rts
 
@@ -4711,14 +4711,14 @@ xt_rshift:
                 jsr underflow_2
 w_rshift:
                 ; We shift maximal by 16 bits, mask everything else
-                lda 0,x
+                lda zpage+0,x
                 and #%00001111
                 beq _done               ; if 0 shifts, quit
 
                 tay                     ; we could optimize y >= 8 but prob not worth it
 _loop:
-                lsr 3,x
-                ror 2,x
+                lsr zpage+3,x
+                ror zpage+2,x
                 dey
                 bne _loop
 _done:
@@ -4849,8 +4849,8 @@ _savechars_loop:
                 sta tmp2
 
                 ; Check result of refill.
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _refill_ok
 
                 ; Something when wrong with refill.
@@ -5076,15 +5076,15 @@ xt_s_to_d:
 w_s_to_d:
                 dex
                 dex
-                stz 0,x
-                stz 1,x
+                stz zpage+0,x
+                stz zpage+1,x
 
-                lda 3,x
+                lda zpage+3,x
                 bpl _done
 
                 ; negative, extend sign
-                dec 0,x
-                dec 1,x
+                dec zpage+0,x
+                dec zpage+1,x
 _done:
 z_s_to_d:       rts
 
@@ -5145,7 +5145,7 @@ _colonword:
                 ; We've optimistically saved only one byte for the code size
                 ; in the header.  If the code is too big we have work to do...
 
-                lda 1,x
+                lda zpage+1,x
                 beq _setsz              ; one byte size is OK
 .if !TALI_OPTION_TERSE
                 jsr fixup_long_word
@@ -5154,9 +5154,9 @@ _colonword:
                 ; we currently only use the word size for SEE so in the
                 ; minimal case we'll just call the length 255,
                 ; make the word NN, and move on...
-                stz 1,x
+                stz zpage+1,x
                 lda #$ff
-                sta 0,x
+                sta zpage+0,x
                 lda (workword)
                 ora #NN
                 sta (workword)
@@ -5175,9 +5175,9 @@ _setsz:
                 adc #3
                 tay
 
-                lda 0,x                 ; LSB of code size
+                lda zpage+0,x                 ; LSB of code size
                 sta (workword),y        ; write LSB
-                lda 1,x
+                lda zpage+1,x
                 beq +
 
                 iny                     ; write MSB only if non-zero
@@ -5283,12 +5283,12 @@ fixup_long_word:
                 jsr w_rot
                 ; ( codesize nameptr nameptr+1 namelen )
                 clc
-                lda 6,x
-                adc 0,x
-                sta 0,x
-                lda 7,x
-                adc 1,x
-                sta 1,x
+                lda zpage+6,x
+                adc zpage+0,x
+                sta zpage+0,x
+                lda zpage+7,x
+                adc zpage+1,x
+                sta zpage+1,x
                 ; ( codesize nameptr nameptr+1 codesize+namelen )
                 jsr w_cmove_up
                 ; ( codesize )
@@ -5324,10 +5324,10 @@ _mvhdr:
                 dex
                 dex
                 clc
-                lda 2,x
+                lda zpage+2,x
                 adc #8                  ; full header size
-                sta 0,x
-                stz 1,x                 ; no MSB since name length <32
+                sta zpage+0,x
+                stz zpage+1,x                 ; no MSB since name length <32
                 jsr w_allot
 
                 ; Now fill in the new header
@@ -5362,10 +5362,10 @@ _mvhdr:
                 clc
                 lda workword
                 adc #8                  ; offset to name in new header
-                sta 0,x
+                sta zpage+0,x
                 lda workword+1
                 adc #0
-                sta 1,x
+                sta zpage+1,x
                 jsr w_swap
                 ; ( codesize nameptr newnameptr namelen )
                 jsr w_cmove_up
@@ -5386,7 +5386,7 @@ _mvhdr:
 xt_sign:
                 jsr underflow_1
 w_sign:
-                lda 1,x         ; check MSB of TOS
+                lda zpage+1,x         ; check MSB of TOS
                 bmi _minus
 
                 inx
@@ -5394,8 +5394,8 @@ w_sign:
                 bra _done
 _minus:
                 lda #'-'
-                sta 0,x         ; overwrite TOS
-                stz 1,x         ; paranoid
+                sta zpage+0,x         ; overwrite TOS
+                stz zpage+1,x         ; paranoid
 
                 jsr w_hold
 _done:
@@ -5433,10 +5433,10 @@ slashmod_common:
                 pha
                 ; rather than >R S>D R> we'll do ( n1 n2 -- d1 n2 ) inline
 
-                lda 0,x                 ; dup but drop leaving ( n1 -- ) with [ ? n2 ] in the wings
+                lda zpage+0,x                 ; dup but drop leaving ( n1 -- ) with [ ? n2 ] in the wings
                 sta $fe,x
-                lda 1,x
-                sta $ff,x
+                lda zpage+1,x
+                sta zpage+$ff,x
                 inx
                 inx
                 jsr w_s_to_d            ; sign extend and then recover n2
@@ -5480,13 +5480,13 @@ xt_sm_slash_rem:
 w_sm_slash_rem:
                 ; push MSB of high cell of d to Data Stack so we can check
                 ; its sign later
-                lda 3,x
+                lda zpage+3,x
                 pha
 
                 ; XOR the MSB of the high cell of d and n1 so we figure out
                 ; its sign later as well
-                lda 1,x
-                eor 3,x
+                lda zpage+1,x
+                eor zpage+3,x
                 pha
 
                 ; Prepare division by getting absolute of n1 and d
@@ -5576,10 +5576,10 @@ z_space:        rts
 xt_spaces:
                 jsr underflow_1
 w_spaces:
-                lda 1,x         ; ANS says this word takes a signed value
+                lda zpage+1,x         ; ANS says this word takes a signed value
                 bmi _done       ; but prints no spaces for negative values.
 
-                ldy 0,x
+                ldy zpage+0,x
                 beq _msb
 _loop:                          ; loop to zero out LSB
                 lda #AscSP
@@ -5587,7 +5587,7 @@ _loop:                          ; loop to zero out LSB
                 dey
                 bne _loop       ; Y is zero on exit so looping again emits 256 more spaces
 _msb:
-                dec 1,x         ; when decrementing MSB goes negative, it was zero so we're done
+                dec zpage+1,x         ; when decrementing MSB goes negative, it was zero so we're done
                 bpl _loop       ; otherwise emit another 256 spaces
 
 _done:          inx
@@ -5682,15 +5682,15 @@ z_state:        rts
 xt_store:
                 jsr underflow_2
 w_store:
-                lda 2,x         ; LSB
-                sta (0,x)
+                lda zpage+2,x         ; LSB
+                sta (zpage+0,x)
 
-                inc 0,x
+                inc zpage+0,x
                 bne +
-                inc 1,x
+                inc zpage+1,x
 +
-                lda 3,x         ; MSB
-                sta (0,x)
+                lda zpage+3,x         ; MSB
+                sta (zpage+0,x)
 
                 inx             ; 2DROP
                 inx
@@ -5707,15 +5707,15 @@ z_store:        rts
 xt_swap:
                 jsr underflow_2
 w_swap:
-                lda 0,x         ; LSB
-                ldy 2,x
-                sta 2,x
-                sty 0,x
+                lda zpage+0,x         ; LSB
+                ldy zpage+2,x
+                sta zpage+2,x
+                sty zpage+0,x
 
-                lda 1,x         ; MSB
-                ldy 3,x
-                sta 3,x
-                sty 1,x
+                lda zpage+1,x         ; MSB
+                ldy zpage+3,x
+                sta zpage+3,x
+                sty zpage+1,x
 
 z_swap:         rts
 
@@ -5739,8 +5739,8 @@ w_tick:
 
                 ; if we got a zero, there was a problem getting the
                 ; name of the word
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne +
 
                 lda #err_noname
@@ -5749,8 +5749,8 @@ w_tick:
                 jsr w_find_name        ; ( addr u -- nt )
 
                 ; If we didn't find the word in the Dictionary, abort
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne +
 
                 lda #err_syntax
@@ -5868,18 +5868,18 @@ w_to_body:
                 jsr w_int_to_name      ; ( xt nt )      - Nb. expensive wordlist search
 
                 ; The status flags byte is @ NT
-                lda (0,x)               ; get status byte
+                lda (zpage+0,x)               ; get status byte
                 and #HC
                 beq _no_cfa
 
                 ; We've got a push_pfa, DODOES or whatever,
                 ; so we add three to xt, which is NOS
                 clc
-                lda 2,x         ; LSB
+                lda zpage+2,x         ; LSB
                 adc #3
-                sta 2,x
+                sta zpage+2,x
                 bcc _no_cfa
-                inc 3,x         ; MSB
+                inc zpage+3,x         ; MSB
 _no_cfa:
                 inx             ; get rid of the nt
                 inx
@@ -5943,14 +5943,14 @@ w_to_number:
                 ; After this step, the original ud-lo and ud-hi will still be on
                 ; the Data Stack, but will be ignored and later overwritten
                 ; If >NUMBER is called by NUMBER, these should be all zeros
-                lda 6,x         ; ud-lo LSB
+                lda zpage+6,x         ; ud-lo LSB
                 sta scratch
-                lda 7,x         ; ud-lo MSB
+                lda zpage+7,x         ; ud-lo MSB
                 sta scratch+1
 
-                lda 4,x         ; ud-hi LSB
+                lda zpage+4,x         ; ud-hi LSB
                 sta scratch+2
-                lda 5,x         ; ud-hi MSB
+                lda zpage+5,x         ; ud-hi MSB
                 sta scratch+3
                 ora scratch+2
                 sta scratch+5   ; flag to track ud-hi zero
@@ -5965,7 +5965,7 @@ w_to_number:
 
 _loop:
                 ; Fetch one character from current address
-                lda (6,x)
+                lda (zpage+6,x)
                 jsr ascii_to_digit
                 bcs _done       ; bad digit
 
@@ -5983,51 +5983,51 @@ _loop:
                 ; We can clobber TOS and NOS because we saved n
                 ; The multiply is faster with the smaller base on the left (NOS)
                 lda scratch+2
-                sta 0,x         ; TOS
+                sta zpage+0,x         ; TOS
                 lda scratch+3
-                sta 1,x
+                sta zpage+1,x
 
                 lda base
-                sta 2,x         ; NOS
-                stz 3,x         ; ( ud-lo ud-hi addr u base ud-hi )
+                sta zpage+2,x         ; NOS
+                stz zpage+3,x         ; ( ud-lo ud-hi addr u base ud-hi )
 
                 ; UM* returns a double-celled number
                 jsr w_um_star   ; ( ud-lo ud-hi addr u ud-hi-lo ud-hi-hi )
 
                 ; Move ud-hi-lo to safety
-                lda 2,x         ; ud-hi-lo
+                lda zpage+2,x         ; ud-hi-lo
                 sta scratch+6
-                lda 3,x
+                lda zpage+3,x
                 sta scratch+7
 
 _skip:
                 ; Now we multiply ud-lo, overwriting NOS, TOS
                 ; Again put the smaller base on the left (NOS)
                 lda scratch
-                sta 0,x
+                sta zpage+0,x
                 lda scratch+1
-                sta 1,x         ; ( ud-lo ud-hi addr u ? ud-lo )
+                sta zpage+1,x         ; ( ud-lo ud-hi addr u ? ud-lo )
 
                 lda base
-                sta 2,x
-                stz 3,x         ; ( ud-lo ud-hi addr u base ud-lo )
+                sta zpage+2,x
+                stz zpage+3,x         ; ( ud-lo ud-hi addr u base ud-lo )
 
                 jsr w_um_star   ; ( ud-lo ud-hi addr u ud-lo-lo ud-lo-hi )
 
                 ; We add ud-lo and n, as well as ud-hi and ud-hi-lo,
                 ; both in the scratch pad
                 clc
-                lda 2,x         ; ud-lo LSB
+                lda zpage+2,x         ; ud-lo LSB
                 adc scratch+4   ; n LSB
                 sta scratch     ; this is the new ud-lo
-                lda 3,x         ; ud-lo MSB
+                lda zpage+3,x         ; ud-lo MSB
                 adc #0          ; MSB of digit is 0
                 sta scratch+1
 
-                lda 0,x         ; ud-hi LSB
+                lda zpage+0,x         ; ud-hi LSB
                 adc scratch+6
                 sta scratch+2   ; this is the new ud-hi
-                lda 1,x         ; MSB
+                lda zpage+1,x         ; MSB
                 adc scratch+7
                 sta scratch+3
 
@@ -6036,12 +6036,12 @@ _skip:
                 sta scratch+5   ; update our ud-hi zero flag
 
                 ; One character down. Increment address
-                inc 6,x
+                inc zpage+6,x
                 bne +
-                inc 7,x
+                inc zpage+7,x
 +
                 ; Decrease counter (< 256)
-                dec 4,x
+                dec zpage+4,x
                 bne _loop
 
 _done:
@@ -6057,14 +6057,14 @@ _done:
 
                 ; The new ud-lo and ud-hi are still on the scratch pad
                 lda scratch     ; new ud-lo
-                sta 6,x
+                sta zpage+6,x
                 lda scratch+1
-                sta 7,x
+                sta zpage+7,x
 
                 lda scratch+2
-                sta 4,x
+                sta zpage+4,x
                 lda scratch+3
-                sta 5,x
+                sta zpage+5,x
 
 z_to_number:    rts
 
@@ -6094,9 +6094,9 @@ w_to_r:
                 jsr underflow_1
 
                 ; now we can do the actual work
-                lda 1,x         ; MSB
+                lda zpage+1,x         ; MSB
                 pha
-                lda 0,x         ; LSB
+                lda zpage+0,x         ; LSB
                 pha
 
                 inx
@@ -6116,8 +6116,8 @@ w_true:
                 dex
                 dex
                 lda #$FF
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_true:         rts
 
@@ -6131,17 +6131,17 @@ w_tuck:
                 dex
                 dex
 
-                ldy 4,x         ; LSB
-                lda 2,x
-                sta 4,x
-                sty 2,x
-                sta 0,x
+                ldy zpage+4,x         ; LSB
+                lda zpage+2,x
+                sta zpage+4,x
+                sty zpage+2,x
+                sta zpage+0,x
 
-                ldy 5,x         ; MSB
-                lda 3,x
-                sta 5,x
-                sty 3,x         ; bba
-                sta 1,x         ; baa
+                ldy zpage+5,x         ; MSB
+                lda zpage+3,x
+                sta zpage+5,x
+                sty zpage+3,x         ; bba
+                sta zpage+1,x         ; baa
 
 z_tuck:         rts
 
@@ -6173,15 +6173,15 @@ w_two_dup:
                 dex
                 dex
 
-                lda 4,x         ; TOS
-                sta 0,x
-                lda 5,x
-                sta 1,x
+                lda zpage+4,x         ; TOS
+                sta zpage+0,x
+                lda zpage+5,x
+                sta zpage+1,x
 
-                lda 6,x         ; NOS
-                sta 2,x
-                lda 7,x
-                sta 3,x
+                lda zpage+6,x         ; NOS
+                sta zpage+2,x
+                lda zpage+7,x
+                sta zpage+3,x
 
 z_two_dup:      rts
 
@@ -6196,25 +6196,25 @@ z_two_dup:      rts
 xt_two_fetch:
                 jsr underflow_1
 w_two_fetch:
-                lda 0,x
+                lda zpage+0,x
                 sta tmp1
-                ldy 1,x
+                ldy zpage+1,x
                 sty tmp1+1
 
                 dex             ; reuse one stack element
                 dex
 
                 lda (tmp1)      ; copy LSB
-                sta 0,x
+                sta zpage+0,x
                 ldy #1          ; copy next
                 lda (tmp1),y
-                sta 1,x
+                sta zpage+1,x
                 iny             ; copy next
                 lda (tmp1),y
-                sta 2,x
+                sta zpage+2,x
                 iny             ; copy next
                 lda (tmp1),y
-                sta 3,x
+                sta zpage+3,x
 
 z_two_fetch:    rts
 
@@ -6231,17 +6231,17 @@ w_two_over:
                 dex
                 dex
 
-                lda 8,x
-                sta 0,x
+                lda zpage+8,x
+                sta zpage+0,x
 
-                lda 9,x
-                sta 1,x
+                lda zpage+9,x
+                sta zpage+1,x
 
-                lda 10,x
-                sta 2,x
+                lda zpage+10,x
+                sta zpage+2,x
 
-                lda 11,x
-                sta 3,x
+                lda zpage+11,x
+                sta zpage+3,x
 
 z_two_over:     rts
 
@@ -6279,13 +6279,13 @@ w_two_r_fetch:
                 plx             ; restore DSP
 
                 ply             ; copy four elements
-                sty 0,x
+                sty zpage+0,x
                 ply
-                sty 1,x
+                sty zpage+1,x
                 ply
-                sty 2,x
+                sty zpage+2,x
                 ply
-                sty 3,x
+                sty zpage+3,x
                 tax
                 txs             ; restore SP
                 plx             ; pull original DSP again
@@ -6328,14 +6328,14 @@ w_two_r_from:
                 dex
 
                 pla                     ; LSB
-                sta 0,x
+                sta zpage+0,x
                 pla                     ; MSB
-                sta 1,x
+                sta zpage+1,x
 
                 pla                     ; LSB
-                sta 2,x
+                sta zpage+2,x
                 pla                     ; MSB
-                sta 3,x
+                sta zpage+3,x
 
                 ; --- CUT FOR NATIVE COMPILE ---
 
@@ -6351,10 +6351,10 @@ xt_two_slash:
 w_two_slash:
                 ; We can't just LSR the LSB and ROR the MSB because that
                 ; would do bad things to the sign
-                lda 1,x
+                lda zpage+1,x
                 asl                     ; save the sign
-                ror 1,x
-                ror 0,x
+                ror zpage+1,x
+                ror zpage+0,x
 
 z_two_slash:    rts
 
@@ -6371,8 +6371,8 @@ xt_cells:
                 jsr underflow_1
 w_two_star:
 w_cells:
-                asl 0,x
-                rol 1,x
+                asl zpage+0,x
+                rol zpage+1,x
 z_cells:
 z_two_star:     rts
 
@@ -6387,23 +6387,23 @@ z_two_star:     rts
 xt_two_store:
                 jsr underflow_3
 w_two_store:
-                lda 0,x
+                lda zpage+0,x
                 sta tmp1
-                ldy 1,x
+                ldy zpage+1,x
                 sty tmp1+1
 
                 inx
                 inx
 
-                lda 0,x         ; copy MSB
+                lda zpage+0,x         ; copy MSB
                 sta (tmp1)
-                lda 1,x         ; copy next
+                lda zpage+1,x         ; copy next
                 ldy #1
                 sta (tmp1),y
-                lda 2,x         ; copy next
+                lda zpage+2,x         ; copy next
                 iny
                 sta (tmp1),y
-                lda 3,x         ; copy MSB
+                lda zpage+3,x         ; copy MSB
                 iny
                 sta (tmp1),y
 
@@ -6423,28 +6423,28 @@ xt_two_swap:
                 jsr underflow_4
 w_two_swap:
                 ; 0 <-> 4
-                lda 0,x
-                ldy 4,x
-                sta 4,x
-                sty 0,x
+                lda zpage+0,x
+                ldy zpage+4,x
+                sta zpage+4,x
+                sty zpage+0,x
 
                 ; 1 <-> 5
-                lda 1,x
-                ldy 5,x
-                sta 5,x
-                sty 1,x
+                lda zpage+1,x
+                ldy zpage+5,x
+                sta zpage+5,x
+                sty zpage+1,x
 
                 ; 2 <-> 6
-                lda 2,x
-                ldy 6,x
-                sta 6,x
-                sty 2,x
+                lda zpage+2,x
+                ldy zpage+6,x
+                sta zpage+6,x
+                sty zpage+2,x
 
                 ; 3 <-> 7
-                lda 3,x
-                ldy 7,x
-                sta 7,x
-                sty 3,x
+                lda zpage+3,x
+                ldy zpage+7,x
+                sta zpage+7,x
+                sty zpage+3,x
 
 z_two_swap:     rts
 
@@ -6474,15 +6474,15 @@ w_two_to_r:
                 jsr underflow_2
 
                 ; now we can move the data
-                lda 3,x         ; MSB
+                lda zpage+3,x         ; MSB
                 pha
-                lda 2,x         ; LSB
+                lda zpage+2,x         ; LSB
                 pha
 
                 ; now we can move the data
-                lda 1,x         ; MSB
+                lda zpage+1,x         ; MSB
                 pha
-                lda 0,x         ; LSB
+                lda zpage+0,x         ; LSB
                 pha
 
                 inx
@@ -6507,14 +6507,14 @@ xt_type:
                 jsr underflow_2
 w_type:
                 ; Save the starting address into tmp1
-                lda 2,x
+                lda zpage+2,x
                 sta tmp1
-                lda 3,x
+                lda zpage+3,x
                 sta tmp1+1
 
                 ldy #0          ; initialize offset
 
-                lda 0,x
+                lda zpage+0,x
                 beq _check      ; check empty string
 _loop:
                 lda (tmp1),y
@@ -6523,12 +6523,12 @@ _loop:
                 bne +
                 inc tmp1+1
 +
-                dec 0,x
+                dec zpage+0,x
                 bne _loop
 _check:
-                lda 1,x         ; See if we are done
+                lda zpage+1,x         ; See if we are done
                 beq _cleanup
-                dec 1,x         ; Not done - do another page
+                dec zpage+1,x         ; Not done - do another page
                 bra _loop
 
 _cleanup:
@@ -6585,17 +6585,17 @@ z_u_dot_r:      rts
 xt_u_greater_than:
                 jsr underflow_2
 w_u_greater_than:
-                lda 0,x
-                cmp 2,x
-                lda 1,x
-                sbc 3,x
+                lda zpage+0,x
+                cmp zpage+2,x
+                lda zpage+1,x
+                sbc zpage+3,x
                 inx
                 inx
 
                 lda #0
                 adc #$FF
-                sta 0,x         ; store flag
-                sta 1,x
+                sta zpage+0,x         ; store flag
+                sta zpage+1,x
 
 z_u_greater_than:    rts
 
@@ -6606,17 +6606,17 @@ z_u_greater_than:    rts
 xt_u_less_than:
                 jsr underflow_2
 w_u_less_than:
-                lda 2,x
-                cmp 0,x
-                lda 3,x
-                sbc 1,x
+                lda zpage+2,x
+                cmp zpage+0,x
+                lda zpage+3,x
+                sbc zpage+1,x
                 inx
                 inx
 
                 lda #0
                 adc #$FF
-                sta 0,x         ; store flag
-                sta 1,x
+                sta zpage+0,x         ; store flag
+                sta zpage+1,x
 
 z_u_less_than:    rts
 
@@ -6637,8 +6637,8 @@ xt_um_slash_mod:
                 jsr underflow_3
 w_um_slash_mod:
                 ; catch division by zero
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _not_zero
 
                 lda #err_divzero
@@ -6685,33 +6685,33 @@ _not_zero:
                 ; extended to a double via S>D, it's worth doing a
                 ; fast pre-loop until we see a non-zero high dividend
 
-                lda 2,x                 ; is high part of dividend zero?
-                ora 3,x
+                lda zpage+2,x                 ; is high part of dividend zero?
+                ora zpage+3,x
                 bne _loop               ; nope, carry on...
 
-_while_zero:    rol 4,x                 ; roll the bottom word
-                rol 5,x
+_while_zero:    rol zpage+4,x                 ; roll the bottom word
+                rol zpage+5,x
                 dey
                 beq _done
                 bcc _while_zero         ; until we get a high bit
 
-                rol 2,x                 ; enter the bit into the high part
+                rol zpage+2,x                 ; enter the bit into the high part
                 bra _maybe              ; start the real work
 
 _loop:
                 ; rotate low cell of dividend one bit left (LSB)
                 ; entering the last result bit from the carry
                 ; NB. the arbitrary bit on pass one is discarded on step 17
-                rol 4,x
-                rol 5,x
+                rol zpage+4,x
+                rol zpage+5,x
 
                 ; loop control
                 dey
                 beq _done
 
                 ; rotate high cell of dividend one bit left (MSB)
-                rol 2,x
-                rol 3,x
+                rol zpage+2,x
+                rol zpage+3,x
 
                 ; Garth's original routine explicitly stores
                 ; the carry (bit 17) in a temp and uses an
@@ -6723,13 +6723,13 @@ _loop:
                 bcc _maybe      ; hi bit set?
 
                 ; bit 17 aka carry is set, so divisor will definitely go
-                lda 2,x
-                sbc 0,x
-                sta 2,x
+                lda zpage+2,x
+                sbc zpage+0,x
+                sta zpage+2,x
 
-                lda 3,x
-                sbc 1,x
-                sta 3,x
+                lda zpage+3,x
+                sbc zpage+1,x
+                sta zpage+3,x
 
                 sec             ; result bit is 1
                 bra _loop
@@ -6742,15 +6742,15 @@ _maybe:
                 ; start with the MSB so we can short-circuit early
 
                 sec
-                lda 3,x         ; check if we need borrow on MSB
-                sbc 1,x
+                lda zpage+3,x         ; check if we need borrow on MSB
+                sbc zpage+1,x
                 bcc _loop       ; if we do, divisor won't go, result bit is C=0
 
                 ina
                 sta tmpdsp      ; stash msb+1 to simplify upcoming borrow test
 
-                lda 2,x         ; find difference of LSB
-                sbc 0,x         ; note carry is already set
+                lda zpage+2,x         ; find difference of LSB
+                sbc zpage+0,x         ; note carry is already set
                 bcs _ok         ; if C=1, we're good to go
 
                 dec tmpdsp      ; need to borrow from the MSB
@@ -6758,10 +6758,10 @@ _maybe:
 
                 sec             ; otherwise we're good, so ensure C=1
 _ok:
-                sta 2,x         ; update the LSB of dividend
+                sta zpage+2,x         ; update the LSB of dividend
                 lda tmpdsp      ; recover stashed MSB
                 dea             ; undo our +1 adjustment
-                sta 3,x         ; update MSB of dividend
+                sta zpage+3,x         ; update MSB of dividend
 
                 bra _loop       ; continue with result bit C=1
 _done:
@@ -6825,12 +6825,12 @@ w_um_star:
 
                 ; set tmp2 to RHS-1 to eliminate clc inside the loop
                 ; at the same time check for quick exit if RHS=0
-                lda 0,x         ; copy TOS-1 to tmp2
+                lda zpage+0,x         ; copy TOS-1 to tmp2
                 clc             ; subtract the extra one
                 sbc #0          ; leaves C=1 unless LSB was zero
                 sta tmp2
 
-                lda 1,x
+                lda zpage+1,x
                 sbc #0          ; leaves C=1 unless both bytes were zero
                 bcc _tos_zero   ; is TOS aka RHS zero?
                 sta tmp2+1
@@ -6854,7 +6854,7 @@ _outer_loop:
                 ; On entry A has the low byte of tmp1
 
                 ldy #8          ; inner loop counter, looping over LHS bits
-                lsr 4,x         ; think "2,x" the first time and "3,x" the next
+                lsr zpage+4,x         ; think "2,x" the first time and "3,x" the next
                 bcs +
                 beq _skip8      ; shortcut if all bits in this byte were zero
 _inner_loop:
@@ -6870,7 +6870,7 @@ _inner_loop:
 _no_add:
                 ror
                 ror tmp1
-                ror 4,x         ; first "2,x" then "3,x"
+                ror zpage+4,x         ; first "2,x" then "3,x"
 
                 dey
                 bne _inner_loop ; done eight bits?
@@ -6880,21 +6880,21 @@ _next8:
                 bne _outer_loop ; go back for eight more shifts?
 
                 ; all done, store high word of result
-                sta 1,x
+                sta zpage+1,x
                 lda tmp1
-                sta 0,x
+                sta zpage+0,x
                 bra _done
 
 _skip8:
                 ldy tmp1         ; 0 => A => tmp1 => 4,x
-                sty 4,x
+                sty zpage+4,x
                 sta tmp1
                 lda #0
                 bra _next8
 
 _tos_zero:
-                stz 2,x         ; just set the other result bytes to zero
-                stz 3,x
+                stz zpage+2,x         ; just set the other result bytes to zero
+                stz zpage+3,x
 _done:
 z_um_star:      rts
 
@@ -6947,11 +6947,11 @@ w_unused:
                 lda #<cp_end
                 sec
                 sbc cp
-                sta 0,x
+                sta zpage+0,x
 
                 lda #>cp_end
                 sbc cp+1
-                sta 1,x
+                sta zpage+1,x
 
 z_unused:       rts
 
@@ -7034,7 +7034,7 @@ _loop:
                 cpy ciblen              ; quit if end of input
                 beq _found_char
                 lda (cib),y
-                cmp 0,x                 ; ASCII of delimiter
+                cmp zpage+0,x                 ; ASCII of delimiter
                 bne _found_char
 
                 iny
@@ -7048,7 +7048,7 @@ _found_char:
 
                 ; Convert the modern ( addr u ) string format to obsolete
                 ; ( caddr ) format. We just do this in the Dictionary
-                lda 0,x
+                lda zpage+0,x
                 sta (cp)                ; Save length of string
                 pha                     ; Keep copy of length for later
 
@@ -7056,10 +7056,10 @@ _found_char:
                 lda cp
                 clc
                 adc #1
-                sta 2,x                 ; LSB of CP
+                sta zpage+2,x                 ; LSB of CP
                 lda cp+1
                 adc #0
-                sta 3,x                 ; ( addr cp+1 u )
+                sta zpage+3,x                 ; ( addr cp+1 u )
 
                 jsr w_move
 
@@ -7085,13 +7085,13 @@ z_word:         rts
 xt_xor:
                 jsr underflow_2
 w_xor:
-                lda 0,x
-                eor 2,x
-                sta 2,x
+                lda zpage+0,x
+                eor zpage+2,x
+                sta zpage+2,x
 
-                lda 1,x
-                eor 3,x
-                sta 3,x
+                lda zpage+1,x
+                eor zpage+3,x
+                sta zpage+3,x
 
                 inx
                 inx
@@ -7107,14 +7107,14 @@ z_xor:          rts
 xt_zero_equal:
                 jsr underflow_1
 w_zero_equal:
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _zero       ; if 0, A is inverse of the TRUE (-1) we want
                 lda #$FF        ; else set A inverse of the FALSE (0) we want
 _zero:
                 eor #$FF        ; now just invert:
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_zero_equal:   rts
 
@@ -7129,16 +7129,16 @@ xt_zero_greater:
 w_zero_greater:
                 ldy #0          ; Default is FALSE (TOS is negative)
 
-                lda 1,x         ; MSB
+                lda zpage+1,x         ; MSB
                 bmi _done       ; TOS is negative, keep FLASE
-                ora 0,x
+                ora zpage+0,x
                 beq _done       ; TOS is zero, keep FALSE
 
                 dey             ; TOS is postive, make true
 _done:
                 tya
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_zero_greater: rts
 
@@ -7153,14 +7153,14 @@ xt_zero_less:
 w_zero_less:
                 ldy #0          ; Default is FALSE (TOS positive)
 
-                lda 1,x         ; MSB
+                lda zpage+1,x         ; MSB
                 bpl _done       ; TOS is positive, so keep FALSE
 
                 dey             ; TOS is negative, make TRUE
 _done:
                 tya
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_zero_less:    rts
 
@@ -7173,13 +7173,13 @@ z_zero_less:    rts
 xt_zero_unequal:
                 jsr underflow_1
 w_zero_unequal:
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _zero
                 lda #$FF
 _zero:
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
 
 z_zero_unequal: rts
 

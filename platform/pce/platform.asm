@@ -1,24 +1,26 @@
 ; Skeleton configuration
 ; This version: 26. Jun 2025
 
-        ; 65C02 processor (Tali will not compile on older 6502)
-        .cpu "65c02"
-        ; No special text encoding (eg. ASCII)
-        .enc "none"
+; 65C02 processor (Tali will not compile on older 6502)
+.cpu "65c02"
+; No special text encoding (eg. ASCII)
+.enc "none"
 
 ; PCE-specific opcodes that are NOT in the 65c02
 .include "platform_opcodes.asm"
 
 ; --- 1. Memory Layout ---
 ; PCE Work RAM is at $2000-$3FFF
-ram_start = $2000           ; start of installed RAM, must include zpage
-zpage     = $00             ; begin of Zero Page usage ($0000-$00ff)
-stack0    = $2100           ; begin of Return Stack ($0100-$01ff)
+ram_start = $2000   ; start of installed RAM, must include zpage
+zpage     = $2000   ; begin of Zero Page usage ($0000-$00ff)
+stack0    = $2100   ; begin of Return Stack ($0100-$01ff)
+ram_end   = $3FFC   ; End before our 3-byte Mailbox
 
-    ram_end   = $3FFC   ; End before our 3-byte Mailbox
-    TERM_IN   = $3FFD
-    TERM_OUT  = $3FFE
-    TERM_STAT = $3FFF
+TERM_IN   = $3FFD
+TERM_OUT  = $3FFE
+TERM_STAT = $3FFF
+    
+.dpage $2000        ; Let 64tass know 2000-20ff is direct page
 
 
 ; Explicitly list the optional features we want, or omit to get all features by default
@@ -105,12 +107,12 @@ kernel_init:
         ; Map PCE I/O
         lda #$ff
         tam %00000001  ; Map to $0000-$1FFF
-        tax
-        txs             ; init stack pointer
 
         ; Map PCE Internal RAM (Bank $F8) to Logical $2000 (MPR1)
         lda #$f8
         tam %00000010  ; Map to $2000-$3FFF
+        ldx #$ff
+        txs             ; init stack pointer
 
         lda #%00000111  ; Disable VDC, RBC, and Timer IRQs
         sta $1402       ; 1=off
@@ -145,9 +147,9 @@ kernel_putc:
         ; If your code is more complex, wrap it with PHX, PHY ... PLY, PHX
         ; """
         sta TERM_OUT
-        lda #$01        ; Signal "Char waiting"
+        lda #$01
         sta TERM_STAT
-_wait:  lda TERM_STAT   ; Wait for Lua to clear it
+_wait:  lda TERM_STAT
         bne _wait
         rts
 

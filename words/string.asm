@@ -12,19 +12,19 @@ xt_cmove:
                 jsr underflow_3
 w_cmove:
                 ; move destination address to where we can work with it
-                lda 2,x
+                lda zpage+2,x
                 sta tmp2        ; use tmp2 because easier to remember
-                lda 3,x
+                lda zpage+3,x
                 sta tmp2+1
 
                 ; move source address to where we can work with it
-                lda 4,x
+                lda zpage+4,x
                 sta tmp1        ; use tmp1 because easier to remember
-                lda 5,x
+                lda zpage+5,x
                 sta tmp1+1
 
                 ldy #0
-                lda 1,x         ; number of whole pages to move
+                lda zpage+1,x         ; number of whole pages to move
                 beq _dopartial
 
 _page:
@@ -35,11 +35,11 @@ _page:
 
                 inc tmp1+1
                 inc tmp2+1
-                dec 1,x
+                dec zpage+1,x
                 bne _page
 
 _dopartial:
-                lda 0,x         ; length of last page
+                lda zpage+0,x         ; length of last page
                 beq _done
 
 _partial:
@@ -47,7 +47,7 @@ _partial:
                 sta (tmp2),y
                 iny
 
-                dec 0,x
+                dec zpage+0,x
                 bne _partial
 
 _done:          ; clear the stack
@@ -71,24 +71,24 @@ xt_cmove_up:
                 jsr underflow_3
 w_cmove_up:
                 ; Move destination address to where we can work with it
-                lda 2,x
+                lda zpage+2,x
                 sta tmp2        ; use tmp2 because easier to remember
-                lda 3,x
+                lda zpage+3,x
                 clc
-                adc 1,x
+                adc zpage+1,x
                 sta tmp2+1      ; point to last page of destination
 
                 ; Move source address to where we can work with it
-                lda 4,x
+                lda zpage+4,x
                 sta tmp1        ; use tmp1 because easier to remember
-                lda 5,x
+                lda zpage+5,x
                 clc
-                adc 1,x
+                adc zpage+1,x
                 sta tmp1+1      ; point to last page of source
-                inc 1,x         ; allows us to use bne with dec 1,x below
+                inc zpage+1,x         ; allows us to use bne with dec zpage+1,x below
 
                 ; Move the last partial page first
-                ldy 0,x         ; length of last page
+                ldy zpage+0,x         ; length of last page
                 beq _nopartial
 
 _outerloop:
@@ -108,7 +108,7 @@ _finishpage:
 _nopartial:
                 dec tmp1+1      ; back up to previous pages
                 dec tmp2+1
-                dec 1,x
+                dec zpage+1,x
                 bne _outerloop
 
                 ; clear up the stack and leave
@@ -134,13 +134,13 @@ xt_compare:
                 jsr underflow_4
 w_compare:
                 ; Load the two string addresses into tmp1 and tmp2.
-                lda 2,x
+                lda zpage+2,x
                 sta tmp2
-                lda 3,x
+                lda zpage+3,x
                 sta tmp2+1
-                lda 6,x
+                lda zpage+6,x
                 sta tmp1
-                lda 7,x
+                lda zpage+7,x
                 sta tmp1+1
                 ; The counts will be used in-place on the stack.
 
@@ -148,13 +148,13 @@ _compare_loop:
                 ; Check to see if we are out of letters.
 
                 ; Check string1
-                lda 4,x
-                ora 5,x
+                lda zpage+4,x
+                ora zpage+5,x
                 beq _str1_done
 
                 ; Check string2
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _greater    ; Str2 empty first
 
                 ; Both strings have at least one letter left.
@@ -175,45 +175,45 @@ _compare_loop:
                 inc tmp2+1
 +
                 ; Decrement count1 on the stack.
-                lda 4,x
+                lda zpage+4,x
                 bne +
-                dec 5,x
+                dec zpage+5,x
 +
-                dec 4,x
+                dec zpage+4,x
 
                 ; Decrement count2 on the stack.
-                lda 0,x
+                lda zpage+0,x
                 bne +
-                dec 1,x
+                dec zpage+1,x
 +
-                dec 0,x
+                dec zpage+0,x
 
                 ; Loop around and check again.
                 bra _compare_loop
 
 _str1_done:
                 ; String 1 is out of letters. Check string 2.
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _equal      ; Both out of letters
 
                 ; Falls into less (str1 is out but str2 has more)
 _less:
                 ; Return -1
                 lda #$FF
-                sta 6,x
-                sta 7,x
+                sta zpage+6,x
+                sta zpage+7,x
                 bra _done
 _equal:
                 ; Return 0
-                stz 6,x
-                stz 7,x
+                stz zpage+6,x
+                stz zpage+7,x
                 bra _done
 _greater:
                 ; Return 1
                 lda #1
-                sta 6,x
-                stz 7,x
+                sta zpage+6,x
+                stz zpage+7,x
                 ; Falls into _done
 _done:
                 ; Remove all but the result from the stack.
@@ -238,11 +238,11 @@ w_minus_leading:
 _loop:
                 ; Quit if we were given an empty string. This also terminates
                 ; the main loop
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _done
 
-                lda (2,x)               ; get first character
+                lda (zpage+2,x)               ; get first character
                 cmp #AscSP+1            ; is_whitespace: ascii 0-32 => C=0
                 bcs _done
 
@@ -267,8 +267,8 @@ xt_minus_trailing:
                 jsr underflow_2
 w_minus_trailing:
                 ; if length is zero we're done
-                lda 0,x         ; LSB of n
-                ora 1,x         ; MSB of n
+                lda zpage+0,x         ; LSB of n
+                ora zpage+1,x         ; MSB of n
                 beq _done
 
                 ; Compute address past last character: addr + u1
@@ -282,18 +282,18 @@ _loop:
 
                 ; While spaces are found,
                 ; decrease the count on the data stack and repeat
-                lda (0,x)
+                lda (zpage+0,x)
                 cmp #AscSP
                 bne _drop_done
 
                 ; Decrement count by one.
-                lda 2,x
+                lda zpage+2,x
                 bne +
-                dec 3,x
+                dec zpage+3,x
 +
                 dea
-                sta 2,x
-                ora 3,x         ; If count reaches zero - we're also done!
+                sta zpage+2,x
+                ora zpage+3,x         ; If count reaches zero - we're also done!
                 bne _loop
 _drop_done:
                 inx             ; drop the end-of-string pointer
@@ -320,8 +320,8 @@ xt_search:
 w_search:
                 ; ANS says if the second string is a zero-length string it
                 ; automatically matches.
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _start_search
 
                 ; The second string is a zero length string.  Just remove
@@ -329,8 +329,8 @@ w_search:
                 inx             ; Remove u2
                 inx
                 lda #$FF        ; Turn addr2 into a true flag
-                sta 0,x
-                sta 1,x
+                sta zpage+0,x
+                sta zpage+1,x
                 jmp z_search
 
 _start_search:
@@ -341,21 +341,21 @@ _search_loop:
                 ; We stop (not found) when u2 + offset > u1
                 ; Calculate u2+offset into tmp1
                 clc
-                lda 0,x
-                adc 2,x
+                lda zpage+0,x
+                adc zpage+2,x
                 sta tmp1
-                lda 1,x
-                adc 3,x
+                lda zpage+1,x
+                adc zpage+3,x
 
 
                 ; Compare to u1. Start with the high byte
-                cmp 7,x
+                cmp zpage+7,x
                 bcc _init_comparison ; Obviously less
                 bne _not_found
 
                 ; The upper address byte matched - check the lower byte
                 ; Load u1 first so we can use just a carry to check.
-                lda 6,x
+                lda zpage+6,x
                 cmp tmp1
                 bcs _init_comparison
 
@@ -366,8 +366,8 @@ _not_found:
                 inx
                 inx             ; Remove u2
                 inx
-                stz 0,x         ; Turn addr2 into a false flag
-                stz 1,x
+                stz zpage+0,x         ; Turn addr2 into a false flag
+                stz zpage+1,x
                 bra z_search
 
 _init_comparison:
@@ -378,23 +378,23 @@ _init_comparison:
                 ; Compute the starting address in string 1
                 ; as addr1 + offset
                 clc
-                lda 8,x
-                adc 0,x
+                lda zpage+8,x
+                adc zpage+0,x
                 sta tmp1
-                lda 9,x
-                adc 1,x
+                lda zpage+9,x
+                adc zpage+1,x
                 sta tmp1+1
 
                 ; The starting address in string 2 is just addr2.
-                lda 4,x
+                lda zpage+4,x
                 sta tmp2
-                lda 5,x
+                lda zpage+5,x
                 sta tmp2+1
 
                 ; The number of characters to check is u2.
-                lda 2,x
+                lda zpage+2,x
                 sta tmp3
-                lda 3,x
+                lda zpage+3,x
                 sta tmp3+1
 
 _comparison_loop:
@@ -435,21 +435,21 @@ _letters_match:
                 ; Return (addr1+offset) (u1-offset) true
                 ; Add offset to addr1.
                 clc
-                lda 0,x
-                adc 8,x
-                sta 8,x
-                lda 1,x
-                adc 9,x
-                sta 9,x
+                lda zpage+0,x
+                adc zpage+8,x
+                sta zpage+8,x
+                lda zpage+1,x
+                adc zpage+9,x
+                sta zpage+9,x
 
                 ; Subtract offset from u1.
                 sec
-                lda 6,x
-                sbc 0,x
-                sta 6,x
-                lda 7,x
-                sbc 1,x
-                sta 7,x
+                lda zpage+6,x
+                sbc zpage+0,x
+                sta zpage+6,x
+                lda zpage+7,x
+                sbc zpage+1,x
+                sta zpage+7,x
 
                 ; Replace addr2, u2, and offset with a true flag.
                 inx             ; drop offset
@@ -457,8 +457,8 @@ _letters_match:
                 inx             ; drop u2
                 inx
                 lda #$FF
-                sta 0,x         ; Turn addr2 into a true flag.
-                sta 1,x
+                sta zpage+0,x         ; Turn addr2 into a true flag.
+                sta zpage+1,x
 
 z_search:       rts
 
@@ -478,22 +478,22 @@ xt_slash_string:
                 jsr underflow_3
 w_slash_string:
                 clc             ; 3OS+TOS
-                lda 0,x
-                adc 4,x
-                sta 4,x
+                lda zpage+0,x
+                adc zpage+4,x
+                sta zpage+4,x
 
-                lda 1,x
-                adc 5,x
-                sta 5,x
+                lda zpage+1,x
+                adc zpage+5,x
+                sta zpage+5,x
 
                 sec             ; NOS-TOS
-                lda 2,x
-                sbc 0,x
-                sta 2,x
+                lda zpage+2,x
+                sbc zpage+0,x
+                sta zpage+2,x
 
-                lda 3,x
-                sbc 1,x
-                sta 3,x
+                lda zpage+3,x
+                sbc zpage+1,x
+                sta zpage+3,x
 
                 inx
                 inx
@@ -502,15 +502,15 @@ z_slash_string: rts
 
 ; for internal use we often need to remove a single character
 slash_string_1:       ; ( addr u -- addr+1 u-1)
-                inc 2,x
+                inc zpage+2,x
                 bne +
-                inc 3,x
+                inc zpage+3,x
 +
-                lda 0,x
+                lda zpage+0,x
                 bne +
-                dec 1,x
+                dec zpage+1,x
 +
-                dec 0,x
+                dec zpage+0,x
                 rts
 
 

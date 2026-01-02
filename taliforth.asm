@@ -141,8 +141,8 @@ dodoes:
                 bne +
                 ina
 +
-                sty 0,x         ; LSB
-                sta 1,x         ; MSB
+                sty zpage+0,x         ; LSB
+                sta zpage+1,x         ; MSB
 
                 ; This leaves the return address from the original main routine
                 ; on top of the Return Stack. We leave that untouched and jump
@@ -175,7 +175,7 @@ push_pfa:
 ; This only saves a byte but improves readability
 ; This routine is also used as a template by the assembler "push-a" word
 ; It's also used as a template by w_literal to push Y/A TOS
-; where we'll change stz 1,x to sty 1,x if MSB is non-zero
+; where we'll change stz zpage+1,x to sty zpage+1,x if MSB is non-zero
 xt_base:
 w_base:
 template_push_byte_tos:
@@ -183,8 +183,8 @@ template_push_byte_tos:
 push_a_tos:  ; ( -- A )
                 dex
                 dex
-                sta 0,x
-                stz 1,x
+                sta zpage+0,x
+                stz zpage+1,x
 z_push_a_tos:
 template_push_byte_tos_size = * - template_push_byte_tos
 z_base:
@@ -199,8 +199,8 @@ template_push_word_tos:
 push_ya_tos:  ; ( -- YA )
                 dex
                 dex
-                sta 0,x
-                sty 1,x
+                sta zpage+0,x
+                sty zpage+1,x
 z_push_ya_tos:
 template_push_word_tos_size = * - template_push_word_tos
 z_useraddr:
@@ -211,10 +211,10 @@ push_upword_tos:
                 dex
 replace_upword_tos:
                 lda (up),y
-                sta 0,x
+                sta zpage+0,x
                 iny
                 lda (up),y
-                sta 1,x
+                sta zpage+1,x
                 rts
 
 fetch_upword_tmp1:
@@ -426,7 +426,7 @@ _loop:
                 ; first quick test: Are strings the same length?
                 ldy #1                  ; length is at header offset 1
                 lda (tmp1),y
-                cmp 0,x
+                cmp zpage+0,x
                 beq _maybe
 
 _next_nt:
@@ -445,7 +445,7 @@ _maybe:
                 tay
 
                 lda (tmp1),y            ; first character of candidate
-                eor (2,x)               ; flag any mismatched bits
+                eor (zpage+2,x)               ; flag any mismatched bits
                 and #%11011111          ; but ignore upper/lower case bit
                 bne _next_nt            ; definitely not equal if any bits differ
 
@@ -457,15 +457,15 @@ _maybe:
 
                 sty tmptos              ; stash header length, the name offset
                 sec
-                lda 2,x                 ; Copy mystery string addr - Y to tmp2
+                lda zpage+2,x                 ; Copy mystery string addr - Y to tmp2
                 sbc tmptos
                 sta tmp2
-                lda 3,x
+                lda zpage+3,x
                 sbc #0
                 sta tmp2+1
 
                 clc
-                lda 0,x                 ; string length
+                lda zpage+0,x                 ; string length
                 sta tmptos+1            ; our loop counter
                 adc tmptos              ; add offset
                 tay
@@ -509,10 +509,10 @@ _loop:
                 jsr nt_to_xt            ; nt in tmp1 to xt in y/a
 
                 ; ( xt )
-                cmp 0,x                 ; does LSB match?
+                cmp zpage+0,x                 ; does LSB match?
                 bne _next_nt
                 tya
-                cmp 1,x                 ; does MSB match?
+                cmp zpage+1,x                 ; does MSB match?
                 bne _next_nt
 
                 lda #$ff                ; non-zero result for success
@@ -542,19 +542,19 @@ compare_16bit:
         ;                               WORD2 (SUBTRAHEND) is NOS
         ; """
                 ; Compare LSB first to set the carry flag
-                lda 0,x                 ; LSB of TOS
-                cmp 2,x                 ; LSB of NOS
+                lda zpage+0,x                 ; LSB of TOS
+                cmp zpage+2,x                 ; LSB of NOS
                 beq _equal
 
                 ; LSBs are not equal, compare MSB
-                lda 1,x                 ; MSB of TOS
-                sbc 3,x                 ; MSB of NOS
+                lda zpage+1,x                 ; MSB of TOS
+                sbc zpage+3,x                 ; MSB of NOS
                 bvs _overflow
                 bra _not_equal
 _equal:
                 ; Low bytes are equal, so we compare high bytes
-                lda 1,x                 ; MSB of TOS
-                sbc 3,x                 ; MSB of NOS
+                lda zpage+1,x                 ; MSB of TOS
+                sbc zpage+3,x                 ; MSB of NOS
                 bvc _done
 _overflow:
                 ; Handle overflow because we use signed numbers
@@ -623,8 +623,8 @@ _loop:
 
                 ; If PARSE-NAME returns 0 (empty line), no characters were left
                 ; in the line and we need to go get a new line
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 beq _line_done
 
                 ; Go to FIND-NAME to see if this is a word we know. We have to
@@ -634,8 +634,8 @@ _loop:
                 jsr w_find_name        ; ( addr u addr u -- addr u nt|0 )
 
                 ; A zero signals that we didn't find a word in the Dictionary
-                lda 0,x
-                ora 1,x
+                lda zpage+0,x
+                ora zpage+1,x
                 bne _got_name_token
 
                 ; We didn't get any nt we know of, so let's see if this is
@@ -671,10 +671,10 @@ _got_name_token:
                 ; We have a known word's nt TOS and need to calculate its xt
 
                 ; We arrive here with ( addr u nt ), so we NIP twice
-                lda 0,x
-                sta 4,x
-                lda 1,x
-                sta 5,x
+                lda zpage+0,x
+                sta zpage+4,x
+                lda zpage+1,x
+                sta zpage+5,x
 
                 inx
                 inx
@@ -683,7 +683,7 @@ _got_name_token:
 
                 ; Whether interpreting or compiling we'll need to check the
                 ; status byte at nt so let's save it now
-                lda (0,x)
+                lda (zpage+0,x)
                 pha
 
                 ; See if we are in interpret or compile mode, 0 is interpret

@@ -157,7 +157,7 @@ _get_line:
                 jsr w_refill           ; ( -- f )
 
                 ; Test flag: LSB of TOS
-                lda 0,x
+                lda zpage+0,x
                 bne _success
 
                 ; If REFILL returned a FALSE flag, something went wrong and we
