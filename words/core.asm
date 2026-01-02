@@ -2263,7 +2263,7 @@ w_execute:
 
                 ; we don't need RTS here because the RTS of
                 ; the word we're calling will return to our caller
-                jmp ($fffe,x)   ; jump to the dropped address at x-2
+                jmp ((zpage+$fffe) & $ffff, x)   ; jump to the dropped address at x-2
 
 z_execute:      ; never reached
 
