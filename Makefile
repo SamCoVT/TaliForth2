@@ -85,6 +85,19 @@ platforms:
 # e.g. make sbc VARIANT=dbg should build taliforth-sbc-dbg.bin
 $(PLATFORMS): %: taliforth-%${_VARIANT}.bin
 
+# Specific rule for PCE platform to output taliforth.pce
+taliforth-pce${_VARIANT}.bin: platform/pce/*.asm platform/pce/*/*.asm platform/pce/platform_forth.asc $(COMMON_SOURCES)
+	64tass --nostart \
+	-D GIT_IDENT=${GIT_IDENT} \
+	-D TODAY=${TODAY} \
+	--list=platform/pce/pce${_VARIANT}-listing.txt \
+	--vice-labels \
+	--labels=platform/pce/pce${_VARIANT}-labelmap.txt \
+	-D VARIANT:=\"${VARIANT}\" \
+	--output taliforth.pce \
+	$<
+	python3 tools/sort_vice_labels.py platform/pce/pce${_VARIANT}-labelmap.txt
+
 # Note, the _VARIANT variable may be empty if no variant defined.
 taliforth-%${_VARIANT}.bin: platform/%/*.asm platform/%/*/*.asm platform/%/platform_forth.asc $(COMMON_SOURCES)
 	64tass --nostart \

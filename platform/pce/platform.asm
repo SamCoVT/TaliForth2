@@ -147,9 +147,11 @@ kernel_putc:
         ; If your code is more complex, wrap it with PHX, PHY ... PLY, PHX
         ; """
         sta TERM_OUT
-        lda #$01
+	lda TERM_STAT
+        ora #$01
         sta TERM_STAT
 _wait:  lda TERM_STAT
+	and #$01
         bne _wait
         rts
 
@@ -166,10 +168,6 @@ kernel_getc:
         and #$02      ; Is a key ready? (Bit 1)
         beq -         ; Wait if not
         lda TERM_IN   ; Get the char
-        pha
-        lda #$00
-        sta TERM_STAT ; Clear the "ready" flag for the next key
-        pla
         rts
 
 kernel_kbhit:
