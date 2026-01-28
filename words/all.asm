@@ -245,22 +245,22 @@ error:
 ; See discussion in https://github.com/SamCoVT/TaliForth2/issues/148
 underflow_1:
         ; """Make sure we have at least one cell on the Data Stack"""
-                cpx #+dsp0-1
+                cpx #dsp0-1
                 bpl underflow_error
                 rts
 underflow_2:
         ; """Make sure we have at least two cells on the Data Stack"""
-                cpx #+dsp0-3
+                cpx #dsp0-3
                 bpl underflow_error
                 rts
 underflow_3:
         ; """Make sure we have at least three cells on the Data Stack"""
-                cpx #+dsp0-5
+                cpx #dsp0-5
                 bpl underflow_error
                 rts
 underflow_4:
         ; """Make sure we have at least four cells on the Data Stack"""
-                cpx #+dsp0-7
+                cpx #dsp0-7
                 bpl underflow_error
                 rts
 

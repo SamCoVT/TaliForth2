@@ -59,7 +59,7 @@ w_dot_s:
                 ; from bottom to top
                 ply
 
-                lda #+dsp0-1     ; go up one to avoid garbage
+                lda #dsp0-1     ; go up one to avoid garbage
                 sta tmp3
                 stz tmp3+1      ; must be zero page on the 65c02
 _loop:

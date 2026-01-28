@@ -5117,7 +5117,7 @@ like this:</p>
 <div class="paragraph">
 <p>Tali Forth uses half of Zero Page for the system variables and
 Data Stack (DS).  In the default py65mon platform, this is the address range
-$00-$7F (it can be adjusted by changing <code>zpage</code> and <code>zpage_end</code> in the platform
+$00-$7F (it can be adjusted by changing <code>user0</code> and <code>zpage_end</code> in the platform
 file).  This leaves the other half of the Zero Page for any kernel stuff the
 user might require. The DS grows from the end of Tali&#8217;s space down towards the
 initial system variables. See the file <code>definitions.asm</code> for details. Because of
