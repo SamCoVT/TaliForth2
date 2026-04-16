@@ -229,7 +229,7 @@ nt: *  xt: *  header: C0 03 ?? 05 \n
 flags: HC 1 NN 1 AN 0 IM 0 CO 0 DC 0 LC 0 FP 0 | UF 0 ST 0 \n
 size (decimal): CFA 3  PFA 2 \n
 \n
-*  20 ?? ?? FF FF                                     ....\n
+*  20 ?? ?? FF FF                                     ??..\n
 \n
 *   ???? jsr     \n"
 ;

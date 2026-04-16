@@ -189,7 +189,26 @@ T{      -1. dabs -> 1.       }T
 T{ max-2int dabs -> max-2int }T
 T{ min-2int 1. d+ dabs -> max-2int }T
 
-( TODO DMAX not implemented yet )
+( DMAX )
+T{       1.       2. dmax ->  2.      }T
+T{       1.       0. dmax ->  1.      }T
+T{       1.      -1. dmax ->  1.      }T
+T{       1.       1. dmax ->  1.      }T
+T{       0.       1. dmax ->  1.      }T
+T{       0.      -1. dmax ->  0.      }T
+T{      -1.       1. dmax ->  1.      }T
+T{      -1.      -2. dmax -> -1.      }T
+
+T{ max-2int  hi-2int dmax -> max-2int }T
+T{ max-2int min-2int dmax -> max-2int }T
+T{ min-2int max-2int dmax -> max-2int }T
+T{ min-2int  lo-2int dmax -> lo-2int  }T
+
+T{ max-2int       1. dmax -> max-2int }T
+T{ max-2int      -1. dmax -> max-2int }T
+T{ min-2int       1. dmax ->  1.      }T
+T{ min-2int      -1. dmax -> -1.      }T 
+
 ( TODO DMIN not implemented yet )
 
 T{ 0. dnegate -> 0. }T

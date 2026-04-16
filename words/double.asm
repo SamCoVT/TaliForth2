@@ -401,10 +401,11 @@ z_ud_dot_r:      rts
 ; DU<
 ; D0=
 ; D0<
-; D<
 ; M+
 ; 2ROT
 ; 2VALUE
+
+
 
 ; ## D_EQUALS ( d1 d2 -- f ) "flag is true iff d1 and d2 are equal"
 ; ## "d="  auto  ANS double
@@ -488,3 +489,38 @@ _done:
                 sta 1,x
 
 z_d_less_than:  rts
+
+
+; ## DMAX ( d1 d2 -- d3 ) "d3 is the greater of d1 and d2"
+; ## "dmax"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DMAX"""
+xt_dmax:
+                jsr underflow_4 ; two double numbers
+w_dmax:
+                ; Compare by subtraction.
+                lda 6,x         ; LSB of lower word
+                cmp 2,x
+
+                lda 7,x         ; MSB of lower word
+                sbc 3,x
+
+                lda 4,x         ; LSB of upper word
+                sbc 0,x
+
+                lda 5,x         ; MSB of upper word
+                sbc 1,x
+                ; Less will depend on N eor V - check V and adjust N if needed.
+                bvc _N_OK
+                eor #$80
+_N_OK                
+                bpl _drop_dtos ; Branch if NOS is larger
+
+                ; TOS is larger - swap and drop (as doubles)
+                jsr w_two_swap
+_drop_dtos:
+                inx             ; Remove a double
+                inx
+                inx             
+                inx
+
+z_dmax:  rts
