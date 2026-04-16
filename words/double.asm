@@ -391,3 +391,59 @@ w_ud_dot_r:
                 jsr w_type
 
 z_ud_dot_r:      rts
+
+
+; TODO
+; D=
+; DMAX
+; DMIN
+; D2/
+; D2*
+; DU<
+; D0=
+; D0<
+; D<
+; M+
+; 2ROT
+; 2VALUE
+
+; ## D_EQUALS ( d d -- f ) "flag is true if two doubles are equal"
+; ## "d="  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DEqual"""
+xt_d_equals:
+                jsr underflow_4 ; two double numbers
+w_d_equals:
+                clc
+                lda 2,x         ; LSB of lower word
+                cmp 6,x
+                bne _d_equals_false
+
+                lda 3,x         ; MSB of lower word
+                cmp 7,x
+                bne _d_equals_false
+
+                lda 0,x         ; LSB of upper word
+                cmp 4,x
+                bne _d_equals_false
+
+                lda 1,x         ; MSB of upper word
+                cmp 5,x
+                bne _d_equals_false
+
+_d_equals_true:
+                ; Put flag in A
+                lda #$FF
+                jmp _d_equals_done
+_d_equals_false:
+                lda #$00
+_d_equals_done:
+                inx             ; Remove a double
+                inx
+                inx             
+                inx
+                inx             ; Remove half a double
+                inx
+                sta 0,x         ; Save the flag on TOS
+                sta 1,x
+
+z_d_equals:       rts

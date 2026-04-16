@@ -1,5 +1,5 @@
 \ ------------------------------------------------------------------------
-testing double words: 2constant 2variable d+ d- d. d.r d>s dabs dnegate
+testing double words: 2constant 2variable d= d+ d- d. d.r d>s dabs dnegate
 
 marker double_tests
 
@@ -133,7 +133,37 @@ doubleoutput
 ( TODO D2* not implemented yet )
 ( TODO D2/ not implemented yet )
 ( TODO D< not implemented yet )
-( TODO D= not implemented yet )
+
+( D= )
+T{      -1.      -1. d= -> true  }T
+T{      -1.       0. d= -> false }T
+T{      -1.       1. d= -> false }T
+T{       0.      -1. d= -> false }T
+T{       0.       0. d= -> true  }T
+T{       0.       1. d= -> false }T
+T{       1.      -1. d= -> false }T
+T{       1.       0. d= -> false }T
+T{       1.       1. d= -> true  }T
+
+T{   0   -1    0  -1 d= -> true  }T
+T{   0   -1    0   0 d= -> false }T
+T{   0   -1    0   1 d= -> false }T
+T{   0    0    0  -1 d= -> false }T
+T{   0    0    0   0 d= -> true  }T
+T{   0    0    0   1 d= -> false }T
+T{   0    1    0  -1 d= -> false }T
+T{   0    1    0   0 d= -> false }T
+T{   0    1    0   1 d= -> true  }T
+
+T{ max-2int min-2int d= -> false }T
+T{ max-2int       0. d= -> false }T
+T{ max-2int max-2int d= -> true  }T
+T{ max-2int hi-2int  d= -> false }T
+T{ max-2int min-2int d= -> false }T
+T{ min-2int min-2int d= -> true  }T
+T{ min-2int lo-2int  d= -> false }T
+T{ min-2int max-2int d= -> false }T 
+
 
 T{    1234  0 d>s ->  1234   }T
 T{   -1234 -1 d>s -> -1234   }T
