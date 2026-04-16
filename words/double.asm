@@ -394,7 +394,6 @@ z_ud_dot_r:      rts
 
 
 ; TODO
-; DMIN
 ; D2/
 ; D2*
 ; DU<
@@ -446,6 +445,10 @@ _done:
 
 z_d_equals:     rts
 
+
+
+; NOTE: D< DMIN and DMAX share a lot of the comparison code.
+;       They could/should be rewritten to use a common routine.
 
 ; ## D_LESS_THAN ( d1 d2 -- f ) "flag is true iff d1 is less than d2"
 ; ## "d<"  auto  ANS double
