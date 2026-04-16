@@ -255,7 +255,18 @@ T{ min-2int max-int            dup m*/ -> min-2int }T
 ( TODO M+ not implemented yet )
 ( TODO 2ROT not implemented yet )
 ( TODO 2VALUE not implemented yet )
-( TODO DU< not implemented yet )
+
+( DU< )
+T{       1.       1. du< -> false }T
+T{       1.      -1. du< -> true  }T
+T{      -1.       1. du< -> false }T
+T{      -1.      -2. du< -> false }T
+
+T{ max-2int  hi-2int du< -> false }T
+T{  hi-2int max-2int du< -> true  }T
+T{ max-2int min-2int du< -> true  }T
+T{ min-2int max-2int du< -> false }T
+T{ min-2int  lo-2int du< -> true  }T 
 
 \ Free memory used for these tests
 double_tests

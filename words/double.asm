@@ -446,6 +446,54 @@ _done:
 z_d_equals:     rts
 
 
+; ## Du_LESS_THAN ( ud1 ud2 -- f ) "flag is true iff ud1 is less than ud2"
+; ## "du<"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DUless"""
+xt_du_less_than:
+                jsr underflow_4 ; two double numbers
+w_du_less_than:
+                ; Compare one byte at a time.
+                lda 5,x         ; MSB of upper word
+                cmp 1,x
+                bcc _true
+                bne _false
+
+                lda 4,x         ; LSB of upper word
+                cmp 0,x
+                bcc _true
+                bne _false
+
+                lda 7,x         ; MSB of lower word
+                cmp 3,x
+                bcc _true
+                bne _false
+
+                lda 6,x         ; LSB of lower word
+                cmp 2,x
+                bcc _true
+                bra _false
+
+
+_true:
+                ; Put flag in A
+                lda #$FF
+                jmp _done
+_false:
+                lda #$00
+_done:
+                inx             ; Remove a double
+                inx
+                inx             
+                inx
+                inx             ; Remove half a double
+                inx
+                sta 0,x         ; Save the flag on TOS
+                sta 1,x
+
+z_du_less_than:  rts
+
+
+
 
 ; NOTE: D< DMIN and DMAX share a lot of the comparison code.
 ;       They could/should be rewritten to use a common routine.

@@ -402,6 +402,7 @@ nt_unloop:
 #nt_header erase
 #nt_header d_equals, "d="
 #nt_header d_less_than, "d<"
+#nt_header du_less_than, "du<"
 #nt_header d_plus, "d+"
 #nt_header d_minus, "d-"
 #nt_header dmax
