@@ -405,6 +405,7 @@ nt_unloop:
 #nt_header d_plus, "d+"
 #nt_header d_minus, "d-"
 #nt_header dmax
+#nt_header dmin
 #nt_header d_to_s, "d>s"
 #nt_header s_to_d, "s>d"
 #nt_header to, "to", NN+IM

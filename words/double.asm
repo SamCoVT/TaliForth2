@@ -394,7 +394,6 @@ z_ud_dot_r:      rts
 
 
 ; TODO
-; DMAX
 ; DMIN
 ; D2/
 ; D2*
@@ -524,3 +523,39 @@ _drop_dtos:
                 inx
 
 z_dmax:  rts
+
+
+
+; ## Dmin ( d1 d2 -- d3 ) "d3 is the lesser of d1 and d2"
+; ## "dmin"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DMAX"""
+xt_dmin:
+                jsr underflow_4 ; two double numbers
+w_dmin:
+                ; Compare by subtraction.
+                lda 6,x         ; LSB of lower word
+                cmp 2,x
+
+                lda 7,x         ; MSB of lower word
+                sbc 3,x
+
+                lda 4,x         ; LSB of upper word
+                sbc 0,x
+
+                lda 5,x         ; MSB of upper word
+                sbc 1,x
+                ; Less will depend on N eor V - check V and adjust N if needed.
+                bvc _N_OK
+                eor #$80
+_N_OK                
+                bmi _drop_dtos ; Branch if NOS is smaller
+
+                ; TOS is smaller - swap and drop (as doubles)
+                jsr w_two_swap
+_drop_dtos:
+                inx             ; Remove a double
+                inx
+                inx             
+                inx
+
+z_dmin:  rts

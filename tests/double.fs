@@ -209,7 +209,26 @@ T{ max-2int      -1. dmax -> max-2int }T
 T{ min-2int       1. dmax ->  1.      }T
 T{ min-2int      -1. dmax -> -1.      }T 
 
-( TODO DMIN not implemented yet )
+( DMIN )
+T{       1.       2. dmin ->  1.      }T
+T{       1.       0. dmin ->  0.      }T
+T{       1.      -1. dmin -> -1.      }T
+T{       1.       1. dmin ->  1.      }T
+T{       0.       1. dmin ->  0.      }T
+T{       0.      -1. dmin -> -1.      }T
+T{      -1.       1. dmin -> -1.      }T
+T{      -1.      -2. dmin -> -2.      }T
+
+T{ max-2int  HI-2int dmin -> HI-2int  }T
+T{ max-2int min-2int dmin -> min-2int }T
+T{ min-2int max-2int dmin -> min-2int }T
+T{ min-2int  LO-2int dmin -> min-2int }T
+
+T{ max-2int       1. dmin ->  1.      }T
+T{ max-2int      -1. dmin -> -1.      }T
+T{ min-2int       1. dmin -> min-2int }T
+T{ min-2int      -1. dmin -> min-2int }T 
+
 
 T{ 0. dnegate -> 0. }T
 T{ 1. dnegate -> -1. }T
