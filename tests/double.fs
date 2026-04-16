@@ -130,7 +130,12 @@ doubleoutput
 
 ( TODO D0< not implemented yet )
 ( TODO D0= not implemented yet )
-( TODO D2* not implemented yet )
+
+( D2* )
+T{              0. d2* -> 0. }T
+T{ min-int       0 d2* -> 0 1 }T
+T{         hi-2int d2* -> max-2int 1. d- }T
+T{         lo-2int d2* -> min-2int }T
 
 ( D2/ )
 T{       0. d2/ -> 0.        }T

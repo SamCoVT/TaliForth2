@@ -421,6 +421,21 @@ _no_sign_extend:
 z_d_two_slash:  rts
 
 
+; ## D_TWO_STAR ( xd1 -- xd2 ) "xd2 is the result of shifting xd1 one bit toward the most-significant bit, filling the vacated least-significant bit with zero"
+; ## "d2*"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DTwoTimes"""
+xt_d_two_star:
+                jsr underflow_2 ; one double number
+w_d_two_star:
+                clc
+                rol 2,x
+                rol 3,x
+                rol 0,x
+                rol 1,x
+                
+z_d_two_star:  rts
+
+
 
 ; ## D_EQUALS ( d1 d2 -- f ) "flag is true iff d1 and d2 are equal"
 ; ## "d="  auto  ANS double
