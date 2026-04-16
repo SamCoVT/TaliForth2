@@ -405,6 +405,7 @@ nt_unloop:
 #nt_header du_less_than, "du<"
 #nt_header d_plus, "d+"
 #nt_header d_minus, "d-"
+#nt_header d_two_slash, "d2/"
 #nt_header dmax
 #nt_header dmin
 #nt_header d_to_s, "d>s"

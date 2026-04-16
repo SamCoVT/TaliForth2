@@ -393,15 +393,32 @@ w_ud_dot_r:
 z_ud_dot_r:      rts
 
 
-; TODO
-; D2/
+; TODO:
 ; D2*
-; DU<
 ; D0=
 ; D0<
 ; M+
 ; 2ROT
 ; 2VALUE
+
+
+; ## D_TWO_SLASH ( xd1 -- xd2 ) "xd2 is the result of shifting xd1 one bit toward the least-significant bit, leaving the most significant bit unchanged"
+; ## "d2/"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DTwoDiv"""
+xt_d_two_slash:
+                jsr underflow_2 ; one double number
+w_d_two_slash:
+                clc
+                lda 1,x         ; Get sign for sign extend
+                bpl _no_sign_extend
+                sec
+_no_sign_extend:
+                ror 1,x
+                ror 0,x
+                ror 3,x
+                ror 2,x
+                
+z_d_two_slash:  rts
 
 
 
@@ -446,7 +463,7 @@ _done:
 z_d_equals:     rts
 
 
-; ## Du_LESS_THAN ( ud1 ud2 -- f ) "flag is true iff ud1 is less than ud2"
+; ## DU_LESS_THAN ( ud1 ud2 -- f ) "flag is true iff ud1 is less than ud2"
 ; ## "du<"  auto  ANS double
         ; """https://forth-standard.org/standard/double/DUless"""
 xt_du_less_than:
@@ -577,7 +594,7 @@ z_dmax:  rts
 
 
 
-; ## Dmin ( d1 d2 -- d3 ) "d3 is the lesser of d1 and d2"
+; ## DMIN ( d1 d2 -- d3 ) "d3 is the lesser of d1 and d2"
 ; ## "dmin"  auto  ANS double
         ; """https://forth-standard.org/standard/double/DMAX"""
 xt_dmin:

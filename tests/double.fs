@@ -131,7 +131,16 @@ doubleoutput
 ( TODO D0< not implemented yet )
 ( TODO D0= not implemented yet )
 ( TODO D2* not implemented yet )
-( TODO D2/ not implemented yet )
+
+( D2/ )
+T{       0. d2/ -> 0.        }T
+T{       1. d2/ -> 0.        }T
+T{      0 1 d2/ -> min-int 0 }T
+T{ max-2int d2/ -> hi-2int   }T
+T{      -1. d2/ -> -1.       }T
+T{ min-2int d2/ -> lo-2int   }T
+
+
 ( D< )
 T{       0.       1. D< -> true  }T
 T{       0.       0. D< -> false }T
