@@ -394,7 +394,6 @@ z_ud_dot_r:      rts
 
 
 ; TODO
-; D=
 ; DMAX
 ; DMIN
 ; D2/
@@ -407,36 +406,35 @@ z_ud_dot_r:      rts
 ; 2ROT
 ; 2VALUE
 
-; ## D_EQUALS ( d d -- f ) "flag is true if two doubles are equal"
+; ## D_EQUALS ( d1 d2 -- f ) "flag is true iff d1 and d2 are equal"
 ; ## "d="  auto  ANS double
         ; """https://forth-standard.org/standard/double/DEqual"""
 xt_d_equals:
                 jsr underflow_4 ; two double numbers
 w_d_equals:
-                clc
                 lda 2,x         ; LSB of lower word
                 cmp 6,x
-                bne _d_equals_false
+                bne _false
 
                 lda 3,x         ; MSB of lower word
                 cmp 7,x
-                bne _d_equals_false
+                bne _false
 
                 lda 0,x         ; LSB of upper word
                 cmp 4,x
-                bne _d_equals_false
+                bne _false
 
                 lda 1,x         ; MSB of upper word
                 cmp 5,x
-                bne _d_equals_false
+                bne _false
 
-_d_equals_true:
+_true:
                 ; Put flag in A
                 lda #$FF
-                jmp _d_equals_done
-_d_equals_false:
+                jmp _done
+_false:
                 lda #$00
-_d_equals_done:
+_done:
                 inx             ; Remove a double
                 inx
                 inx             
@@ -446,4 +444,47 @@ _d_equals_done:
                 sta 0,x         ; Save the flag on TOS
                 sta 1,x
 
-z_d_equals:       rts
+z_d_equals:     rts
+
+
+; ## D_LESS_THAN ( d1 d2 -- f ) "flag is true iff d1 is less than d2"
+; ## "d<"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/Dless"""
+xt_d_less_than:
+                jsr underflow_4 ; two double numbers
+w_d_less_than:
+                ; Compare by subtraction.
+                lda 6,x         ; LSB of lower word
+                cmp 2,x
+
+                lda 7,x         ; MSB of lower word
+                sbc 3,x
+
+                lda 4,x         ; LSB of upper word
+                sbc 0,x
+
+                lda 5,x         ; MSB of upper word
+                sbc 1,x
+                ; Less will depend on N eor V - check V and adjust N if needed.
+                bvc _N_OK
+                eor #$80
+_N_OK                
+                bpl _false
+
+_true:
+                ; Put flag in A
+                lda #$FF
+                jmp _done
+_false:
+                lda #$00
+_done:
+                inx             ; Remove a double
+                inx
+                inx             
+                inx
+                inx             ; Remove half a double
+                inx
+                sta 0,x         ; Save the flag on TOS
+                sta 1,x
+
+z_d_less_than:  rts

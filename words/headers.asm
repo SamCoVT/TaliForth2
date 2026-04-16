@@ -400,7 +400,8 @@ nt_unloop:
 #nt_header fill
 #nt_header blank
 #nt_header erase
-#nt_header d_equals, "d="    
+#nt_header d_equals, "d="
+#nt_header d_less_than, "d<"
 #nt_header d_plus, "d+"
 #nt_header d_minus, "d-"
 #nt_header d_to_s, "d>s"
