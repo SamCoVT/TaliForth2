@@ -394,12 +394,33 @@ z_ud_dot_r:      rts
 
 
 ; TODO:
-; D2*
-; D0=
-; D0<
 ; M+
 ; 2ROT
 ; 2VALUE
+
+
+; ## D_ZERO_EQUAL ( xd1 -- f ) "f is true iff d1 is zero"
+; ## "d0="  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DZeroEqual"""
+xt_d_zero_equal:
+                jsr underflow_2 ; one double number
+w_d_zero_equal:
+                jsr w_or
+                jsr w_zero_equal
+                
+z_d_zero_equal: rts
+
+
+; ## D_ZERO_LESS ( d1 -- f ) "f is true iff d1 is less than zero"
+; ## "d0<"  auto  ANS double
+        ; """https://forth-standard.org/standard/double/DZeroless"""
+xt_d_zero_less:
+                jsr underflow_2 ; one double number
+w_d_zero_less:
+                jsr w_nip
+                jsr w_zero_less
+                
+z_d_zero_less: rts
 
 
 ; ## D_TWO_SLASH ( xd1 -- xd2 ) "xd2 is the result of shifting xd1 one bit toward the least-significant bit, leaving the most significant bit unchanged"

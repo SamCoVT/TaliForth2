@@ -128,8 +128,23 @@ dbl2 d>ascii 2constant "dbl2"
 doubleoutput
 \ T{ doubleoutput -> }T
 
-( TODO D0< not implemented yet )
-( TODO D0= not implemented yet )
+( D0< )
+T{                0. d0< -> false }T
+T{                1. d0< -> false }T
+T{  min-int        0 d0< -> false }T
+T{        0  max-int d0< -> false }T
+T{          max-2int d0< -> false }T
+T{               -1. d0< -> true  }T
+T{          min-2int d0< -> true  }T
+
+( D0= )
+T{               1. d0= -> false }T
+T{ min-int        0 d0= -> false }T
+T{         max-2int d0= -> false }T
+T{      -1  max-int d0= -> false }T
+T{               0. d0= -> true  }T
+T{              -1. d0= -> false }T
+T{       0  min-int d0= -> false }T
 
 ( D2* )
 T{              0. d2* -> 0. }T
