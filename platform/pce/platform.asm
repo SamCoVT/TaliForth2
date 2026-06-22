@@ -207,20 +207,18 @@ v_irq   .word kernel_init
 
 .endlogical
 
+* = $2000
+.logical $4000
 ; =====================================================================
 ; Include any forth words written in assembly.  These will be added to
 ; the FORTH-WORDLIST.  This must be done BEFORE including taliforth.asm
 ; below.  Here we're including some words we've defined locally,
 ; as well as some words from the example folder.
-;.include "platform_words.asm"
+.include "platform_words.asm"
 ;.include "../../examples/words/hash.asm"
 
 ; =====================================================================
 ; Include Tali itself along with all its built-in words
-
-* = $2000
-.logical $4000
-
 .include "../../taliforth.asm"
 
 ; Now we've got all of Tali's native code.  This requires about 24Kb

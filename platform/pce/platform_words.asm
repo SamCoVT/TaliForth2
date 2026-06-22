@@ -23,3 +23,8 @@ prev_nt := 0
 ; z_myword:
 ;     rts
 
+
+.include "./dev/pce_hardware.asm"
+.include "./dev/memory_util.asm"
+;.include "./dev/video_util.asm"
+;.include "./dev/joy_util.asm"
