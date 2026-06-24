@@ -72,7 +72,7 @@ C65=$(C65_DIR)/c65
 
 all: taliforth-py65mon.bin docs/WORDLIST.md
 clean:
-	$(RM) *.bin *.prg
+	$(RM) *.bin *.prg platform/pce/*.pce
 	make -C $(C65_DIR) clean
 
 platforms:
@@ -94,7 +94,7 @@ taliforth-pce${_VARIANT}.bin: platform/pce/*.asm platform/pce/*/*.asm platform/p
 	--vice-labels \
 	--labels=platform/pce/pce${_VARIANT}-labelmap.txt \
 	-D VARIANT:=\"${VARIANT}\" \
-	--output taliforth.pce \
+	--output platform/pce/taliforth.pce \
 	$<
 	python3 tools/sort_vice_labels.py platform/pce/pce${_VARIANT}-labelmap.txt
 

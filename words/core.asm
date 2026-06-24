@@ -5815,24 +5815,24 @@ to_runtime:     ; ( n xt )
         ; body to return n.  Body can be either native LDY#/LDA# (poke LSB/MSB
         ; of n @ xt+3,+1) or non-native JSR literal / .word  (poke at +3,+4)
 
-                lda (0,x)               ; fetch opcode at XT
+                lda (zpage+0,x)               ; fetch opcode at XT
                 cmp #$21                ; C=1 native ($A0), C=0 non-native ($20)
 
-                lda 0,x                 ; XT -> tmp1
+                lda zpage+0,x                 ; XT -> tmp1
                 sta tmp1
-                lda 1,x
+                lda zpage+1,x
                 sta tmp1+1
 
                 ; Poke LSB at XT+3 (same for both layouts)
                 ldy #3
-                lda 2,x                 ; LSB of n
+                lda zpage+2,x                 ; LSB of n
                 sta (tmp1),y
 
                 ; Poke MSB at XT+1 (native) or XT+4 (non-native)
                 bcc +                   ; C=0 -> non-native
                 ldy #0                  
 +               iny                     ; Y = 3+1 (NN) or 0+1 (native)
-                lda 3,x                 ; MSB of n
+                lda zpage+3,x                 ; MSB of n
                 sta (tmp1),y
 
                 ; Clean up stack: drop XT and n
