@@ -33,9 +33,6 @@ decimal
 : d= ( d1 d2 -- f )
     rot = -rot = and ;
 
-: d<> ( d1 d2 -- f )
-    rot <> -rot <> or ;
-
 : d<    ( d -- f ) rot 2dup = if ( use LSBs ) 2drop <
    else ( use MSBs ) 2swap 2drop > then ;
 
