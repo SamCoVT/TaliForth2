@@ -156,7 +156,7 @@ push_pfa:
         ; the Data Field (PFA) onto the stack. This is called with JSR so we
         ; can pick up the address of the calling variable off the 65c02's
         ; stack. The final RTS takes us to the original caller of the
-        ; routine that itself called push_pfa. 
+        ; routine that itself called push_pfa.
         ; """
                 ; Pull the return address off the machine's stack, adding
                 ; one because of the way the 65c02 handles subroutines
@@ -525,44 +525,6 @@ _next_nt:
 _done:
                 rts
 
-
-compare_16bit:
-        ; """Compare TOS/NOS and return results in form of the 65c02 flags
-        ; Adapted from Leventhal "6502 Assembly Language Subroutines", see
-        ; also http://www.6502.org/tutorials/compare_beyond.html
-        ; For signed numbers, Z signals equality and N which number is larger:
-        ;       if TOS = NOS: Z=1 and N=0
-        ;       if TOS > NOS: Z=0 and N=0
-        ;       if TOS < NOS: Z=0 and N=1
-        ; For unsigned numbers, Z signals equality and C which number is larger:
-        ;       if TOS = NOS: Z=1 and N=0
-        ;       if TOS > NOS: Z=0 and C=1
-        ;       if TOS < NOS: Z=0 and C=0
-        ; Compared to the book routine, WORD1 (MINUEND) is TOS
-        ;                               WORD2 (SUBTRAHEND) is NOS
-        ; """
-                ; Compare LSB first to set the carry flag
-                lda 0,x                 ; LSB of TOS
-                cmp 2,x                 ; LSB of NOS
-                beq _equal
-
-                ; LSBs are not equal, compare MSB
-                lda 1,x                 ; MSB of TOS
-                sbc 3,x                 ; MSB of NOS
-                bvs _overflow
-                bra _not_equal
-_equal:
-                ; Low bytes are equal, so we compare high bytes
-                lda 1,x                 ; MSB of TOS
-                sbc 3,x                 ; MSB of NOS
-                bvc _done
-_overflow:
-                ; Handle overflow because we use signed numbers
-                eor #$80                ; complement negative flag
-_not_equal:
-                ora #1                  ; set Z=0 since we're not equal
-_done:
-                rts
 
 current_to_dp:
         ; """Look up the current (compilation) dictionary pointer

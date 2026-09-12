@@ -38,23 +38,18 @@ w_dasm:
         sta pc
         lda 3,x
         sta pc+1
-        jsr w_plus
-        dex
-        dex                     ; ( addr' ?? )
+        jsr w_plus              ; ( addr_end )
         jsr w_cr
 -
-        phx
+        phx                     ; preserve data stack ptr
         jsr d65c
         plx
         lda pc
-        sta 0,x
+        cmp 0,x
         lda pc+1
-        sta 1,x
-        jsr compare_16bit
+        sbc 1,x                 ; C=1 if PC >= addr_end
         bcc -
 
-        inx
-        inx
         inx
         inx
 z_dasm:

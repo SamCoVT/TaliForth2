@@ -494,39 +494,44 @@ w_allot:
 _release:
    		; The ANS standard doesn't really say what to do if too much
                 ; memory is freed ("negatively alloted"). In fact, there isn't
-                ; even an official test. Gforth is little help either. The good
+                ; even an official test. GForth is little help either. The good
                 ; news is, this is going to be a rare case. We want to use as
                 ; few bytes as possible.
 
                 ; What we do is let the user free anything up to the beginning
-                ; of the RAM area assigned to the Dicionary (CP0), but at
+                ; of the RAM area assigned to the Dictionary (CP0), but at
                 ; their own risk. This means that the Dictionary pointer DP
                 ; might end up pointing to garbage. However, an attempt to
                 ; free more than RAM than CP0 will lead to CP being set to CP0,
                 ; the DP pointing to the last word in RAM (should be DROP) and
                 ; an error message.
 
-                ; We arrive here with ( n ) which is negative. First step,
-                ; subtract the number TOS from the CP for a new CP
+                ; Note: using CP0 clobbers the user vars and block buffer,
+                ; it might be safer to simply cold start here,
+                ; or use the starting CP value from cold_zp_table as the lower bound?
+
+                ; We arrive here with ( n ) which is negative, but we need to be
+                ; careful as CP and CP0 are unsigned addresses (CP > $8000 could happen).
+                ; We can't just update CP to CP+N and compare to CP0: for example,
+                ; CP0 = $400, N = -$800 is bad when CP = $600 but ok when CP = $9600
+                ; but in both cases CP+N > $8000 > CP0.  One approach is to
+                ; calculate CP+N and ensure it's within [CP0, CP)
+
                 lda cp
                 ldy cp+1
-                jsr push_ya_tos
-
-                jsr w_plus                     ; new CP is now TOS
-
-                ; Second step, see if we've gone too far. We compare the new
-                ; CP on TOS (which, if we've really screwed up, might be
-                ; negative) with CP0. This is a signed comparison
-                jsr push_inline_literal         ; ( CP CP0 )
+                jsr push_ya_tos                 ; ( N CP )
+                jsr w_plus                      ; add the negative offset to update CP
+                dex
+                dex                             ; undrop CP leaving ( N+CP CP )
+                jsr w_over                      ; ( N+CP CP N+CP )
+                jsr push_inline_literal
                 .word cp0
-                jsr compare_16bit               ; still ( CP CP0 )
+                jsr w_rot                       ; ( N+CP N+CP CP0 CP )
+                jsr w_within                    ; ( N+CP f )  test CP+N within [CP0, CP)
+                lda 0,x
+                bne _nega_done                   ; if flag is true, we're ok with new CP NOS
 
-                ; If CP (NOS) is smaller than CP0 (TOS), we're in trouble.
-                ; This means we want Z=1 or N=1
-                beq _nega_done
-                bmi _nega_done
-
-                ; Yep, we're in trouble. Set CP to CP0, set DP to the first
+                ; Otherwise we're in trouble. Set CP to CP0, set DP to the first
                 ; word in ROM (should be DROP), and abort with an error
                 lda #<cp0
                 sta cp
@@ -548,8 +553,8 @@ _nega_done:
                 lda 3,x
                 sta cp+1
 
+                inx                     ; drop flag and fall thru to _done
                 inx
-                inx                     ; drop through to _done
 _done:
                 inx
                 inx
@@ -2546,22 +2551,21 @@ z_evaluate:     rts
 xt_greater_than:
                 jsr underflow_2
 w_greater_than:
-                ldy #0          ; default false
-                jsr compare_16bit
-
-                ; for signed numbers, NOS>TOS gives us Z=0 and N=1
-                beq _false
-                bpl _false
-
-                ; true
+                ldy #0
+                lda 0,x
+                cmp 2,x
+                lda 1,x
+                sbc 3,x
+                bvc +           ; if V = 0 then N eor V is just N
+                eor #$80        ; otherwise N eor V is N eor 1
++
+                bpl +           ; NUM1 >= NUM2
                 dey
-_false:
-                tya
-
++
                 inx
                 inx
-                sta 0,x
-                sta 1,x
+                sty 0,x
+                sty 1,x
 
 z_greater_than: rts
 
@@ -2909,22 +2913,21 @@ z_less_number_sign:
 xt_less_than:
                 jsr underflow_2
 w_less_than:
-                ldy #0          ; default false
-                jsr compare_16bit
-
-                ; for signed numbers, NOS < TOS if Z=0 and N=0
-                beq _false
-                bmi _false
-
-                ; true
+                ldy #0
+                lda 2,x
+                cmp 0,x
+                lda 3,x
+                sbc 1,x
+                bvc +           ; if V = 0 then N eor V is just N
+                eor #$80        ; otherwise N eor V is N eor 1
++
+                bpl +           ; NUM1 >= NUM2
                 dey
-_false:
-                tya
-
++
                 inx
                 inx
-                sta 0,x
-                sta 1,x
+                sty 0,x
+                sty 1,x
 
 z_less_than:    rts
 
@@ -5836,7 +5839,7 @@ to_runtime:     ; ( n xt )
 
                 ; Poke MSB at XT+1 (native) or XT+4 (non-native)
                 bcc +                   ; C=0 -> non-native
-                ldy #0                  
+                ldy #0
 +               iny                     ; Y = 3+1 (NN) or 0+1 (native)
                 lda 3,x                 ; MSB of n
                 sta (tmp1),y

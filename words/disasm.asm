@@ -351,23 +351,27 @@ _no_prefix:
                 plp                         ; was it a string?
                 bne _skip_payload
 
-                ; for a string we'll show up to 15 characters
-                ; with ... if it's too long
+                ; for a string we'll show up to 15 characters, with ellipses if it's too long
+
                 ; ( addr u saddr n )
 
-                ; print up to 15 chars of the string
-                jsr push_inline_bliteral
-                .byte 15
-                jsr compare_16bit   ; check if string length > 15 (sets C=0)
-                php
-                jsr w_min
+                lda 0,x
+                and #$f0            ; check high 12 bits
+                ora 1,x
+                php                 ; non-zero if >15 char
+                beq +
+
+                stz 1,x
+                lda #12             ; long label shows first 12 chars plus ...
+                sta 0,x
++
                 jsr w_type          ; print up to 15 characters
                 plp
-                bcs _skip_payload   ; did we truncate?
+                beq _skip_payload   ; did we truncate?
 
                 ldy #3
 -
-                lda #'.'            ; show ...
+                lda #'.'            ; add "..."
                 jsr emit_a
                 dey
                 bne -
