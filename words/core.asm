@@ -451,7 +451,7 @@ z_aligned:
         ; If n = 0, do nothing. If n is positive (the most common case),
         ; reserve n bytes, but not past the end of the Dictionary (cp_end).
         ; If n is negative, release n bytes, but not below cp0,
-        ; to protect the RAM system variables and block buffer.  If the
+        ; to protect the user variables and block buffer.  If the
         ; request is out of range we leave CP unchanged and abort with
         ; an error.
         ;
