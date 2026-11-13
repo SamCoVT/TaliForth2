@@ -444,6 +444,6 @@ were freed. This is Forth, you're the boss.
 
 However, any attempt to free more memory than that (or to reserve more than is
 available) will leave the Compiler Pointer `cp` unchanged and abort with an error
-message. Memory below `cp0`, holding the RAM system variables and the block
-buffer, is never freed.
+message. Memory below `cp0`, holding the user variables and the block
+buffer (if any), is never freed.
 

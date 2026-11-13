@@ -142,7 +142,7 @@ user0     = $0010          ; user and system variables
 ram_end   = $D000-1        ; end of installed RAM
 hist_buff = $E000          ; begin of "RAM under kernel"
 
-up0       = tali_end       ; RAM System Variables (then Dictionary) start after code
+up0       = tali_end       ; user variables (then Dictionary) start after code
 cp_end    = ram_end        ; Last RAM byte available for code
 
 .include "../../taliforth.asm" ; zero page variables, definitions

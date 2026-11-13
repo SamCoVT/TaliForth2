@@ -50,22 +50,27 @@ hist_buff = ram_end-$03ff   ; begin of history buffers
 
 ; SOFT PHYSICAL ADDRESSES
 
-; Tali currently doesn't have separate user variables for multitasking. To
-; prepare for this, though, we've already named the location of the user's
-; Zero-Page System Variables user0. Note up0 starts one byte further down so
-; that it currently has the address $300 and not $2FF. This avoids crossing
-; the page boundry when accessing the RAM System Variables table, which would
-; cost an extra cycle.
+; Tali keeps its variables in two areas: frequently used ones in zero page
+; starting at user0, and the rest in the user variables page at up, which are
+; accessed by offset from up.  Tali doesn't support multitasking yet, but both
+; areas are intended to be per-task.  Note up0 starts one byte after the last
+; byte of the input buffer (buffer0+bsize), so that it is page aligned at $300
+; rather than $2FF. This avoids crossing the page boundary when accessing the
+; user variables table, which would cost an extra cycle.
 
 rsp0      = $ff             ; initial Return Stack Pointer (65c02 stack)
 bsize     = $ff             ; size of input/output buffers
 
 .weak
-user0     = zpage           ; start of TaliForth2 system variables
+user0     = zpage           ; start of TaliForth2 zero page variables
 buffer0   = stack0+$100     ; input buffer ($0200-$02ff)
-up0       = buffer0+bsize+1 ; RAM System Variables start after last buffer
-cp0       = up0+256+1024    ; Dictionary starts after the RAM System Variables
-                            ; and BLOCK buffer.  ALLOT won't free memory below cp0.
+up0       = buffer0+bsize+1 ; user variables page starts after last buffer
+blkbuffer0 = up0+256        ; BLOCK buffer (if any) follows the user page
+.if "block" in TALI_OPTIONAL_WORDS
+cp0       = blkbuffer0+1024 ; Dictionary follows the BLOCK buffer if defined,
+.else
+cp0       = blkbuffer0      ; else the user page.  ALLOT won't free below cp0.
+.endif
 .if TALI_OPTION_HISTORY
 cp_end    = hist_buff       ; Last RAM byte available for code
 .else
@@ -200,7 +205,7 @@ tmped:      .word ?,?,?     ; temporary for editors
 cold_zp_table_end:
 
 
-; RAM System Variables
+; User Variables
 
 ; This table defines the initial values for forth user variables above zero page,
 ; which are relocated to 'up' (defaulting to up0) by COLD.
@@ -237,7 +242,7 @@ marker_end_offset:
 .if "block" in TALI_OPTIONAL_WORDS
 ; Block buffer variables
 
-blkbuffer_offset:       .word up0+256   ; Address of buffer (right after USER vars)
+blkbuffer_offset:       .word blkbuffer0 ; Address of buffer (right after USER vars)
 buffblocknum_offset:    .word 0         ; Block number current in buffer
 buffstatus_offset:      .word 0         ; Buffer status (bit 0 = used, bit 1 = dirty) (not in use)
 
@@ -248,6 +253,8 @@ blockwrite_offset:      .word xt_block_word_error   ; Vector to block writing ro
 .endif
     .endlogical
 cold_user_table_end:
+
+.cerror cold_user_table_end-cold_user_table > blkbuffer0-up0, "user variables overflow the user page"
 
 
 ; ASCII CHARACTERS
